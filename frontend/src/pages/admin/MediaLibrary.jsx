@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { Upload, Search, Trash2, Copy, Check, Eye, X, Image as ImageIcon, File, Loader2 } from 'lucide-react';
+import { 
+  Upload, Search, Trash2, Copy, Check, Eye, X, 
+  Image as ImageIcon, Loader2, AlertTriangle, AlertCircle 
+} from 'lucide-react';
 
 export default function MediaLibrary() {
   const [media, setMedia] = useState([]);
@@ -11,6 +14,11 @@ export default function MediaLibrary() {
   const [copiedId, setCopiedId] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
   const [notice, setNotice] = useState('');
+
+  // Delete modal state
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const fetchMedia = async (query = '') => {
     try {
@@ -62,13 +70,25 @@ export default function MediaLibrary() {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`Delete "${item.fileName}"? Content using this URL might be affected.`)) return;
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    setDeleteError('');
     try {
-      await adminApi.deleteMedia(item.id);
-      fetchMedia(search);
+      await adminApi.deleteMedia(itemToDelete.id);
+      // Immediately remove from state
+      setMedia((prev) => prev.filter((m) => m.id !== itemToDelete.id));
+      // Close preview if it's the deleted item
+      if (previewItem?.id === itemToDelete.id) {
+        setPreviewItem(null);
+      }
+      setNotice(`"${itemToDelete.fileName}" was deleted successfully.`);
+      setTimeout(() => setNotice(''), 3500);
+      setItemToDelete(null);
     } catch (err) {
-      alert(err.message);
+      setDeleteError(err.message || 'Failed to delete photo from the database.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -101,8 +121,8 @@ export default function MediaLibrary() {
       </div>
 
       {notice && (
-        <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2 border border-emerald-200">
-          <Check className="w-4 h-4" />
+        <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2 border border-emerald-200 animate-in fade-in duration-200">
+          <Check className="w-4 h-4 shrink-0" />
           <span>{notice}</span>
         </div>
       )}
@@ -153,23 +173,36 @@ export default function MediaLibrary() {
                 />
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                   <button
-                    onClick={() => setPreviewItem(item)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPreviewItem(item);
+                    }}
                     className="p-2 rounded-xl bg-white/20 hover:bg-white text-stone-800 hover:text-stone-900 backdrop-blur-xs transition-colors"
                     title="Preview"
                   >
                     <Eye className="w-4 h-4 text-white hover:text-stone-900" />
                   </button>
                   <button
-                    onClick={() => copyUrl(item.fileUrl, item.id)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyUrl(item.fileUrl, item.id);
+                    }}
                     className="p-2 rounded-xl bg-white/20 hover:bg-white text-stone-800 hover:text-stone-900 backdrop-blur-xs transition-colors"
                     title="Copy URL"
                   >
                     {copiedId === item.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-white hover:text-stone-900" />}
                   </button>
                   <button
-                    onClick={() => handleDelete(item)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteError('');
+                      setItemToDelete(item);
+                    }}
                     className="p-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition-colors"
-                    title="Delete"
+                    title="Delete Photo"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -193,7 +226,7 @@ export default function MediaLibrary() {
       {/* PREVIEW MODAL */}
       {previewItem && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setPreviewItem(null)}
         >
           <div
@@ -204,7 +237,11 @@ export default function MediaLibrary() {
               <h3 className="text-sm font-bold text-stone-900 truncate pr-4">
                 {previewItem.fileName}
               </h3>
-              <button onClick={() => setPreviewItem(null)} className="p-1 text-stone-400 hover:text-stone-700">
+              <button 
+                type="button"
+                onClick={() => setPreviewItem(null)} 
+                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -215,17 +252,129 @@ export default function MediaLibrary() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <div className="space-y-2 text-xs text-stone-600">
-              <p><span className="font-bold text-stone-800">Direct URL:</span> <code className="text-amber-800 bg-amber-50 px-1 py-0.5 rounded break-all">{previewItem.fileUrl}</code></p>
-              <div className="flex items-center justify-end pt-2">
+            <div className="space-y-3 text-xs text-stone-600">
+              <p>
+                <span className="font-bold text-stone-800">Direct URL:</span>{' '}
+                <code className="text-amber-800 bg-amber-50 px-1 py-0.5 rounded break-all">{previewItem.fileUrl}</code>
+              </p>
+              <div className="flex items-center justify-between pt-2 border-t border-stone-100">
                 <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteError('');
+                    setItemToDelete(previewItem);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold uppercase tracking-wider border border-rose-200 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Photo</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => copyUrl(previewItem.fileUrl, previewItem.id)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#800020] text-white text-xs font-bold uppercase tracking-wider"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-colors"
                 >
                   <Copy className="w-3.5 h-3.5" />
                   <span>Copy Image URL</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {itemToDelete && (
+        <div
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => !isDeleting && setItemToDelete(null)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-serif-heading text-lg font-bold text-stone-900">
+                  Delete Photo?
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  This photo will be permanently removed from the database.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => !isDeleting && setItemToDelete(null)}
+                disabled={isDeleting}
+                className="p-1 text-stone-400 hover:text-stone-700 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target Item Details */}
+            <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 flex items-center gap-3 mb-4">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-stone-200 shrink-0 border border-stone-300">
+                <img
+                  src={resolveMediaUrl(itemToDelete.fileUrl)}
+                  alt={itemToDelete.fileName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1 text-xs">
+                <p className="font-bold text-stone-800 truncate" title={itemToDelete.fileName}>
+                  {itemToDelete.fileName}
+                </p>
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-stone-500">
+                  <span>{itemToDelete.fileSize ? `${Math.round(itemToDelete.fileSize / 1024)} KB` : ''}</span>
+                  <span>•</span>
+                  <span className="uppercase font-semibold text-stone-600">{itemToDelete.storageProvider}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-3.5 mb-6 text-xs text-amber-900 leading-relaxed">
+              <p className="font-semibold mb-0.5">⚠️ Caution</p>
+              <p>Any announcements, events, or pages currently using this photo URL will no longer be able to display it.</p>
+            </div>
+
+            {deleteError && (
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setItemToDelete(null)}
+                className="px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-50 text-stone-700 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all disabled:opacity-60 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Yes, Delete Photo</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
