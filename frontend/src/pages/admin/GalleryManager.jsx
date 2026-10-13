@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
-import { Image as ImageIcon, Plus, Edit, Trash2, Check, X, Folder, Eye } from 'lucide-react';
+import ImageUploadInput from '../../components/admin/ImageUploadInput';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { Image as ImageIcon, Plus, Edit, Trash2, Check, X, Folder, Eye, Upload, Loader2 } from 'lucide-react';
 
 export default function GalleryManager() {
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [albumImages, setAlbumImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bulkUploading, setBulkUploading] = useState(false);
 
   // Modals
   const [albumModalOpen, setAlbumModalOpen] = useState(false);
@@ -125,6 +128,33 @@ export default function GalleryManager() {
     }
   };
 
+  const handleBulkUploadPhotos = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !selectedAlbum) return;
+
+    setBulkUploading(true);
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('altText', file.name);
+        const res = await adminApi.uploadMedia(formData);
+        const mediaData = res?.data || res;
+        const url = mediaData?.fileUrl || (typeof mediaData === 'string' ? mediaData : '');
+        if (url) {
+          const caption = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          await adminApi.addAlbumImage(selectedAlbum.id, { imageUrl: url, caption });
+        }
+      }
+      selectAlbum(selectedAlbum);
+    } catch (err) {
+      alert('Upload error: ' + err.message);
+    } finally {
+      setBulkUploading(false);
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -211,20 +241,34 @@ export default function GalleryManager() {
                     {selectedAlbum.description || 'Album photographs and captions'}
                   </p>
                 </div>
-                <button
-                  onClick={() => setImageModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-wider shadow-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Photo</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <label className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-xs cursor-pointer transition-all">
+                    {bulkUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <span>{bulkUploading ? 'Uploading...' : 'Upload Photos'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      disabled={bulkUploading}
+                      onChange={handleBulkUploadPhotos}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={() => setImageModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold uppercase tracking-wider shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add by URL</span>
+                  </button>
+                </div>
               </div>
 
               {albumImages.length === 0 ? (
                 <div className="text-center py-16 text-stone-400">
                   <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-30" />
                   <p className="text-sm font-medium">No photos in this album yet.</p>
-                  <p className="text-xs">Click "Add Photo" to insert church photographs.</p>
+                  <p className="text-xs">Click "Upload Photos" to add church pictures from your device.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -234,7 +278,7 @@ export default function GalleryManager() {
                       className="group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shadow-xs"
                     >
                       <img
-                        src={img.imageUrl}
+                        src={resolveMediaUrl(img.imageUrl)}
                         alt={img.caption || 'Album image'}
                         className="w-full h-full object-cover"
                       />
@@ -295,15 +339,12 @@ export default function GalleryManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Cover Image URL
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Album Cover Photo"
                   value={albumFormData.coverImageUrl}
-                  onChange={(e) => setAlbumFormData({ ...albumFormData, coverImageUrl: e.target.value })}
-                  placeholder="https://... or upload in Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  onChange={(url) => setAlbumFormData({ ...albumFormData, coverImageUrl: url })}
+                  placeholder="Upload cover photo or enter URL..."
+                  helpText="Cover image saved directly to the database."
                 />
               </div>
 
@@ -354,16 +395,13 @@ export default function GalleryManager() {
 
             <form onSubmit={handleAddImage} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Photo URL <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Photo"
                   required
                   value={imageFormData.imageUrl}
-                  onChange={(e) => setImageFormData({ ...imageFormData, imageUrl: e.target.value })}
-                  placeholder="https://... or copy from Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]"
+                  onChange={(url) => setImageFormData({ ...imageFormData, imageUrl: url })}
+                  placeholder="Upload photo or enter URL..."
+                  helpText="Photo saved directly to the database."
                 />
               </div>
 

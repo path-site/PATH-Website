@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { ArrowRight, Church } from 'lucide-react';
 
 export default function WelcomeSection({ config = {} }) {
@@ -85,7 +86,7 @@ export default function WelcomeSection({ config = {} }) {
             <div className={`relative ${isImageLeft ? 'lg:order-1' : 'lg:order-2'}`}>
               <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 aspect-4/3 lg:aspect-5/4 img-zoom-hover card-lift">
                 <img
-                  src={imageUrl}
+                  src={resolveMediaUrl(imageUrl)}
                   alt={heading}
                   className="w-full h-full object-cover object-center"
                   loading="lazy"

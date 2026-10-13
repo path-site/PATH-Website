@@ -1,6 +1,9 @@
 package com.path.parish.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,7 +20,7 @@ public class MediaFile {
     @Column(nullable = false, length = 1000)
     private String fileUrl;
 
-    private String storageProvider; // LOCAL, CLOUDINARY
+    private String storageProvider; // DATABASE, LOCAL, CLOUDINARY
 
     private String mimeType;
 
@@ -28,6 +31,10 @@ public class MediaFile {
     private String caption;
 
     private String uploadedBy;
+
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "file_data")
+    private byte[] fileData;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -68,4 +75,8 @@ public class MediaFile {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @JsonIgnore
+    public byte[] getFileData() { return fileData; }
+    public void setFileData(byte[] fileData) { this.fileData = fileData; }
 }

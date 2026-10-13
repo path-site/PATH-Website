@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { ArrowLeft, Calendar, Clock, MapPin, ExternalLink, Share2, Church } from 'lucide-react';
 
 export default function EventDetailPage() {
@@ -137,7 +138,7 @@ export default function EventDetailPage() {
         {event.eventImageUrl && (
           <div className="mb-10 rounded-2xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100 aspect-16/9">
             <img
-              src={event.eventImageUrl}
+              src={resolveMediaUrl(event.eventImageUrl)}
               alt={event.title}
               className="w-full h-full object-cover"
             />

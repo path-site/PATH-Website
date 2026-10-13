@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Layers, Maximize2 } from 'lucide-react';
 
 export default function GalleryPage() {
@@ -130,7 +131,7 @@ export default function GalleryPage() {
                 className="group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs hover:shadow-xl cursor-pointer transition-all duration-300 border border-stone-200/60"
               >
                 <img
-                  src={img.imageUrl}
+                  src={resolveMediaUrl(img.imageUrl)}
                   alt={img.caption || 'Parish photo'}
                   className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                   loading="lazy"
@@ -194,7 +195,7 @@ export default function GalleryPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={activePhotos[lightboxIndex].imageUrl}
+              src={resolveMediaUrl(activePhotos[lightboxIndex].imageUrl)}
               alt={activePhotos[lightboxIndex].caption || 'Full view'}
               className="max-h-[75vh] max-w-full rounded-xl object-contain shadow-2xl"
             />

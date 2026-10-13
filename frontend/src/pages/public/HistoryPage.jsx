@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Clock, Calendar, Church, ArrowDown } from 'lucide-react';
 
 export default function HistoryPage() {
@@ -86,7 +87,7 @@ export default function HistoryPage() {
                   {item.imageUrl && (
                     <div className="rounded-2xl overflow-hidden aspect-16/9 bg-stone-100 border border-stone-100 shadow-xs img-zoom-hover">
                       <img
-                        src={item.imageUrl}
+                        src={resolveMediaUrl(item.imageUrl)}
                         alt={item.title}
                         className="w-full h-full object-cover"
                         loading="lazy"

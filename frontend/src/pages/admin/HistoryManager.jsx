@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
+import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { History, Plus, Edit, Trash2, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 
 export default function HistoryManager() {
@@ -228,15 +229,12 @@ export default function HistoryManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Historical Photograph URL
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Historical Photograph"
                   value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://... or upload in Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  placeholder="Upload historical photo or enter URL..."
+                  helpText="Upload a milestone photo directly to the database."
                 />
               </div>
 

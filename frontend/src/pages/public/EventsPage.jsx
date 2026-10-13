@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Calendar, Clock, MapPin, ArrowRight, Tag } from 'lucide-react';
 
 export default function EventsPage() {
@@ -106,7 +107,7 @@ export default function EventsPage() {
                   <div className="relative aspect-16/10 w-full bg-stone-100 overflow-hidden img-zoom-hover">
                     {evt.eventImageUrl ? (
                       <img
-                        src={evt.eventImageUrl}
+                        src={resolveMediaUrl(evt.eventImageUrl)}
                         alt={evt.title}
                         className="w-full h-full object-cover"
                         loading="lazy"

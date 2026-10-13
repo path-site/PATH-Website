@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
+import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { Calendar, Plus, Edit, Trash2, Eye, EyeOff, Check, X, Clock, MapPin } from 'lucide-react';
 
 export default function EventManager() {
@@ -301,15 +302,12 @@ export default function EventManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Poster Image URL
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Poster / Banner Image"
                   value={formData.eventImageUrl}
-                  onChange={(e) => setFormData({ ...formData, eventImageUrl: e.target.value })}
-                  placeholder="https://... or upload in Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  onChange={(url) => setFormData({ ...formData, eventImageUrl: url })}
+                  placeholder="Upload poster or enter URL..."
+                  helpText="Upload an event flyer or photo directly to the database."
                 />
               </div>
 

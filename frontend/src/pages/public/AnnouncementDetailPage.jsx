@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { ArrowLeft, Calendar, User, Tag, Share2, Church } from 'lucide-react';
 
 export default function AnnouncementDetailPage() {
@@ -122,7 +123,7 @@ export default function AnnouncementDetailPage() {
         {announcement.featuredImageUrl && (
           <div className="mb-10 rounded-2xl overflow-hidden shadow-lg border border-stone-200 bg-stone-100 aspect-16/9">
             <img
-              src={announcement.featuredImageUrl}
+              src={resolveMediaUrl(announcement.featuredImageUrl)}
               alt={announcement.title}
               className="w-full h-full object-cover"
             />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Church, ArrowRight, Calendar } from 'lucide-react';
 
 export default function PriestCardsSection({ config = {} }) {
@@ -80,7 +81,7 @@ export default function PriestCardsSection({ config = {} }) {
                 <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative img-zoom-hover">
                   {p.portraitImageUrl ? (
                     <img
-                      src={p.portraitImageUrl}
+                      src={resolveMediaUrl(p.portraitImageUrl)}
                       alt={p.fullName}
                       className="w-full h-full object-cover object-top"
                       loading="lazy"

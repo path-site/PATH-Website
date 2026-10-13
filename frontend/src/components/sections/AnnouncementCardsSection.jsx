@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Calendar, ArrowRight, BookOpen } from 'lucide-react';
 
 export default function AnnouncementCardsSection({ config = {} }) {
@@ -90,7 +91,7 @@ export default function AnnouncementCardsSection({ config = {} }) {
                 <div className="relative aspect-16/9 w-full bg-stone-100 overflow-hidden img-zoom-hover">
                   {ann.featuredImageUrl ? (
                     <img
-                      src={ann.featuredImageUrl}
+                      src={resolveMediaUrl(ann.featuredImageUrl)}
                       alt={ann.title}
                       className="w-full h-full object-cover"
                       loading="lazy"

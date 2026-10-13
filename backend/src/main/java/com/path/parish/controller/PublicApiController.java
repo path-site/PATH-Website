@@ -2,7 +2,10 @@ package com.path.parish.controller;
 
 import com.path.parish.dto.ApiResponse;
 import com.path.parish.model.*;
+import com.path.parish.repository.MediaFileRepository;
 import com.path.parish.service.PublicContentService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +18,11 @@ import java.util.Map;
 public class PublicApiController {
 
     private final PublicContentService publicContentService;
+    private final MediaFileRepository mediaFileRepository;
 
-    public PublicApiController(PublicContentService publicContentService) {
+    public PublicApiController(PublicContentService publicContentService, MediaFileRepository mediaFileRepository) {
         this.publicContentService = publicContentService;
+        this.mediaFileRepository = mediaFileRepository;
     }
 
     @GetMapping("/navigation")
@@ -98,5 +103,25 @@ public class PublicApiController {
             return ResponseEntity.badRequest().body(ApiResponse.error("Please fill in all required fields."));
         }
         return ResponseEntity.ok(ApiResponse.ok("Thank you! Your message has been sent to the parish office.", "SENT"));
+    }
+
+    @GetMapping("/media/{id}")
+    public ResponseEntity<byte[]> getMediaFile(@PathVariable Long id) {
+        return mediaFileRepository.findById(id)
+                .filter(mf -> mf.getFileData() != null && mf.getFileData().length > 0)
+                .map(mf -> {
+                    MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+                    if (mf.getMimeType() != null) {
+                        try {
+                            mediaType = MediaType.parseMediaType(mf.getMimeType());
+                        } catch (Exception ignored) {}
+                    }
+                    return ResponseEntity.ok()
+                            .contentType(mediaType)
+                            .header(HttpHeaders.CACHE_CONTROL, "public, max-age=604800, immutable")
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + mf.getFileName() + "\"")
+                            .body(mf.getFileData());
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

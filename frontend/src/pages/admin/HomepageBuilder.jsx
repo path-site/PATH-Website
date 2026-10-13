@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi, publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { 
   ArrowUp, ArrowDown, Eye, EyeOff, Edit, Copy, Trash2, 
   Plus, Check, X, LayoutTemplate, ExternalLink, AlertCircle,
@@ -46,7 +47,7 @@ function VisualImageInput({ label, value, onChange, placeholder = "Image URL or 
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         {value ? (
           <div className="w-16 h-16 rounded-xl border border-stone-200 overflow-hidden shrink-0 bg-stone-100 shadow-xs relative group">
-            <img src={value} alt="Preview" className="w-full h-full object-cover" />
+            <img src={resolveMediaUrl(value)} alt="Preview" className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={() => onChange('')}

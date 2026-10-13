@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Church, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
 
 export default function AboutPreviewSection({ config = {} }) {
@@ -24,7 +25,7 @@ export default function AboutPreviewSection({ config = {} }) {
             {imageUrl ? (
               <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 aspect-4/3 img-zoom-hover card-lift">
                 <img
-                  src={imageUrl}
+                  src={resolveMediaUrl(imageUrl)}
                   alt="About the Parish"
                   className="w-full h-full object-cover"
                   loading="lazy"

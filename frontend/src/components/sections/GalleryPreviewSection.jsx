@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Image as ImageIcon, ArrowRight } from 'lucide-react';
 
 export default function GalleryPreviewSection({ config = {} }) {
@@ -90,7 +91,7 @@ export default function GalleryPreviewSection({ config = {} }) {
                 className={`group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 4) + 1} img-zoom-hover cursor-pointer`}
               >
                 <img
-                  src={img.imageUrl}
+                  src={resolveMediaUrl(img.imageUrl)}
                   alt={img.caption || 'Parish photo'}
                   className="w-full h-full object-cover"
                   loading="lazy"

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
+import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { 
   Bell, Plus, Edit, Trash2, Eye, EyeOff, Archive, Check, X, 
   Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox 
@@ -634,15 +635,12 @@ export default function AnnouncementManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Featured Image URL (Optional)
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Featured Image (Optional)"
                   value={formData.featuredImageUrl}
-                  onChange={(e) => setFormData({ ...formData, featuredImageUrl: e.target.value })}
-                  placeholder="https://... or select from Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  onChange={(url) => setFormData({ ...formData, featuredImageUrl: url })}
+                  placeholder="Upload photo or enter URL..."
+                  helpText="Upload a poster or photo directly to the database."
                 />
               </div>
 

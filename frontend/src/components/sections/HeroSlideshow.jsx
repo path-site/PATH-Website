@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HeroSlideshow({ config = {} }) {
@@ -52,7 +53,7 @@ export default function HeroSlideshow({ config = {} }) {
         >
           {slide.imageUrl ? (
             <img
-              src={slide.imageUrl}
+              src={resolveMediaUrl(slide.imageUrl)}
               alt={slide.title || 'Parish slide'}
               className="w-full h-full object-cover object-center scale-105 transform transition-transform duration-[8000ms] ease-out motion-safe:scale-100"
               loading={idx === 0 ? 'eager' : 'lazy'}

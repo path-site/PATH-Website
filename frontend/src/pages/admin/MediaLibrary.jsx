@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
-import { Upload, Search, Trash2, Copy, Check, Eye, X, Image as ImageIcon, File } from 'lucide-react';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { Upload, Search, Trash2, Copy, Check, Eye, X, Image as ImageIcon, File, Loader2 } from 'lucide-react';
 
 export default function MediaLibrary() {
   const [media, setMedia] = useState([]);
@@ -42,8 +43,8 @@ export default function MediaLibrary() {
     setUploading(true);
     try {
       await adminApi.uploadMedia(formData);
-      setNotice('File uploaded successfully!');
-      setTimeout(() => setNotice(''), 3000);
+      setNotice('Photo saved directly to database successfully!');
+      setTimeout(() => setNotice(''), 3500);
       fetchMedia(search);
     } catch (err) {
       alert('Upload failed: ' + err.message);
@@ -54,8 +55,8 @@ export default function MediaLibrary() {
   };
 
   const copyUrl = (url, id) => {
-    // If relative path, prepend host
-    const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+    const resolved = resolveMediaUrl(url);
+    const fullUrl = resolved.startsWith('http') ? resolved : window.location.origin + resolved;
     navigator.clipboard.writeText(fullUrl);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2500);
@@ -145,7 +146,7 @@ export default function MediaLibrary() {
             >
               <div className="relative aspect-square w-full bg-stone-100 overflow-hidden">
                 <img
-                  src={item.fileUrl}
+                  src={resolveMediaUrl(item.fileUrl)}
                   alt={item.fileName}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -209,7 +210,7 @@ export default function MediaLibrary() {
             </div>
             <div className="rounded-2xl overflow-hidden aspect-4/3 bg-stone-100 mb-4">
               <img
-                src={previewItem.fileUrl}
+                src={resolveMediaUrl(previewItem.fileUrl)}
                 alt={previewItem.fileName}
                 className="w-full h-full object-contain"
               />

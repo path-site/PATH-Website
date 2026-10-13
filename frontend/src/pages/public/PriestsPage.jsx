@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Church, Calendar, BookOpen, Clock } from 'lucide-react';
 
 export default function PriestsPage() {
@@ -88,7 +89,7 @@ export default function PriestsPage() {
                       <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative img-zoom-hover">
                         {p.portraitImageUrl ? (
                           <img
-                            src={p.portraitImageUrl}
+                            src={resolveMediaUrl(p.portraitImageUrl)}
                             alt={p.fullName}
                             className="w-full h-full object-cover object-top"
                             loading="lazy"
@@ -152,7 +153,7 @@ export default function PriestsPage() {
                       <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative grayscale group-hover:grayscale-0 transition-all duration-500">
                         {p.portraitImageUrl ? (
                           <img
-                            src={p.portraitImageUrl}
+                            src={resolveMediaUrl(p.portraitImageUrl)}
                             alt={p.fullName}
                             className="w-full h-full object-cover object-top"
                             loading="lazy"

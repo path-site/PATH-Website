@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
+import ImageUploadInput from '../../components/admin/ImageUploadInput';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Users, Plus, Edit, Trash2, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 
 export default function PriestManager() {
@@ -193,7 +195,7 @@ export default function PriestManager() {
               <div className="flex items-center gap-4 mb-4">
                 {p.portraitImageUrl ? (
                   <img
-                    src={p.portraitImageUrl}
+                    src={resolveMediaUrl(p.portraitImageUrl)}
                     alt={p.fullName}
                     className="w-16 h-16 rounded-2xl object-cover ring-2 ring-[#C59B3F]/30 shrink-0"
                   />
@@ -359,15 +361,12 @@ export default function PriestManager() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Portrait Image URL
-                </label>
-                <input
-                  type="text"
+                <ImageUploadInput
+                  label="Portrait Photo"
                   value={formData.portraitImageUrl}
-                  onChange={(e) => setFormData({ ...formData, portraitImageUrl: e.target.value })}
-                  placeholder="https://... or upload in Media Library"
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#A81B2B]"
+                  onChange={(url) => setFormData({ ...formData, portraitImageUrl: url })}
+                  placeholder="Upload priest portrait or enter URL..."
+                  helpText="Upload a clergy portrait directly to the database."
                 />
               </div>
 
