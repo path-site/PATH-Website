@@ -22,6 +22,7 @@ backend/uploads/*
 !backend/data/.gitkeep
 
 # Environment variables
+.env
 .env*.local
 .env.local
 
