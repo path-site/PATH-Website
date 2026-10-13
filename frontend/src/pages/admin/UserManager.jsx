@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import { UserCheck, Plus, CheckCircle2, AlertCircle, Shield, KeyRound, User, Mail, Power } from 'lucide-react';
 
@@ -200,9 +201,9 @@ export default function UserManager() {
       </div>
 
       {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-200">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150">
             <h2 className="text-lg font-serif-heading font-bold text-stone-900 mb-4 flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-[#800020]" />
               {editingUser ? 'Edit Administrator' : 'Create New Administrator'}
@@ -301,7 +302,8 @@ export default function UserManager() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

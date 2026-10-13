@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
@@ -311,9 +312,9 @@ export default function GalleryManager() {
       </div>
 
       {/* CREATE / EDIT ALBUM MODAL */}
-      {albumModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200">
+      {albumModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
               <h3 className="font-serif-heading text-xl font-bold text-stone-900">
                 {editAlbumItem ? 'Edit Album' : 'New Photo Album'}
@@ -377,13 +378,14 @@ export default function GalleryManager() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ADD PHOTO MODAL */}
-      {imageModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200">
+      {imageModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
               <h3 className="font-serif-heading text-xl font-bold text-stone-900">
                 Add Photo to Album
@@ -435,7 +437,8 @@ export default function GalleryManager() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { 
@@ -224,9 +225,9 @@ export default function MediaLibrary() {
       )}
 
       {/* PREVIEW MODAL */}
-      {previewItem && (
+      {previewItem && createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setPreviewItem(null)}
         >
           <div
@@ -280,13 +281,14 @@ export default function MediaLibrary() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* DELETE CONFIRMATION MODAL */}
-      {itemToDelete && (
+      {itemToDelete && createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[110] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => !isDeleting && setItemToDelete(null)}
         >
           <div
@@ -377,7 +379,8 @@ export default function MediaLibrary() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

@@ -582,8 +582,8 @@ export default function HomepageBuilder() {
 
       {/* ADD SECTION MODAL */}
       {isAddModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-stone-200 max-h-[86vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-stone-200 max-h-[86vh] overflow-y-auto animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
               <div>
                 <h3 className="font-serif-heading text-xl font-bold text-stone-900">Add Homepage Section</h3>
@@ -663,7 +663,7 @@ export default function HomepageBuilder() {
 
       {/* EDIT SECTION CONTENT MODAL - 1 SCREEN ARCHITECTURE */}
       {editingSection && createPortal(
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-hidden animate-in fade-in duration-150">
           <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-stone-200 max-h-[86vh] flex flex-col overflow-hidden animate-scale-up">
             
             {/* 1. FIXED MODAL HEADER - ALWAYS VISIBLE */}

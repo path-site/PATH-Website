@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Layers, Maximize2 } from 'lucide-react';
@@ -157,9 +158,9 @@ export default function GalleryPage() {
       </div>
 
       {/* Lightbox Modal */}
-      {lightboxIndex !== null && activePhotos[lightboxIndex] && (
+      {lightboxIndex !== null && activePhotos[lightboxIndex] && createPortal(
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] w-screen h-screen bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
           onClick={closeLightbox}
         >
           {/* Close button */}
@@ -210,7 +211,8 @@ export default function GalleryPage() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
