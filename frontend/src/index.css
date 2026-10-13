@@ -1,0 +1,403 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* PATH Official Warm Ecclesiastical Color Palette */
+    /* Backgrounds: Warm Liturgical Ivory, Champagne, and Parchment */
+    --bg-page: #F7F4EB;          /* Warm Ivory / Church Parchment */
+    --bg-surface: #FFFFFF;       /* Clean Purity White */
+    --bg-card-warm: #FAF7F0;     /* Translucent Warm Cream Container */
+    --bg-card-accent: #F4EEDB;   /* Slightly deeper warm ivory */
+
+    /* Liturgical Antique Gold / Warm Ochre */
+    --brand-gold: #C59B3F;
+    --brand-gold-dark: #9E7722;
+    --brand-gold-light: #F5EEDC;
+    --brand-gold-gradient: linear-gradient(135deg, #DFBE7B 0%, #C59B3F 55%, #A27B27 100%);
+
+    /* Marian Royal Blue */
+    --brand-blue: #0B3B95;
+    --brand-blue-dark: #07225B;
+    --brand-blue-light: #EEF4FF;
+
+    /* Sacred Heart Liturgical Red */
+    --brand-red: #A81B2B;
+    --brand-red-light: #FDF2F4;
+
+    /* Typography & Neutral tones */
+    --text-primary: #1C1814;     /* Deep Warm Bronze-Charcoal */
+    --text-secondary: #443E38;   /* Refined Slate-Bronze */
+    --text-muted: #6B635A;
+    --border-color: rgba(197, 155, 63, 0.28); /* Subtle Gold border */
+
+    /* Typography */
+    --font-heading: 'Cinzel', 'Playfair Display', Georgia, serif;
+    --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+    /* Synced CMS theme properties */
+    --primary-color: var(--brand-red);
+    --secondary-color: var(--brand-blue);
+    --accent-gold: var(--brand-gold);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-serif-heading {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+  }
+
+  /* Refined ecclesiastical scrollbar */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FAF7F0;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D8C39A;
+    border-radius: 9999px;
+    border: 2px solid #FAF7F0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #C59B3F;
+  }
+}
+
+/* ========================================================
+   KEYFRAME ANIMATIONS SYSTEM
+   ======================================================== */
+
+@keyframes pageFadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0.8deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(197, 155, 63, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(197, 155, 63, 0);
+  }
+}
+
+@keyframes pulseRuby {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(168, 27, 43, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(168, 27, 43, 0);
+  }
+}
+
+@keyframes shimmerGold {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes modalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  70% {
+    transform: scale(1.01) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes kenBurnsSlow {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+/* ========================================================
+   ANIMATION UTILITY CLASSES
+   ======================================================== */
+
+.animate-page-enter {
+  animation: pageFadeSlide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-float-slow {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-float-gentle {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.8s infinite;
+}
+
+.animate-pulse-ruby {
+  animation: pulseRuby 2.8s infinite;
+}
+
+.animate-modal-pop {
+  animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-ken-burns {
+  animation: kenBurnsSlow 12s ease-out forwards;
+}
+
+/* Stagger Animation Delays */
+.stagger-1 { animation-delay: 60ms; }
+.stagger-2 { animation-delay: 130ms; }
+.stagger-3 { animation-delay: 200ms; }
+.stagger-4 { animation-delay: 270ms; }
+.stagger-5 { animation-delay: 340ms; }
+.stagger-6 { animation-delay: 410ms; }
+.stagger-7 { animation-delay: 480ms; }
+.stagger-8 { animation-delay: 550ms; }
+
+/* Interactive Hover & Micro-animations */
+.card-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.3s ease;
+  will-change: transform, box-shadow;
+}
+
+.card-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 32px -8px rgba(28, 24, 20, 0.12), 
+              0 8px 16px -4px rgba(197, 155, 63, 0.18);
+  border-color: rgba(197, 155, 63, 0.65);
+}
+
+.card-lift-sm {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.25s ease;
+}
+
+.card-lift-sm:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px -6px rgba(28, 24, 20, 0.08);
+}
+
+.btn-glow {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.25s ease, 
+              filter 0.25s ease;
+  will-change: transform;
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow: 0 10px 20px -4px rgba(168, 27, 43, 0.28);
+}
+
+.btn-glow:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-gold-glow {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.25s ease, 
+              filter 0.25s ease;
+}
+
+.btn-gold-glow:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 22px -4px rgba(197, 155, 63, 0.38);
+}
+
+.btn-gold-glow:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.img-zoom-hover {
+  overflow: hidden;
+}
+
+.img-zoom-hover img {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+  will-change: transform;
+}
+
+.img-zoom-hover:hover img {
+  transform: scale(1.07);
+}
+
+/* Shimmer Light Sweeping Accent */
+.shimmer-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s ease-in-out;
+  pointer-events: none;
+}
+
+.shimmer-sweep:hover::after {
+  left: 200%;
+}
+
+/* Custom Authentic Liturgical Utilities */
+.gold-badge {
+  background: linear-gradient(135deg, #E2C384 0%, #C59B3F 55%, #A27B27 100%);
+  color: #1C1814;
+  font-weight: 700;
+  box-shadow: 0 2px 8px -1px rgba(197, 155, 63, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gold-badge:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px -1px rgba(197, 155, 63, 0.5);
+}
+
+.gold-accent-border {
+  border-left: 3px solid #C59B3F;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #E2C384 0%, #C59B3F 50%, #A27B27 100%);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #9E7722 0%, #C59B3F 50%, #825F16 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.parchment-card {
+  background: rgba(250, 247, 240, 0.94);
+  border: 1px solid rgba(197, 155, 63, 0.32);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 20px -2px rgba(44, 38, 33, 0.04);
+}
+
+.parchment-card-hover {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.3s ease;
+}
+
+.parchment-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(197, 155, 63, 0.65);
+  box-shadow: 0 18px 34px -4px rgba(44, 38, 33, 0.09), 
+              0 6px 14px -2px rgba(197, 155, 63, 0.16);
+}
+
+.glass-nav-warm {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}

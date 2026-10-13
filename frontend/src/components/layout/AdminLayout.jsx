@@ -1,0 +1,183 @@
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { 
+  LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
+  Bell, Calendar, Users, History, Image as ImageIcon, 
+  HardDrive, PhoneCall, UserCheck, Settings, 
+  LogOut, ExternalLink, ChevronRight, Church, X 
+} from 'lucide-react';
+
+const sidebarItems = [
+  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin/homepage-builder', label: 'Homepage Builder', icon: LayoutTemplate },
+  { path: '/admin/pages', label: 'Pages', icon: FileText },
+  { path: '/admin/navigation', label: 'Navigation', icon: MenuIcon },
+  { path: '/admin/announcements', label: 'Announcements', icon: Bell },
+  { path: '/admin/events', label: 'Events', icon: Calendar },
+  { path: '/admin/priests', label: 'Priests', icon: Users },
+  { path: '/admin/history', label: 'Church History', icon: History },
+  { path: '/admin/gallery', label: 'Gallery', icon: ImageIcon },
+  { path: '/admin/media', label: 'Media Library', icon: HardDrive },
+  { path: '/admin/contact-settings', label: 'Contact Settings', icon: PhoneCall },
+  { path: '/admin/users', label: 'Admin Users', icon: UserCheck },
+  { path: '/admin/settings', label: 'Settings', icon: Settings },
+];
+
+export default function AdminLayout() {
+  const { user, logout } = useAuth();
+  const { settings } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
+
+  return (
+    <div className="h-screen w-screen overflow-hidden bg-stone-100 flex text-stone-900 font-sans">
+      
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* 1. SEPARATE SIDEBAR CONTAINER (FIXED & NEVER SCROLLS WITH PAGE) */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-72 h-screen bg-[#191516] text-white flex flex-col justify-between shrink-0 transition-transform duration-300 lg:static lg:translate-x-0 overflow-hidden border-r border-stone-800 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Header Identity - Fixed */}
+          <div className="h-20 shrink-0 px-6 flex items-center justify-between border-b border-stone-800">
+            <Link to="/admin" className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#D4AF37] flex items-center justify-center shrink-0 overflow-hidden">
+                <img 
+                  src="/logo.png" 
+                  alt="PATH Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div>
+                <span className="font-serif-heading font-bold text-white text-base block leading-tight">
+                  PATH CMS
+                </span>
+                <span className="text-xs text-amber-300 font-semibold tracking-wide">
+                  Parish Admin Suite
+                </span>
+              </div>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1.5 text-stone-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Navigation Links - Internal Scroll only if vertical space requires */}
+          <nav className="p-4 space-y-1 overflow-y-auto flex-1 min-h-0">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.path === '/admin' 
+                ? location.pathname === '/admin'
+                : location.pathname.startsWith(item.path);
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-[#800020] text-white shadow-md font-semibold ring-1 ring-amber-400/40'
+                      : 'text-stone-300 hover:bg-stone-800/80 hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-stone-400'}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* User Profile & Logout - Fixed at bottom of sidebar */}
+        <div className="p-4 border-t border-stone-800 bg-stone-900/50 shrink-0">
+          <div className="flex items-center justify-between px-2 py-2 mb-2">
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold text-white truncate">
+                {user?.fullName || 'Administrator'}
+              </p>
+              <p className="text-xs text-stone-400 truncate">
+                {user?.email || 'admin@path.org'}
+              </p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300">
+              ADMIN
+            </span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-stone-800 hover:bg-rose-950/40 hover:text-rose-300 text-stone-300 text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* 2. RIGHT CONTAINER: TOP NAV CONTAINER + MAIN SCROLLING VIEW */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        
+        {/* TOP NAVBAR: DISTINCT FIXED CONTAINER */}
+        <header className="h-20 shrink-0 bg-white border-b border-stone-200 px-4 sm:px-8 flex items-center justify-between z-30 shadow-xs">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-stone-700 hover:bg-stone-100"
+            >
+              <MenuIcon className="w-6 h-6" />
+            </button>
+            <div className="hidden sm:block">
+              <span className="text-xs text-stone-400 font-medium">Parish Content Management System</span>
+              <h2 className="text-lg font-bold text-stone-800">
+                {settings.site_name}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link
+              to="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
+            >
+              <span>View Public Website</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </header>
+
+        {/* MAIN CONTENT BODY: SEPARATE CONTAINER WITH INTERNAL SCROLL ONLY */}
+        <main className="flex-1 min-h-0 overflow-y-auto bg-stone-100">
+          <div className="p-4 sm:p-8 max-w-7xl w-full mx-auto">
+            <div key={location.pathname} className="animate-page-enter">
+              <Outlet />
+            </div>
+          </div>
+        </main>
+      </div>
+
+    </div>
+  );
+}
