@@ -182,21 +182,13 @@ export default function PriestManager() {
           >
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${
-                    p.priestStatus === 'CURRENT'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-stone-100 text-stone-600'
-                  }`}>
-                    {p.priestStatus === 'CURRENT' ? 'CURRENT SET' : 'PAST SET'}
-                  </span>
-                  {p.title?.toLowerCase().includes('moderator') && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-amber-100 text-[#8F6B1E] border border-[#C59B3F]/40 flex items-center gap-1">
-                      <span>★</span> Moderator (1st in Set)
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs text-stone-400 font-mono">Order: #{idx + 1}</span>
+                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${
+                  p.priestStatus === 'CURRENT'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-stone-100 text-stone-600'
+                }`}>
+                  {p.priestStatus === 'CURRENT' ? 'CURRENT SET' : 'PAST SET'}
+                </span>
               </div>
 
               <div className="flex items-center gap-4 mb-4">
