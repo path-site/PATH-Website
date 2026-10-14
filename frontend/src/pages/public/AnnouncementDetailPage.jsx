@@ -131,10 +131,22 @@ export default function AnnouncementDetailPage() {
         )}
 
         {/* Content Body */}
-        <div 
-          className="prose prose-stone lg:prose-lg max-w-none text-stone-800 leading-relaxed font-normal space-y-4"
-          dangerouslySetInnerHTML={{ __html: announcement.content }}
-        />
+        <div className="prose prose-stone lg:prose-lg max-w-none text-stone-800 leading-relaxed font-normal">
+          {announcement.content && /<[a-z][\s\S]*>/i.test(announcement.content) ? (
+            <div 
+              className="space-y-4 whitespace-pre-line"
+              dangerouslySetInnerHTML={{ __html: announcement.content }}
+            />
+          ) : (
+            <div className="space-y-5">
+              {announcement.content?.split(/\r?\n\r?\n/).filter(Boolean).map((para, idx) => (
+                <p key={idx} className="whitespace-pre-line leading-relaxed">
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Footer of Announcement */}
         <div className="mt-14 pt-8 border-t border-stone-200 flex items-center justify-between">
