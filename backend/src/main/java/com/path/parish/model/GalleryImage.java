@@ -14,7 +14,7 @@ public class GalleryImage {
     @Column(nullable = false)
     private Long albumId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
 
     private String caption;

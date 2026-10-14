@@ -17,12 +17,13 @@ public class Announcement {
     @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(columnDefinition = "TEXT")
     private String featuredImageUrl;
 
     private String category; // e.g. Parish Life, Liturgy, Community, Youth, Sacraments

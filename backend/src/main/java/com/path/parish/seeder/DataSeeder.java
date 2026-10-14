@@ -3,6 +3,7 @@ package com.path.parish.seeder;
 import com.path.parish.model.*;
 import com.path.parish.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ public class DataSeeder implements CommandLineRunner {
     private final GalleryImageRepository galleryImageRepository;
     private final SiteSettingRepository siteSettingRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     public DataSeeder(
             AdminUserRepository adminUserRepository,
@@ -36,7 +38,8 @@ public class DataSeeder implements CommandLineRunner {
             GalleryAlbumRepository galleryAlbumRepository,
             GalleryImageRepository galleryImageRepository,
             SiteSettingRepository siteSettingRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JdbcTemplate jdbcTemplate) {
         this.adminUserRepository = adminUserRepository;
         this.navigationItemRepository = navigationItemRepository;
         this.pageRepository = pageRepository;
@@ -49,10 +52,12 @@ public class DataSeeder implements CommandLineRunner {
         this.galleryImageRepository = galleryImageRepository;
         this.siteSettingRepository = siteSettingRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) {
+        migrateColumnTypes();
         seedAdminUser();
         seedNavigation();
         seedPagesAndSections();
@@ -62,6 +67,54 @@ public class DataSeeder implements CommandLineRunner {
         seedHistory();
         seedGallery();
         seedSiteSettings();
+    }
+
+    private void migrateColumnTypes() {
+        String[] alterStatements = new String[] {
+            // H2 syntax
+            "ALTER TABLE announcements ALTER COLUMN featured_image_url SET DATA TYPE TEXT",
+            "ALTER TABLE announcements ALTER COLUMN summary SET DATA TYPE TEXT",
+            "ALTER TABLE parish_events ALTER COLUMN event_image_url SET DATA TYPE TEXT",
+            "ALTER TABLE parish_events ALTER COLUMN external_url SET DATA TYPE TEXT",
+            "ALTER TABLE priests ALTER COLUMN portrait_image_url SET DATA TYPE TEXT",
+            "ALTER TABLE history_milestones ALTER COLUMN image_url SET DATA TYPE TEXT",
+            "ALTER TABLE gallery_images ALTER COLUMN image_url SET DATA TYPE TEXT",
+            "ALTER TABLE gallery_albums ALTER COLUMN cover_image_url SET DATA TYPE TEXT",
+            "ALTER TABLE gallery_albums ALTER COLUMN description SET DATA TYPE TEXT",
+            "ALTER TABLE media_files ALTER COLUMN file_url SET DATA TYPE TEXT",
+
+            // PostgreSQL syntax
+            "ALTER TABLE announcements ALTER COLUMN featured_image_url TYPE TEXT",
+            "ALTER TABLE announcements ALTER COLUMN summary TYPE TEXT",
+            "ALTER TABLE parish_events ALTER COLUMN event_image_url TYPE TEXT",
+            "ALTER TABLE parish_events ALTER COLUMN external_url TYPE TEXT",
+            "ALTER TABLE priests ALTER COLUMN portrait_image_url TYPE TEXT",
+            "ALTER TABLE history_milestones ALTER COLUMN image_url TYPE TEXT",
+            "ALTER TABLE gallery_images ALTER COLUMN image_url TYPE TEXT",
+            "ALTER TABLE gallery_albums ALTER COLUMN cover_image_url TYPE TEXT",
+            "ALTER TABLE gallery_albums ALTER COLUMN description TYPE TEXT",
+            "ALTER TABLE media_files ALTER COLUMN file_url TYPE TEXT",
+
+            // MySQL syntax
+            "ALTER TABLE announcements MODIFY COLUMN featured_image_url TEXT",
+            "ALTER TABLE announcements MODIFY COLUMN summary TEXT",
+            "ALTER TABLE parish_events MODIFY COLUMN event_image_url TEXT",
+            "ALTER TABLE parish_events MODIFY COLUMN external_url TEXT",
+            "ALTER TABLE priests MODIFY COLUMN portrait_image_url TEXT",
+            "ALTER TABLE history_milestones MODIFY COLUMN image_url TEXT",
+            "ALTER TABLE gallery_images MODIFY COLUMN image_url TEXT",
+            "ALTER TABLE gallery_albums MODIFY COLUMN cover_image_url TEXT",
+            "ALTER TABLE gallery_albums MODIFY COLUMN description TEXT",
+            "ALTER TABLE media_files MODIFY COLUMN file_url TEXT"
+        };
+
+        for (String sql : alterStatements) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception ignored) {
+                // Silently ignore dialect mismatch or already altered columns
+            }
+        }
     }
 
     private void seedAdminUser() {

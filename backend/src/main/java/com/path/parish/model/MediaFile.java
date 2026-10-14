@@ -17,7 +17,7 @@ public class MediaFile {
     @Column(nullable = false)
     private String fileName;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String fileUrl;
 
     private String storageProvider; // DATABASE, LOCAL, CLOUDINARY

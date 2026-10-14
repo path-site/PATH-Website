@@ -138,7 +138,8 @@ export default function AnnouncementManager() {
       fetchAnnouncements();
       setTimeout(() => setNotice(''), 3500);
     } catch (err) {
-      alert(err.message);
+      const msg = err.response?.data?.message || err.message || 'Failed to save announcement.';
+      alert(msg);
     }
   };
 

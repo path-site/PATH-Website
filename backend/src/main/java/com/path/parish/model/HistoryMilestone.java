@@ -20,6 +20,7 @@ public class HistoryMilestone {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(nullable = false)

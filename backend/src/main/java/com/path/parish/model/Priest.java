@@ -19,6 +19,7 @@ public class Priest {
     @Column(columnDefinition = "TEXT")
     private String biography;
 
+    @Column(columnDefinition = "TEXT")
     private String portraitImageUrl;
 
     private String serviceStart; // e.g. "2021" or "2015"

@@ -20,6 +20,7 @@ public class ParishEvent {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
     private String eventImageUrl;
 
     @Column(nullable = false)
@@ -31,6 +32,7 @@ public class ParishEvent {
 
     private String category; // Mass, Feast, Ministry, Recollection, Youth
 
+    @Column(columnDefinition = "TEXT")
     private String externalUrl;
 
     @Column(nullable = false)
