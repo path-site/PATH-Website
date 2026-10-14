@@ -4,16 +4,18 @@ import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { 
   Bell, Plus, Edit, Trash2, Eye, EyeOff, Archive, Check, X, 
-  Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox 
+  Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox, Search 
 } from 'lucide-react';
 
 export default function AnnouncementManager() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('gathered'); // Default to 'gathered' to emphasize the gathering workflow
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'published', 'draft', 'archived'
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [deleteItem, setDeleteItem] = useState(null);
   const [notice, setNotice] = useState('');
   const [isPublishingBatch, setIsPublishingBatch] = useState(false);
 
@@ -24,7 +26,7 @@ export default function AnnouncementManager() {
     summary: '',
     content: '',
     featuredImageUrl: '',
-    status: 'DRAFT', // GATHER FIRST WORKFLOW: Default to DRAFT (Gathered pool)
+    status: 'PUBLISHED',
   });
 
   const categories = ['Liturgy', 'Parish Life', 'Youth', 'Sacraments', 'Community', 'General'];
@@ -48,16 +50,27 @@ export default function AnnouncementManager() {
   }, []);
 
   // Compute counts
-  const gatheredItems = announcements.filter((a) => a.status === 'DRAFT');
   const publishedItems = announcements.filter((a) => a.status === 'PUBLISHED');
+  const draftItems = announcements.filter((a) => a.status === 'DRAFT');
   const archivedItems = announcements.filter((a) => a.status === 'ARCHIVED');
 
-  // Filtered list based on active tab
+  // Filtered and searched items
   const displayedItems = announcements.filter((a) => {
-    if (activeTab === 'gathered') return a.status === 'DRAFT';
-    if (activeTab === 'published') return a.status === 'PUBLISHED';
-    if (activeTab === 'archived') return a.status === 'ARCHIVED';
-    return true; // 'all'
+    // Tab filter
+    if (activeTab === 'published' && a.status !== 'PUBLISHED') return false;
+    if (activeTab === 'draft' && a.status !== 'DRAFT') return false;
+    if (activeTab === 'archived' && a.status !== 'ARCHIVED') return false;
+
+    // Search query filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = (a.title || '').toLowerCase().includes(q);
+      const matchCategory = (a.category || '').toLowerCase().includes(q);
+      const matchSummary = (a.summary || '').toLowerCase().includes(q);
+      return matchTitle || matchCategory || matchSummary;
+    }
+
+    return true;
   });
 
   const openCreateModal = () => {
@@ -69,7 +82,7 @@ export default function AnnouncementManager() {
       summary: '',
       content: '',
       featuredImageUrl: '',
-      status: 'DRAFT', // Default is Gathered / Pending
+      status: 'PUBLISHED',
     });
     setModalOpen(true);
   };
@@ -83,7 +96,7 @@ export default function AnnouncementManager() {
       summary: item.summary || '',
       content: item.content || '',
       featuredImageUrl: item.featuredImageUrl || '',
-      status: item.status || 'DRAFT',
+      status: item.status || 'PUBLISHED',
     });
     setModalOpen(true);
   };
@@ -98,7 +111,7 @@ export default function AnnouncementManager() {
         await adminApi.createAnnouncement(formData);
         setNotice(
           formData.status === 'DRAFT'
-            ? 'Announcement added to Gathered pool. Ready for review and publication.'
+            ? 'Announcement saved as draft.'
             : 'Announcement published successfully.'
         );
       }
@@ -114,7 +127,7 @@ export default function AnnouncementManager() {
   const handlePublishSingle = async (item) => {
     try {
       await adminApi.publishAnnouncement(item.id);
-      setNotice(`"${item.title}" is now published on the website.`);
+      setNotice(`"${item.title}" is now published.`);
       setTimeout(() => setNotice(''), 3500);
       fetchAnnouncements();
     } catch (err) {
@@ -122,11 +135,11 @@ export default function AnnouncementManager() {
     }
   };
 
-  // Unpublish / revert back to gathered draft
+  // Unpublish / revert back to draft
   const handleUnpublishSingle = async (item) => {
     try {
       await adminApi.unpublishAnnouncement(item.id);
-      setNotice(`"${item.title}" reverted to Gathered draft pool.`);
+      setNotice(`"${item.title}" reverted to draft.`);
       setTimeout(() => setNotice(''), 3500);
       fetchAnnouncements();
     } catch (err) {
@@ -134,18 +147,18 @@ export default function AnnouncementManager() {
     }
   };
 
-  // Publish all gathered announcements
-  const handlePublishAllGathered = async () => {
-    if (gatheredItems.length === 0) return;
-    const confirmMessage = `Publish all ${gatheredItems.length} gathered announcement(s) to the public website?`;
+  // Publish all drafts
+  const handlePublishAllDrafts = async () => {
+    if (draftItems.length === 0) return;
+    const confirmMessage = `Publish all ${draftItems.length} draft announcement(s) to the website?`;
     if (!window.confirm(confirmMessage)) return;
 
     try {
       setIsPublishingBatch(true);
-      const idsToPublish = gatheredItems.map((a) => a.id);
+      const idsToPublish = draftItems.map((a) => a.id);
       await adminApi.publishBatchAnnouncements(idsToPublish);
       setSelectedIds([]);
-      setNotice(`Successfully published all ${idsToPublish.length} gathered announcements!`);
+      setNotice(`Successfully published all ${idsToPublish.length} drafts.`);
       setTimeout(() => setNotice(''), 4000);
       fetchAnnouncements();
       setActiveTab('published');
@@ -159,14 +172,11 @@ export default function AnnouncementManager() {
   // Publish selected announcements
   const handlePublishSelected = async () => {
     if (selectedIds.length === 0) return;
-    const confirmMessage = `Publish ${selectedIds.length} selected announcement(s) to the website?`;
-    if (!window.confirm(confirmMessage)) return;
-
     try {
       setIsPublishingBatch(true);
       await adminApi.publishBatchAnnouncements(selectedIds);
       setSelectedIds([]);
-      setNotice(`Successfully published ${selectedIds.length} announcements.`);
+      setNotice(`Successfully published ${selectedIds.length} announcement(s).`);
       setTimeout(() => setNotice(''), 4000);
       fetchAnnouncements();
     } catch (err) {
@@ -179,7 +189,7 @@ export default function AnnouncementManager() {
   const handleArchive = async (item) => {
     try {
       await adminApi.archiveAnnouncement(item.id);
-      setNotice(`"${item.title}" archived.`);
+      setNotice(`"${item.title}" moved to archive.`);
       setTimeout(() => setNotice(''), 3000);
       fetchAnnouncements();
     } catch (err) {
@@ -187,13 +197,14 @@ export default function AnnouncementManager() {
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`Delete announcement "${item.title}"?`)) return;
+  const confirmDelete = async () => {
+    if (!deleteItem) return;
     try {
-      await adminApi.deleteAnnouncement(item.id);
-      setSelectedIds((prev) => prev.filter((id) => id !== item.id));
-      setNotice('Announcement deleted.');
+      await adminApi.deleteAnnouncement(deleteItem.id);
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteItem.id));
+      setNotice(`"${deleteItem.title}" has been deleted.`);
       setTimeout(() => setNotice(''), 3000);
+      setDeleteItem(null);
       fetchAnnouncements();
     } catch (err) {
       alert(err.message);
@@ -209,7 +220,7 @@ export default function AnnouncementManager() {
 
   const toggleSelectAllVisible = () => {
     const visibleIds = displayedItems.map((a) => a.id);
-    const allSelected = visibleIds.every((id) => selectedIds.includes(id));
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
     if (allSelected) {
       setSelectedIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
     } else {
@@ -217,182 +228,135 @@ export default function AnnouncementManager() {
     }
   };
 
+  const tabs = [
+    { key: 'all', label: 'All', count: announcements.length },
+    { key: 'published', label: 'Published', count: publishedItems.length },
+    { key: 'draft', label: 'Drafts', count: draftItems.length },
+    { key: 'archived', label: 'Archived', count: archivedItems.length },
+  ];
+
   return (
     <div className="space-y-6">
       
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-[#800020]/10 text-[#800020]">
-              <Bell className="w-5 h-5" />
-            </span>
-            <h1 className="font-serif-heading text-2xl font-bold text-stone-900">
-              Announcements & Advisories
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-stone-500 mt-1 pl-1">
-            Gather and curate weekly notices, liturgy schedules, and pastoral advisories before publishing.
+          <h1 className="font-serif-heading text-2xl font-bold text-stone-900">
+            Announcements & Advisories
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1">
+            Create, schedule, and publish parish notices, advisories, and liturgical schedules.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {gatheredItems.length > 0 && (
+        <div className="flex items-center gap-3">
+          {draftItems.length > 0 && (
             <button
-              onClick={handlePublishAllGathered}
+              onClick={handlePublishAllDrafts}
               disabled={isPublishingBatch}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wider shadow-2xs transition-all disabled:opacity-50"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Publish All Gathered ({gatheredItems.length})</span>
+              <Send className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Publish All Drafts ({draftItems.length})</span>
             </button>
           )}
 
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Gather New Announcement</span>
+            <span>New Announcement</span>
           </button>
-        </div>
-      </div>
-
-      {/* Workflow Guidance Card */}
-      <div className="bg-gradient-to-r from-stone-50 via-amber-50/40 to-stone-50 rounded-3xl border border-stone-200 p-5 shadow-xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#800020] text-white text-xs font-bold">
-                i
-              </span>
-              <h2 className="text-sm font-bold text-stone-800">
-                Parish Announcement Gathering Workflow
-              </h2>
-            </div>
-            <p className="text-xs text-stone-600">
-              New notices start in the <strong>Gathered Pool (Draft)</strong> so your team can compile all weekly items first. Once approved, publish them all at once or individually to the public parish website.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100/70 border border-amber-300 text-amber-900 font-medium">
-              <Clock className="w-3.5 h-3.5 text-amber-700" />
-              <span>1. Gather First ({gatheredItems.length})</span>
-            </div>
-            <span className="text-stone-300">➔</span>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100/70 border border-emerald-300 text-emerald-900 font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-              <span>2. Publish ({publishedItems.length})</span>
-            </div>
-          </div>
         </div>
       </div>
 
       {notice && (
-        <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2 border border-emerald-200 shadow-xs">
-          <Check className="w-4 h-4" />
+        <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2 border border-emerald-200 shadow-xs animate-in fade-in duration-200">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{notice}</span>
         </div>
       )}
 
-      {/* Workflow Tabs & Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-2">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('gathered')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-              activeTab === 'gathered'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'bg-white hover:bg-stone-100 text-stone-600 border border-stone-200'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Gathered Pool</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-              activeTab === 'gathered' ? 'bg-amber-800 text-amber-100' : 'bg-amber-100 text-amber-800'
-            }`}>
-              {gatheredItems.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('published')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-              activeTab === 'published'
-                ? 'bg-emerald-700 text-white shadow-xs'
-                : 'bg-white hover:bg-stone-100 text-stone-600 border border-stone-200'
-            }`}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Published</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-              activeTab === 'published' ? 'bg-emerald-900 text-emerald-100' : 'bg-emerald-100 text-emerald-800'
-            }`}>
-              {publishedItems.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('archived')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-              activeTab === 'archived'
-                ? 'bg-stone-700 text-white shadow-xs'
-                : 'bg-white hover:bg-stone-100 text-stone-600 border border-stone-200'
-            }`}
-          >
-            <Archive className="w-3.5 h-3.5" />
-            <span>Archived</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-              activeTab === 'archived' ? 'bg-stone-900 text-stone-200' : 'bg-stone-200 text-stone-700'
-            }`}>
-              {archivedItems.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-              activeTab === 'all'
-                ? 'bg-[#800020] text-white shadow-xs'
-                : 'bg-white hover:bg-stone-100 text-stone-600 border border-stone-200'
-            }`}
-          >
-            <span>All</span>
-            <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${
-              activeTab === 'all' ? 'bg-[#550015] text-rose-100' : 'bg-stone-100 text-stone-700'
-            }`}>
-              {announcements.length}
-            </span>
-          </button>
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Tabs */}
+        <div className="inline-flex p-1 rounded-2xl bg-stone-200/70 border border-stone-300/60 gap-1 overflow-x-auto">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-white text-stone-900 shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/40'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                    isActive
+                      ? 'bg-stone-100 text-stone-800 font-bold'
+                      : 'bg-stone-300/60 text-stone-600'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Batch Action Toolbar when items are selected */}
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 bg-stone-100 px-3 py-1.5 rounded-xl border border-stone-300">
-            <span className="text-xs font-bold text-stone-700">
-              {selectedIds.length} selected
-            </span>
+        {/* Real-time Search */}
+        <div className="relative w-full sm:w-72">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search announcements..."
+            className="w-full pl-10 pr-9 py-2 rounded-xl bg-white border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020] transition-all shadow-2xs"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Batch Action Bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between bg-stone-900 text-white px-5 py-3 rounded-2xl shadow-lg border border-stone-800 animate-in fade-in slide-in-from-top-2">
+          <span className="text-xs font-bold text-stone-200">
+            {selectedIds.length} item{selectedIds.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex items-center gap-2">
             <button
               onClick={handlePublishSelected}
               disabled={isPublishingBatch}
-              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 flex items-center gap-1"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50"
             >
-              <Send className="w-3 h-3" />
+              <Send className="w-3.5 h-3.5" />
               <span>Publish Selected</span>
             </button>
             <button
               onClick={() => setSelectedIds([])}
-              className="text-xs text-stone-500 hover:text-stone-800 underline ml-1"
+              className="px-3 py-1.5 rounded-xl text-stone-400 hover:text-white text-xs font-semibold transition-colors"
             >
               Clear
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Announcements Table */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-stone-700">
             <thead className="bg-stone-50 border-b border-stone-200 text-xs font-bold text-stone-500 uppercase tracking-wider">
@@ -408,7 +372,7 @@ export default function AnnouncementManager() {
                     className="rounded border-stone-300 text-[#800020] focus:ring-[#800020]"
                   />
                 </th>
-                <th className="px-6 py-4">Title & Details</th>
+                <th className="px-6 py-4">Title & Summary</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Date</th>
@@ -416,25 +380,36 @@ export default function AnnouncementManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {displayedItems.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-stone-400">
+                    <div className="w-8 h-8 border-3 border-[#800020] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs font-semibold">Loading announcements...</p>
+                  </td>
+                </tr>
+              ) : displayedItems.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-14 text-center text-stone-400">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <Inbox className="w-8 h-8 text-stone-300" />
-                      <p className="text-sm font-semibold text-stone-500">
-                        {activeTab === 'gathered'
-                          ? 'No announcements currently in the gathered pool.'
-                          : 'No announcements found in this view.'}
+                      <Inbox className="w-9 h-9 text-stone-300" />
+                      <p className="text-sm font-semibold text-stone-600">
+                        {searchQuery
+                          ? `No announcements matching "${searchQuery}".`
+                          : activeTab === 'draft'
+                          ? 'No draft announcements.'
+                          : activeTab === 'published'
+                          ? 'No published announcements.'
+                          : activeTab === 'archived'
+                          ? 'No archived announcements.'
+                          : 'No announcements created yet.'}
                       </p>
-                      {activeTab === 'gathered' && (
-                        <button
-                          onClick={openCreateModal}
-                          className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#800020] text-white text-xs font-bold uppercase tracking-wider"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Gather First Announcement</span>
-                        </button>
-                      )}
+                      <button
+                        onClick={openCreateModal}
+                        className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#800020] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#66001a] transition-all"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Create Announcement</span>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -443,12 +418,13 @@ export default function AnnouncementManager() {
                   const isSelected = selectedIds.includes(a.id);
                   const isDraft = a.status === 'DRAFT';
                   const isPublished = a.status === 'PUBLISHED';
+                  const isArchived = a.status === 'ARCHIVED';
 
                   return (
                     <tr
                       key={a.id}
                       className={`hover:bg-stone-50/70 transition-colors ${
-                        isSelected ? 'bg-amber-50/50' : ''
+                        isSelected ? 'bg-amber-50/40' : ''
                       }`}
                     >
                       <td className="px-4 py-4 text-center">
@@ -470,44 +446,41 @@ export default function AnnouncementManager() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs px-2.5 py-1 rounded-md bg-stone-100 text-stone-700 font-semibold">
-                          {a.category}
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 font-semibold border border-stone-200/60">
+                          {a.category || 'General'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-bold ${
-                            isPublished
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : a.status === 'ARCHIVED'
-                              ? 'bg-stone-200 text-stone-700'
-                              : 'bg-amber-100 text-amber-900'
-                          }`}
-                        >
-                          {isPublished ? (
-                            <>
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                              <span>Published (Live)</span>
-                            </>
-                          ) : a.status === 'ARCHIVED' ? (
+                        {isPublished ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            <span>Published</span>
+                          </span>
+                        ) : isDraft ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span>Draft</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold bg-stone-100 text-stone-600 border border-stone-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
                             <span>Archived</span>
-                          ) : (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-700" />
-                              <span>Gathered (Draft)</span>
-                            </>
-                          )}
-                        </span>
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-xs text-stone-500 whitespace-nowrap">
-                        {new Date(a.publishedAt || a.createdAt).toLocaleDateString()}
+                        {new Date(a.publishedAt || a.createdAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </td>
                       <td className="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
-                        {/* Quick Publish for Gathered items */}
+                        {/* Quick Publish for Draft items */}
                         {isDraft && (
                           <button
                             onClick={() => handlePublishSingle(a)}
-                            title="Publish to Website"
+                            title="Publish announcement"
                             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors"
                           >
                             <Send className="w-3 h-3" />
@@ -519,31 +492,34 @@ export default function AnnouncementManager() {
                         {isPublished && (
                           <button
                             onClick={() => handleUnpublishSingle(a)}
-                            title="Revert back to Gathered Pool"
-                            className="p-1.5 text-stone-600 hover:text-amber-700 hover:bg-stone-100 rounded-lg"
+                            title="Revert to Draft"
+                            className="p-1.5 text-stone-500 hover:text-amber-700 hover:bg-stone-100 rounded-lg transition-colors"
                           >
                             <EyeOff className="w-4 h-4" />
                           </button>
                         )}
 
-                        <button
-                          onClick={() => handleArchive(a)}
-                          title="Archive"
-                          className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg"
-                        >
-                          <Archive className="w-4 h-4" />
-                        </button>
+                        {!isArchived && (
+                          <button
+                            onClick={() => handleArchive(a)}
+                            title="Archive announcement"
+                            className="p-1.5 text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors"
+                          >
+                            <Archive className="w-4 h-4" />
+                          </button>
+                        )}
+
                         <button
                           onClick={() => openEditModal(a)}
-                          title="Edit"
-                          className="p-1.5 text-stone-600 hover:text-[#800020] hover:bg-stone-100 rounded-lg"
+                          title="Edit announcement"
+                          className="p-1.5 text-stone-500 hover:text-[#800020] hover:bg-stone-100 rounded-lg transition-colors"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(a)}
-                          title="Delete"
-                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg"
+                          onClick={() => setDeleteItem(a)}
+                          title="Delete announcement"
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -557,6 +533,41 @@ export default function AnnouncementManager() {
         </div>
       </div>
 
+      {/* DELETE CONFIRMATION MODAL WITH CONTAINER BLUR */}
+      {deleteItem && createPortal(
+        <div className="fixed inset-0 z-[100] w-screen h-screen bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-stone-200 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="font-serif-heading text-xl font-bold text-stone-900 text-center">
+              Delete Announcement?
+            </h3>
+            <p className="text-sm text-stone-600 text-center mt-2 leading-relaxed">
+              Are you sure you want to permanently delete{' '}
+              <strong className="text-stone-900 font-semibold">"{deleteItem.title}"</strong>? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteItem(null)}
+                className="px-5 py-2.5 rounded-xl border border-stone-300 text-stone-700 text-xs font-bold uppercase tracking-wider hover:bg-stone-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-colors"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* CREATE / EDIT MODAL */}
       {modalOpen && createPortal(
         <div className="fixed inset-0 z-[100] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
@@ -564,17 +575,17 @@ export default function AnnouncementManager() {
             <div className="flex items-center justify-between pb-4 border-b border-stone-100 mb-6">
               <div>
                 <h3 className="font-serif-heading text-xl font-bold text-stone-900">
-                  {editingItem ? 'Edit Announcement' : 'Gather New Announcement'}
+                  {editingItem ? 'Edit Announcement' : 'New Announcement'}
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
                   {editingItem
-                    ? 'Update announcement contents and publication settings.'
-                    : 'Draft and gather announcement into the weekly queue before publishing.'}
+                    ? 'Update announcement content, schedule, and visibility.'
+                    : 'Compose and publish a parish advisory or notice.'}
                 </p>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -583,7 +594,7 @@ export default function AnnouncementManager() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Announcement Title <span className="text-rose-500">*</span>
+                  Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -598,8 +609,8 @@ export default function AnnouncementManager() {
                         : formData.slug,
                     });
                   }}
-                  placeholder="e.g. Solemnity Mass Schedule, Youth Ministry Assembly..."
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]"
+                  placeholder="e.g. Solemnity Mass Schedule, Youth Assembly Notice..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                 />
               </div>
 
@@ -613,7 +624,7 @@ export default function AnnouncementManager() {
                     required
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm font-mono text-stone-700"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm font-mono text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                   />
                 </div>
 
@@ -624,7 +635,7 @@ export default function AnnouncementManager() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                   >
                     {categories.map((c) => (
                       <option key={c} value={c}>
@@ -640,8 +651,8 @@ export default function AnnouncementManager() {
                   label="Featured Image (Optional)"
                   value={formData.featuredImageUrl}
                   onChange={(url) => setFormData({ ...formData, featuredImageUrl: url })}
-                  placeholder="Upload photo or enter URL..."
-                  helpText="Upload a poster or photo directly to the database."
+                  placeholder="Upload photo or enter image URL..."
+                  helpText="Upload a banner poster or photo."
                 />
               </div>
 
@@ -654,7 +665,7 @@ export default function AnnouncementManager() {
                   value={formData.summary}
                   onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
                   placeholder="A brief 1-2 sentence overview shown on homepage cards and list views..."
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                 />
               </div>
 
@@ -668,61 +679,44 @@ export default function AnnouncementManager() {
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   placeholder="Detailed guidelines, date/time particulars, contacts, and instructions..."
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm font-sans"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Workflow State / Status
+                  Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
                 >
-                  <option value="DRAFT">
-                    Gathered Pool (Draft - Gather first, publish when ready)
-                  </option>
                   <option value="PUBLISHED">
-                    Published (Live immediately on public parish website)
+                    Published (Live immediately on website)
+                  </option>
+                  <option value="DRAFT">
+                    Draft (Saved privately, not visible to the public)
                   </option>
                   <option value="ARCHIVED">
-                    Archived
+                    Archived (Hidden from active listings)
                   </option>
                 </select>
-                <p className="text-[11px] text-stone-500 mt-1">
-                  {formData.status === 'DRAFT'
-                    ? 'Notice will be safely gathered in the draft queue and not visible to parishioners until published.'
-                    : 'Notice will be live immediately for public parish visitors.'}
-                </p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 text-xs font-bold uppercase tracking-wider hover:bg-stone-50"
+                  className="px-4 py-2 rounded-xl border border-stone-300 text-stone-600 text-xs font-bold uppercase tracking-wider hover:bg-stone-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
+                  className="px-6 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
                 >
-                  {formData.status === 'DRAFT' ? (
-                    <>
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Save to Gathered Pool</span>
-                    </>
-                  ) : formData.status === 'PUBLISHED' ? (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Save & Publish</span>
-                    </>
-                  ) : (
-                    <span>Save Announcement</span>
-                  )}
+                  {editingItem ? 'Save Changes' : formData.status === 'DRAFT' ? 'Save Draft' : 'Publish Announcement'}
                 </button>
               </div>
             </form>
