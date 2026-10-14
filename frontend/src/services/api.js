@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ADMIN_SECRET_PATH, ADMIN_ROUTES } from '../config/adminConfig';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
 let baseURL = '/api';
@@ -30,11 +31,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401 && window.location.pathname.startsWith('/admin')) {
-      if (!window.location.pathname.includes('/admin/login')) {
+    if (error.response?.status === 401 && window.location.pathname.startsWith(ADMIN_SECRET_PATH)) {
+      if (!window.location.pathname.includes(ADMIN_ROUTES.login)) {
         localStorage.removeItem('path_admin_token');
         localStorage.removeItem('path_admin_user');
-        window.location.href = '/admin/login';
+        window.location.href = ADMIN_ROUTES.login;
       }
     }
     const message = error.response?.data?.message || error.message || 'An unexpected error occurred.';

@@ -4,7 +4,7 @@ import { publicApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   Menu, X, ChevronDown, Church, Heart, BookOpen, Clock, 
-  Users, Calendar, Image as ImageIcon, Mail, Shield
+  Users, Calendar, Image as ImageIcon, Mail
 } from 'lucide-react';
 
 const iconMap = {
@@ -187,26 +187,10 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-
-            {/* Quick Admin Portal Link */}
-            <Link
-              to="/admin"
-              title="Admin Portal"
-              className="ml-3 p-2 rounded-lg text-stone-400 hover:text-[#6B1D2F] hover:bg-stone-50 transition-colors"
-            >
-              <Shield className="w-4 h-4" />
-            </Link>
           </nav>
 
           {/* Mobile Hamburger Button */}
           <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              to="/admin"
-              className="p-2 text-stone-400 hover:text-[#6B1D2F]"
-              title="Admin"
-            >
-              <Shield className="w-5 h-5" />
-            </Link>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -297,13 +281,6 @@ export default function Navbar() {
               <p>{settings.phone}</p>
               <p>{settings.email}</p>
             </div>
-            <Link
-              to="/admin/login"
-              className="mt-2 inline-flex items-center justify-center gap-2 py-2 px-4 rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-200 text-sm font-medium transition-colors"
-            >
-              <Shield className="w-4 h-4" />
-              <span>Admin Login</span>
-            </Link>
           </div>
         </div>
       )}

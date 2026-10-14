@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi, publicApi } from '../../services/api';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
   ArrowRight, Plus, ExternalLink, Church 
@@ -70,7 +71,7 @@ export default function DashboardOverview() {
 
         <div className="flex flex-wrap gap-3">
           <Link
-            to="/admin/homepage-builder"
+            to={ADMIN_ROUTES.homepageBuilder}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 text-xs font-bold uppercase tracking-wider shadow-md transition-all"
           >
             <LayoutTemplate className="w-4 h-4" />
@@ -90,7 +91,7 @@ export default function DashboardOverview() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <Link to="/admin/announcements" className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
+        <Link to={ADMIN_ROUTES.announcements} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
             <Bell className="w-5 h-5" />
           </div>
@@ -98,7 +99,7 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Announcements</span>
         </Link>
 
-        <Link to="/admin/events" className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
+        <Link to={ADMIN_ROUTES.events} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-3">
             <Calendar className="w-5 h-5" />
           </div>
@@ -106,7 +107,7 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Events</span>
         </Link>
 
-        <Link to="/admin/priests" className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
+        <Link to={ADMIN_ROUTES.priests} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-3">
             <Users className="w-5 h-5" />
           </div>
@@ -114,7 +115,7 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Priests</span>
         </Link>
 
-        <Link to="/admin/gallery" className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
+        <Link to={ADMIN_ROUTES.gallery} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center mb-3">
             <ImageIcon className="w-5 h-5" />
           </div>
@@ -122,7 +123,7 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Photo Albums</span>
         </Link>
 
-        <Link to="/admin/pages" className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all col-span-2 lg:col-span-1">
+        <Link to={ADMIN_ROUTES.pages} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all col-span-2 lg:col-span-1">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3">
             <LayoutTemplate className="w-5 h-5" />
           </div>
@@ -144,7 +145,7 @@ export default function DashboardOverview() {
               <p className="text-xs text-stone-500">Latest notices and published updates</p>
             </div>
             <Link
-              to="/admin/announcements"
+              to={ADMIN_ROUTES.announcements}
               className="text-xs font-bold text-[#800020] hover:underline flex items-center gap-1"
             >
               <span>Manage</span>
@@ -190,7 +191,7 @@ export default function DashboardOverview() {
               <p className="text-xs text-stone-500">Upcoming calendar entries</p>
             </div>
             <Link
-              to="/admin/events"
+              to={ADMIN_ROUTES.events}
               className="text-xs font-bold text-[#800020] hover:underline flex items-center gap-1"
             >
               <span>Manage</span>

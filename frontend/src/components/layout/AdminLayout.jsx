@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
   Bell, Calendar, Users, History, Image as ImageIcon, 
@@ -10,19 +11,19 @@ import {
 } from 'lucide-react';
 
 const sidebarItems = [
-  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/admin/homepage-builder', label: 'Homepage Builder', icon: LayoutTemplate },
-  { path: '/admin/pages', label: 'Pages', icon: FileText },
-  { path: '/admin/navigation', label: 'Navigation', icon: MenuIcon },
-  { path: '/admin/announcements', label: 'Announcements', icon: Bell },
-  { path: '/admin/events', label: 'Events', icon: Calendar },
-  { path: '/admin/priests', label: 'Priests', icon: Users },
-  { path: '/admin/history', label: 'Church History', icon: History },
-  { path: '/admin/gallery', label: 'Gallery', icon: ImageIcon },
-  { path: '/admin/media', label: 'Media Library', icon: HardDrive },
-  { path: '/admin/contact-settings', label: 'Contact Settings', icon: PhoneCall },
-  { path: '/admin/users', label: 'Admin Users', icon: UserCheck },
-  { path: '/admin/settings', label: 'Settings', icon: Settings },
+  { path: ADMIN_ROUTES.base, label: 'Dashboard', icon: LayoutDashboard },
+  { path: ADMIN_ROUTES.homepageBuilder, label: 'Homepage Builder', icon: LayoutTemplate },
+  { path: ADMIN_ROUTES.pages, label: 'Pages', icon: FileText },
+  { path: ADMIN_ROUTES.navigation, label: 'Navigation', icon: MenuIcon },
+  { path: ADMIN_ROUTES.announcements, label: 'Announcements', icon: Bell },
+  { path: ADMIN_ROUTES.events, label: 'Events', icon: Calendar },
+  { path: ADMIN_ROUTES.priests, label: 'Priests', icon: Users },
+  { path: ADMIN_ROUTES.history, label: 'Church History', icon: History },
+  { path: ADMIN_ROUTES.gallery, label: 'Gallery', icon: ImageIcon },
+  { path: ADMIN_ROUTES.media, label: 'Media Library', icon: HardDrive },
+  { path: ADMIN_ROUTES.contactSettings, label: 'Contact Settings', icon: PhoneCall },
+  { path: ADMIN_ROUTES.users, label: 'Admin Users', icon: UserCheck },
+  { path: ADMIN_ROUTES.settings, label: 'Settings', icon: Settings },
 ];
 
 export default function AdminLayout() {
@@ -34,7 +35,7 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate(ADMIN_ROUTES.login);
   };
 
   return (
@@ -57,7 +58,7 @@ export default function AdminLayout() {
         <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Header Identity - Fixed */}
           <div className="h-20 shrink-0 px-6 flex items-center justify-between border-b border-stone-800">
-            <Link to="/admin" className="flex items-center gap-3">
+            <Link to={ADMIN_ROUTES.base} className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#D4AF37] flex items-center justify-center shrink-0 overflow-hidden">
                 <img 
                   src="/logo.png" 
@@ -86,8 +87,8 @@ export default function AdminLayout() {
           <nav className="p-4 space-y-1 overflow-y-auto flex-1 min-h-0">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
-              const isActive = item.path === '/admin' 
-                ? location.pathname === '/admin'
+              const isActive = item.path === ADMIN_ROUTES.base 
+                ? location.pathname === ADMIN_ROUTES.base
                 : location.pathname.startsWith(item.path);
 
               return (

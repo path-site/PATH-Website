@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ADMIN_ROUTES } from './config/adminConfig';
 
 // Public Layout & Pages
 import PublicLayout from './components/layout/PublicLayout';
@@ -48,7 +49,7 @@ function ProtectedRoute({ children }) {
 
   const token = localStorage.getItem('path_admin_token');
   if (!isAuthenticated && !token) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to={ADMIN_ROUTES.login} replace />;
   }
 
   return children;
@@ -80,12 +81,12 @@ export default function App() {
               <Route path="pages/:slug" element={<CustomPageView />} />
             </Route>
 
-            {/* Admin Authentication */}
-            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Secret Admin Authentication Gateway */}
+            <Route path={ADMIN_ROUTES.login} element={<AdminLogin />} />
 
-            {/* Protected Admin Suite */}
+            {/* Secret Protected Admin Suite */}
             <Route
-              path="/admin"
+              path={ADMIN_ROUTES.base}
               element={
                 <ProtectedRoute>
                   <AdminLayout />
@@ -102,11 +103,15 @@ export default function App() {
               <Route path="history" element={<HistoryManager />} />
               <Route path="gallery" element={<GalleryManager />} />
               <Route path="media" element={<MediaLibrary />} />
-              <Route path="theme" element={<Navigate to="/admin" replace />} />
+              <Route path="theme" element={<Navigate to={ADMIN_ROUTES.base} replace />} />
               <Route path="contact-settings" element={<ContactSettings />} />
               <Route path="users" element={<UserManager />} />
               <Route path="settings" element={<GeneralSettings />} />
             </Route>
+
+            {/* Disallow old /admin path: quietly redirect curious visitors to Home */}
+            <Route path="/admin/*" element={<Navigate to="/" replace />} />
+            <Route path="/admin" element={<Navigate to="/" replace />} />
 
             {/* Catch-all redirect to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />

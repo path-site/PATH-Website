@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { Church, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -18,7 +19,7 @@ export default function AdminLogin() {
 
     try {
       await login(email, password);
-      navigate('/admin');
+      navigate(ADMIN_ROUTES.base);
     } catch (err) {
       setError(err.message || 'Invalid email or password.');
     } finally {
