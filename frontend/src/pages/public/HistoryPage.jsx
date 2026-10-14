@@ -55,7 +55,7 @@ export default function HistoryPage() {
         ) : (
           <div className="relative border-l-2 border-[#C5A059]/40 ml-4 sm:ml-32 md:ml-40 space-y-12">
             {milestones.map((item, idx) => (
-              <div key={item.id} className={`relative pl-8 sm:pl-10 group animate-fade-in-up stagger-${(idx % 4) + 1}`}>
+              <div key={item.id} className="relative pl-8 sm:pl-10 group scroll-reveal">
                 
                 {/* Milestone Node */}
                 <div className="absolute -left-3.5 top-1.5 w-7 h-7 rounded-full bg-white border-4 border-[#A81B2B] shadow-md flex items-center justify-center group-hover:scale-125 transition-transform animate-pulse-ruby" />
@@ -102,7 +102,7 @@ export default function HistoryPage() {
         )}
 
         {/* Bottom Epilogue */}
-        <div className="mt-20 p-8 rounded-3xl bg-amber-50/70 border border-amber-200/80 text-center max-w-2xl mx-auto shadow-xs">
+        <div className="mt-20 p-8 rounded-3xl bg-amber-50/70 border border-amber-200/80 text-center max-w-2xl mx-auto shadow-xs scroll-reveal-scale">
           <Church className="w-10 h-10 text-[#6B1D2F] mx-auto mb-3" />
           <h4 className="font-serif-heading text-lg font-bold text-stone-800">
             Continuing the Grace of God

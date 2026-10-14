@@ -96,13 +96,13 @@ export default function EventsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
             {currentEvents.map((evt, idx) => {
               const { day, month, time } = formatDateTime(evt.startDatetime);
               return (
                 <div
                   key={evt.id}
-                  className={`group bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 6) + 1} flex flex-col shimmer-sweep`}
+                  className="group bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift scroll-reveal flex flex-col shimmer-sweep"
                 >
                   <div className="relative aspect-16/10 w-full bg-stone-100 overflow-hidden img-zoom-hover">
                     {evt.eventImageUrl ? (

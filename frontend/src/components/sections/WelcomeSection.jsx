@@ -17,7 +17,7 @@ export default function WelcomeSection({ config = {} }) {
   if (layout === 'centered' || !imageUrl) {
     return (
       <section className="py-20 bg-stone-50/60 border-b border-stone-200/60">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto px-4 text-center scroll-reveal-scale">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-4">
             <Church className="w-3.5 h-3.5 text-amber-700" />
             <span>Welcome to PATH</span>
@@ -55,21 +55,21 @@ export default function WelcomeSection({ config = {} }) {
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center ${isImageLeft ? 'lg:flex-row-reverse' : ''}`}>
           
           {/* Content Column */}
-          <div className={`space-y-6 ${isImageLeft ? 'lg:order-2' : 'lg:order-1'}`}>
-            <h2 className="font-serif-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight leading-tight animate-fade-in-up stagger-1">
+          <div className={`space-y-6 ${isImageLeft ? 'lg:order-2' : 'lg:order-1'} scroll-reveal-left`}>
+            <h2 className="font-serif-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight leading-tight">
               {heading}
             </h2>
 
-            <div className="p-5 rounded-2xl bg-amber-50/70 border-l-4 border-[#C41E3A] text-stone-800 text-base sm:text-lg font-medium leading-relaxed card-lift-sm animate-fade-in-up stagger-2">
+            <div className="p-5 rounded-2xl bg-amber-50/70 border-l-4 border-[#C41E3A] text-stone-800 text-base sm:text-lg font-medium leading-relaxed card-lift-sm">
               "{welcomeMessage}"
             </div>
 
-            <p className="text-stone-600 text-base leading-relaxed animate-fade-in-up stagger-3">
+            <p className="text-stone-600 text-base leading-relaxed">
               {supportingDescription}
             </p>
 
             {buttonText && buttonLink && (
-              <div className="pt-2 animate-fade-in-up stagger-4">
+              <div className="pt-2">
                 <Link
                   to={buttonLink}
                   className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-[#0B3B95] hover:bg-[#072766] text-white text-sm font-bold shadow-md ring-2 ring-[#D4AF37] hover:ring-amber-300 btn-glow transition-all"
@@ -83,7 +83,7 @@ export default function WelcomeSection({ config = {} }) {
 
           {/* Image Column */}
           {imageUrl && (
-            <div className={`relative ${isImageLeft ? 'lg:order-1' : 'lg:order-2'}`}>
+            <div className={`relative ${isImageLeft ? 'lg:order-1' : 'lg:order-2'} scroll-reveal-right`}>
               <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5 aspect-4/3 lg:aspect-5/4 img-zoom-hover card-lift">
                 <img
                   src={resolveMediaUrl(imageUrl)}

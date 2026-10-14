@@ -248,6 +248,90 @@
 .stagger-7 { animation-delay: 480ms; }
 .stagger-8 { animation-delay: 550ms; }
 
+/* ========================================================
+   SCROLL REVEAL ANIMATION SYSTEM (All Screens)
+   ======================================================== */
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-scale {
+  opacity: 0;
+  transform: scale(0.92) translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-left {
+  opacity: 0;
+  transform: translateX(-36px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-right {
+  opacity: 0;
+  transform: translateX(36px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Revealed active states */
+.scroll-reveal.is-revealed,
+.scroll-reveal-scale.is-revealed,
+.scroll-reveal-left.is-revealed,
+.scroll-reveal-right.is-revealed {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) !important;
+}
+
+/* Grid & List Stagger sequencing */
+.scroll-stagger > *:nth-child(1) { transition-delay: 40ms; }
+.scroll-stagger > *:nth-child(2) { transition-delay: 110ms; }
+.scroll-stagger > *:nth-child(3) { transition-delay: 180ms; }
+.scroll-stagger > *:nth-child(4) { transition-delay: 250ms; }
+.scroll-stagger > *:nth-child(5) { transition-delay: 320ms; }
+.scroll-stagger > *:nth-child(6) { transition-delay: 390ms; }
+.scroll-stagger > *:nth-child(7) { transition-delay: 460ms; }
+.scroll-stagger > *:nth-child(8) { transition-delay: 530ms; }
+
+/* Subtle Gold Luminous Accent on Scroll Entry */
+.scroll-glow-reveal.is-revealed {
+  animation: goldGlowReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes goldGlowReveal {
+  0% {
+    box-shadow: 0 0 0 0 rgba(197, 155, 63, 0.5);
+  }
+  50% {
+    box-shadow: 0 8px 30px -4px rgba(197, 155, 63, 0.28);
+  }
+  100% {
+    box-shadow: 0 4px 20px -2px rgba(44, 38, 33, 0.05);
+  }
+}
+
+/* Accessibility: instant fallback for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal,
+  .scroll-reveal-scale,
+  .scroll-reveal-left,
+  .scroll-reveal-right {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* Interactive Hover & Micro-animations */
 .card-lift {
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 

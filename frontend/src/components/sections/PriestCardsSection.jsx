@@ -36,7 +36,7 @@ export default function PriestCardsSection({ config = {} }) {
     <section className="py-20 bg-[#F7F4EB] border-b border-[#C59B3F]/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#C59B3F]/15 border border-[#C59B3F]/35 text-[#8F6B1E] text-xs font-bold uppercase tracking-wider mb-2.5">
               <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
@@ -72,11 +72,11 @@ export default function PriestCardsSection({ config = {} }) {
             Priest directory information will appear here.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
             {priests.map((p, idx) => (
               <div
                 key={p.id}
-                className={`bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 3) + 1} flex flex-col group shimmer-sweep`}
+                className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 shadow-xs card-lift scroll-reveal-scale flex flex-col group shimmer-sweep"
               >
                 <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative img-zoom-hover">
                   {p.portraitImageUrl ? (

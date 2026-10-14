@@ -45,7 +45,7 @@ export default function EventCardsSection({ config = {} }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-2 border border-amber-200">
               <Calendar className="w-3.5 h-3.5 text-amber-600" />
@@ -84,13 +84,13 @@ export default function EventCardsSection({ config = {} }) {
             No upcoming events scheduled at this time.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
             {events.map((evt, idx) => {
               const { day, month, time } = formatDateTime(evt.startDatetime);
               return (
                 <div
                   key={evt.id}
-                  className={`group bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 4) + 1} flex flex-col shimmer-sweep`}
+                  className="group bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift scroll-reveal flex flex-col shimmer-sweep"
                 >
                   {/* Event Poster / Image */}
                   <div className="relative aspect-16/9 w-full bg-stone-100 overflow-hidden img-zoom-hover">

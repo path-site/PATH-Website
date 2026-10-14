@@ -21,7 +21,7 @@ export default function AboutPreviewSection({ config = {} }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
           {/* Left: Images / Heritage Card */}
-          <div className="relative">
+          <div className="relative scroll-reveal-left">
             {imageUrl ? (
               <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 aspect-4/3 img-zoom-hover card-lift">
                 <img
@@ -52,7 +52,7 @@ export default function AboutPreviewSection({ config = {} }) {
           </div>
 
           {/* Right: Content */}
-          <div className="space-y-6">
+          <div className="space-y-6 scroll-reveal-right">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#C59B3F]/20 border border-[#C59B3F]/50 text-amber-200 text-xs font-bold uppercase tracking-wider animate-fade-in-up stagger-1">
               <Church className="w-3.5 h-3.5 text-[#DFBE7B]" />
               <span>About the Parish</span>

@@ -54,7 +54,7 @@ export default function PriestsPage() {
           <>
             {/* Current Set of Priests (3 Priests) */}
             <div className="mb-20">
-              <div className="bg-[#FAF7F0] p-6 sm:p-8 rounded-3xl border border-[#C59B3F]/30 mb-8 shadow-xs">
+              <div className="bg-[#FAF7F0] p-6 sm:p-8 rounded-3xl border border-[#C59B3F]/30 mb-8 shadow-xs scroll-reveal">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
@@ -80,11 +80,11 @@ export default function PriestsPage() {
               {currentPriests.length === 0 ? (
                 <p className="text-stone-500 italic">No current priests listed.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
                   {currentPriests.map((p, idx) => (
                     <div
                       key={p.id}
-                      className={`bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 3) + 1} flex flex-col group shimmer-sweep`}
+                      className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 shadow-xs card-lift scroll-reveal-scale flex flex-col group shimmer-sweep"
                     >
                       <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative img-zoom-hover">
                         {p.portraitImageUrl ? (
@@ -131,7 +131,7 @@ export default function PriestsPage() {
 
             {/* Past Sets & Former Clergy */}
             {formerPriests.length > 0 && (
-              <div className="pt-8 border-t border-[#C59B3F]/25">
+              <div className="pt-8 border-t border-[#C59B3F]/25 scroll-reveal">
                 <div className="flex items-center gap-3 mb-8 pb-3 border-b border-[#C59B3F]/20">
                   <span className="w-3.5 h-3.5 rounded-full bg-stone-400" />
                   <div>
@@ -144,11 +144,11 @@ export default function PriestsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
                   {formerPriests.map((p) => (
                     <div
                       key={p.id}
-                      className="bg-white/80 rounded-3xl overflow-hidden border border-[#C59B3F]/20 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col group opacity-90 hover:opacity-100"
+                      className="bg-white/80 rounded-3xl overflow-hidden border border-[#C59B3F]/20 shadow-xs card-lift scroll-reveal flex flex-col group opacity-90 hover:opacity-100"
                     >
                       <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative grayscale group-hover:grayscale-0 transition-all duration-500">
                         {p.portraitImageUrl ? (

@@ -120,11 +120,11 @@ export default function AnnouncementsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
             {announcements.map((ann, idx) => (
               <article
                 key={ann.id}
-                className={`group flex flex-col bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 6) + 1} shimmer-sweep`}
+                className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs card-lift scroll-reveal shimmer-sweep"
               >
                 <div className="relative aspect-16/10 w-full bg-stone-100 overflow-hidden img-zoom-hover">
                   {ann.featuredImageUrl ? (

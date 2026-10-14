@@ -46,7 +46,7 @@ export default function GalleryPreviewSection({ config = {} }) {
     <section className="py-20 bg-[#FCFBF9] border-b border-stone-200/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-2 border border-amber-200">
               <ImageIcon className="w-3.5 h-3.5 text-amber-600" />
@@ -84,11 +84,11 @@ export default function GalleryPreviewSection({ config = {} }) {
             Gallery preview photographs will appear here.
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 scroll-stagger">
             {images.map((img, idx) => (
               <div
                 key={idx}
-                className={`group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 4) + 1} img-zoom-hover cursor-pointer`}
+                className="group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs card-lift scroll-reveal-scale img-zoom-hover cursor-pointer"
               >
                 <img
                   src={resolveMediaUrl(img.imageUrl)}

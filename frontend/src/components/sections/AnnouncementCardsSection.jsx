@@ -42,7 +42,7 @@ export default function AnnouncementCardsSection({ config = {} }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6B1D2F]/10 text-[#6B1D2F] text-xs font-semibold uppercase tracking-wider mb-2">
               <BookOpen className="w-3.5 h-3.5" />
@@ -81,11 +81,11 @@ export default function AnnouncementCardsSection({ config = {} }) {
             No published announcements at this moment.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
             {announcements.map((ann, idx) => (
               <article
                 key={ann.id}
-                className={`group flex flex-col bg-[#FAF7F0] rounded-3xl overflow-hidden border border-[#C59B3F]/30 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 4) + 1} shimmer-sweep`}
+                className="group flex flex-col bg-[#FAF7F0] rounded-3xl overflow-hidden border border-[#C59B3F]/30 shadow-xs card-lift scroll-reveal shimmer-sweep"
               >
                 {/* Image with zoom on hover */}
                 <div className="relative aspect-16/9 w-full bg-stone-100 overflow-hidden img-zoom-hover">

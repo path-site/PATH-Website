@@ -73,7 +73,7 @@ export default function MissionVisionPage() {
         </div>
 
         {/* Section 1: Official Parish VISION Card */}
-        <div className="mb-16 animate-fade-in-up stagger-1">
+        <div className="mb-16 scroll-reveal-scale scroll-glow-reveal">
           <div className="relative bg-[#FAF7F0] rounded-3xl p-8 sm:p-12 border-2 border-[#C59B3F]/40 shadow-md overflow-hidden card-lift shimmer-sweep">
             <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A81B2B]" />
             <div className="flex flex-col md:flex-row md:items-center gap-6 mb-6">
@@ -105,7 +105,7 @@ export default function MissionVisionPage() {
 
         {/* Section 2: Official Parish MISSION (4 Action Pillars) */}
         <div className="mb-20">
-          <div className="flex items-center gap-4 mb-8 animate-fade-in-up stagger-2">
+          <div className="flex items-center gap-4 mb-8 scroll-reveal">
             <div className="w-14 h-14 rounded-2xl bg-[#A81B2B] text-white flex items-center justify-center shrink-0 shadow-md animate-pulse-ruby">
               <Compass className="w-7 h-7" />
             </div>
@@ -119,11 +119,11 @@ export default function MissionVisionPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 scroll-stagger">
             {data.missionPoints.map((point, index) => (
               <div
                 key={index}
-                className={`bg-[#FAF7F0] rounded-3xl p-6 sm:p-7 border border-[#C59B3F]/35 shadow-xs card-lift animate-fade-in-up stagger-${index + 1} flex items-start gap-4 group shimmer-sweep`}
+                className="bg-[#FAF7F0] rounded-3xl p-6 sm:p-7 border border-[#C59B3F]/35 shadow-xs card-lift scroll-reveal flex items-start gap-4 group shimmer-sweep"
               >
                 {/* Golden Circle Numeral Badge matching bulletin style */}
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E2C384] to-[#C59B3F] text-stone-900 font-extrabold flex items-center justify-center shrink-0 shadow-sm text-lg transition-transform group-hover:scale-110">
@@ -145,7 +145,7 @@ export default function MissionVisionPage() {
         </div>
 
         {/* Section 3: Official Parish CORE VALUES */}
-        <div className="bg-[#FAF7F0] rounded-3xl p-8 sm:p-12 border-2 border-[#C59B3F]/40 shadow-lg relative overflow-hidden">
+        <div className="bg-[#FAF7F0] rounded-3xl p-8 sm:p-12 border-2 border-[#C59B3F]/40 shadow-lg relative overflow-hidden scroll-reveal-scale">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C59B3F]/15 border border-[#C59B3F]/40 text-amber-900 text-xs font-bold uppercase tracking-wider mb-3">
               <Shield className="w-4 h-4 text-amber-800" />
@@ -160,7 +160,7 @@ export default function MissionVisionPage() {
           </div>
 
           {/* Part A: PATHWAYS */}
-          <div className="mb-14">
+          <div className="mb-14 scroll-reveal">
             <div className="flex items-center gap-3 mb-6 border-b-2 border-[#C59B3F]/30 pb-3">
               <span className="w-3 h-3 rounded-full bg-[#0B3B95] inline-block"></span>
               <h3 className="font-serif-heading text-xl sm:text-2xl font-bold text-[#1C1814] tracking-wider uppercase">
@@ -168,11 +168,11 @@ export default function MissionVisionPage() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 scroll-stagger">
               {data.pathways.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`bg-white rounded-2xl p-5 border border-[#C59B3F]/30 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 4) + 1} flex flex-col justify-between group shimmer-sweep`}
+                  className="bg-white rounded-2xl p-5 border border-[#C59B3F]/30 shadow-xs card-lift scroll-reveal flex flex-col justify-between group shimmer-sweep"
                 >
                   <div>
                     <div className="flex items-center gap-3 mb-3">
@@ -205,7 +205,7 @@ export default function MissionVisionPage() {
           </div>
 
           {/* Part B: HEARTS */}
-          <div>
+          <div className="scroll-reveal">
             <div className="flex items-center gap-3 mb-6 border-b-2 border-[#C59B3F]/30 pb-3">
               <span className="w-3 h-3 rounded-full bg-[#A81B2B] inline-block animate-pulse-ruby"></span>
               <h3 className="font-serif-heading text-xl sm:text-2xl font-bold text-[#1C1814] tracking-wider uppercase">
@@ -213,11 +213,11 @@ export default function MissionVisionPage() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 scroll-stagger">
               {data.hearts.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`bg-white rounded-2xl p-5 border border-[#C59B3F]/30 shadow-xs card-lift animate-fade-in-up stagger-${(idx % 3) + 1} flex flex-col justify-between group shimmer-sweep`}
+                  className="bg-white rounded-2xl p-5 border border-[#C59B3F]/30 shadow-xs card-lift scroll-reveal flex flex-col justify-between group shimmer-sweep"
                 >
                   <div>
                     <div className="flex items-center gap-3 mb-3">

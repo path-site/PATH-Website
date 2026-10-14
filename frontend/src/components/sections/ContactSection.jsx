@@ -14,7 +14,7 @@ export default function ContactSection({ config = {} }) {
     <section className="py-20 bg-stone-100/50 border-b border-stone-200/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="text-center max-w-2xl mx-auto mb-14">
+        <div className="text-center max-w-2xl mx-auto mb-14 scroll-reveal">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-2">
             <MapPin className="w-3.5 h-3.5" />
             <span>Connect & Worship</span>
@@ -29,10 +29,10 @@ export default function ContactSection({ config = {} }) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 scroll-stagger">
           
           {/* Card 1: Mass Schedules */}
-          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs hover:shadow-lg transition-all">
+          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs card-lift scroll-reveal">
             <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-5 ring-1 ring-amber-200">
               <Calendar className="w-6 h-6" />
             </div>
@@ -62,7 +62,7 @@ export default function ContactSection({ config = {} }) {
           </div>
 
           {/* Card 2: Parish Office */}
-          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs hover:shadow-lg transition-all">
+          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs card-lift scroll-reveal">
             <div className="w-12 h-12 rounded-xl bg-[#6B1D2F]/10 text-[#6B1D2F] flex items-center justify-center mb-5 ring-1 ring-[#6B1D2F]/20">
               <Clock className="w-6 h-6" />
             </div>
@@ -85,7 +85,7 @@ export default function ContactSection({ config = {} }) {
           </div>
 
           {/* Card 3: Location & Directions */}
-          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-7 border border-stone-200/80 shadow-xs card-lift scroll-reveal flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 rounded-xl bg-stone-100 text-stone-800 flex items-center justify-center mb-5 ring-1 ring-stone-200">
                 <MapPin className="w-6 h-6 text-[#6B1D2F]" />

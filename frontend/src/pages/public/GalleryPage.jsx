@@ -124,12 +124,12 @@ export default function GalleryPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 scroll-stagger">
             {activePhotos.map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => openLightbox(idx)}
-                className="group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs hover:shadow-xl cursor-pointer transition-all duration-300 border border-stone-200/60"
+                className="group relative aspect-square rounded-2xl overflow-hidden bg-stone-100 shadow-xs card-lift scroll-reveal-scale cursor-pointer border border-stone-200/60"
               >
                 <img
                   src={resolveMediaUrl(img.imageUrl)}

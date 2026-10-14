@@ -74,14 +74,14 @@ export default function ContactPage() {
         </div>
 
         {/* Official Parish Mass Schedules Display */}
-        <section id="mass-schedule" className="mb-14 scroll-mt-28">
+        <section id="mass-schedule" className="mb-14 scroll-mt-28 scroll-reveal">
           <MassScheduleView />
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* Left Column: Parish Information (5 cols) */}
-          <div className="lg:col-span-5 space-y-8">
+          <div className="lg:col-span-5 space-y-8 scroll-reveal-left">
             
             {/* Contact Card */}
             <div className="bg-white rounded-3xl p-8 border border-stone-200/80 shadow-md space-y-6">
@@ -168,7 +168,7 @@ export default function ContactPage() {
           </div>
 
           {/* Right Column: Contact Message Form (7 cols) */}
-          <div className="lg:col-span-7 space-y-8">
+          <div className="lg:col-span-7 space-y-8 scroll-reveal-right">
             <div className="bg-white rounded-3xl p-8 sm:p-10 border border-stone-200/80 shadow-md">
               <h2 className="font-serif-heading text-2xl font-bold text-stone-900 mb-2">
                 Send a Message to the Parish Office

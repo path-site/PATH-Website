@@ -69,7 +69,7 @@ export default function MinistriesPage() {
         </div>
 
         {/* Dignified "In the Making" Announcement Card */}
-        <div className="max-w-4xl mx-auto bg-gradient-to-br from-[#071838] via-[#0D2556] to-[#071838] rounded-3xl p-8 sm:p-12 text-white shadow-xl border border-amber-400/30 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto bg-gradient-to-br from-[#071838] via-[#0D2556] to-[#071838] rounded-3xl p-8 sm:p-12 text-white shadow-xl border border-amber-400/30 relative overflow-hidden scroll-reveal-scale">
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none"></div>
           
           <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
@@ -111,7 +111,7 @@ export default function MinistriesPage() {
         </div>
 
         {/* Preview of Upcoming Ministries Grid */}
-        <div className="space-y-6">
+        <div className="space-y-6 scroll-reveal">
           <div className="text-center max-w-xl mx-auto">
             <h3 className="font-serif-heading text-2xl font-bold text-stone-900">
               Areas of Service & Apostolates
@@ -121,13 +121,13 @@ export default function MinistriesPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-stagger">
             {previewMinistries.map((item, idx) => {
               const Icon = item.icon;
               return (
                 <div 
                   key={idx}
-                  className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm hover:shadow-md transition-shadow space-y-3 relative group"
+                  className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm card-lift scroll-reveal space-y-3 relative group"
                 >
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:bg-[#071838] group-hover:text-amber-300 transition-colors">
