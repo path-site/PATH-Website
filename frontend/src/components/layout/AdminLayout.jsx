@@ -140,30 +140,34 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         
         {/* TOP NAVBAR: DISTINCT FIXED CONTAINER */}
-        <header className="h-20 shrink-0 bg-white border-b border-stone-200 px-4 sm:px-8 flex items-center justify-between z-30 shadow-xs">
-          <div className="flex items-center gap-4">
+        <header className="h-16 sm:h-20 shrink-0 bg-white border-b border-stone-200 px-3 sm:px-8 flex items-center justify-between z-30 shadow-xs">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1 mr-2 sm:mr-4">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-stone-700 hover:bg-stone-100"
+              className="lg:hidden p-1.5 sm:p-2 rounded-lg text-stone-700 hover:bg-stone-100 shrink-0"
+              aria-label="Open sidebar menu"
             >
-              <MenuIcon className="w-6 h-6" />
+              <MenuIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
-            <div className="hidden sm:block">
-              <span className="text-xs text-stone-400 font-medium">Parish Content Management System</span>
-              <h2 className="text-lg font-bold text-stone-800">
-                {settings.site_name}
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] sm:text-xs text-stone-400 font-medium block truncate leading-tight">
+                Parish Content Management System
+              </span>
+              <h2 className="text-xs sm:text-base lg:text-lg font-bold text-stone-800 uppercase tracking-tight truncate leading-tight mt-0.5">
+                {settings.site_name || 'Parish of the Alliance of the Two Hearts'}
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               to="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-50 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 whitespace-nowrap"
             >
-              <span>View Public Website</span>
+              <span className="hidden sm:inline">View Public Website</span>
+              <span className="sm:hidden">View Site</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>

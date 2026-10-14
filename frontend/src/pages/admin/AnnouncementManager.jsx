@@ -239,33 +239,33 @@ export default function AnnouncementManager() {
     <div className="space-y-6">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200/90 shadow-xs">
-        <div>
-          <h1 className="font-serif-heading text-2xl font-bold text-stone-900">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-stone-200/90 shadow-xs">
+        <div className="min-w-0">
+          <h1 className="font-serif-heading text-xl sm:text-2xl font-bold text-stone-900 leading-tight">
             Announcements & Advisories
           </h1>
-          <p className="text-xs sm:text-sm text-stone-500 mt-1">
+          <p className="text-xs sm:text-sm text-stone-500 mt-1 leading-relaxed">
             Create, schedule, and publish parish notices, advisories, and liturgical schedules.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0">
           {draftItems.length > 0 && (
             <button
               onClick={handlePublishAllDrafts}
               disabled={isPublishingBatch}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wider shadow-2xs transition-all disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold uppercase tracking-wider shadow-2xs transition-all disabled:opacity-50 text-center"
             >
-              <Send className="w-3.5 h-3.5 text-emerald-600" />
+              <Send className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>Publish All Drafts ({draftItems.length})</span>
             </button>
           )}
 
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all text-center"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>New Announcement</span>
           </button>
         </div>
