@@ -74,19 +74,6 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full shadow-xs transition-all">
-      {/* Top Liturgical & Information Bar: Warm Ivory + Gold border + Official Hashtag */}
-      <div className="bg-[#FAF7F0] text-[#3D352E] text-xs py-1.5 px-4 border-b border-[#C59B3F]/40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#A81B2B] inline-block ring-1 ring-[#C59B3F]"></span>
-            <span className="font-semibold tracking-wide text-stone-700 hidden sm:inline">
-              ARCHDIOCESE OF CEBU • FOUNDED JANUARY 6, 1988
-            </span>
-            <span className="sm:hidden font-bold text-stone-800">PATH • CEBU</span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navbar */}
       <div className="bg-[#FDFCF9]/95 backdrop-blur-md border-b-2 border-[#C59B3F]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
