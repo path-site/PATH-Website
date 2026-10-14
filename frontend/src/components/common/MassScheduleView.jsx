@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Radio, MapPin, Clock } from 'lucide-react';
+import { Calendar, Radio, MapPin } from 'lucide-react';
 
 export const OFFICIAL_SCHEDULE = {
   weekday: {
@@ -180,16 +180,9 @@ export default function MassScheduleView({ variant = 'card' }) {
 
       </div>
 
-      {/* Sacrament of Confession & Livestream Notice Bar */}
-      <div className="bg-[#191516] text-white px-6 py-5 sm:px-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-2.5">
-          <Clock className="w-4 h-4 text-[#C59B3F] shrink-0" />
-          <div>
-            <span className="font-bold text-[#C59B3F] uppercase tracking-wider">Confessions: </span>
-            <span className="text-stone-300">Wednesday & Friday: 5:00 PM – 6:00 PM • Saturday: 4:30 PM – 5:30 PM</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-stone-400">
+      {/* Livestream Notice Bar */}
+      <div className="bg-[#191516] text-white px-6 py-4 sm:px-10 flex items-center justify-center text-xs">
+        <div className="flex items-center gap-2 text-stone-300">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
           <span>Masses marked <strong className="text-white">LIVE</strong> are streamed on official parish media.</span>
         </div>
