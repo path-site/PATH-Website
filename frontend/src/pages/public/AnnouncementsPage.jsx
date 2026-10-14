@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { Search, Calendar, User, ArrowRight, BookOpen, Tag } from 'lucide-react';
+import { Search, Calendar, ArrowRight, BookOpen, Tag } from 'lucide-react';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
@@ -154,12 +154,6 @@ export default function AnnouncementsPage() {
                         <Calendar className="w-3.5 h-3.5 text-amber-600" />
                         {formatDate(ann.publishedAt || ann.createdAt)}
                       </span>
-                      {ann.authorName && (
-                        <span className="flex items-center gap-1">
-                          <User className="w-3.5 h-3.5 text-stone-400" />
-                          {ann.authorName}
-                        </span>
-                      )}
                     </div>
 
                     <h2 className="font-serif-heading text-xl font-bold text-stone-900 group-hover:text-[#6B1D2F] transition-colors line-clamp-2 leading-snug">

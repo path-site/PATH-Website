@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { ArrowLeft, Calendar, User, Tag, Share2, Church } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, Share2, Church } from 'lucide-react';
 
 export default function AnnouncementDetailPage() {
   const { slug } = useParams();
@@ -109,12 +109,6 @@ export default function AnnouncementDetailPage() {
               <Calendar className="w-4 h-4 text-amber-600" />
               <span>{formatDate(announcement.publishedAt || announcement.createdAt)}</span>
             </span>
-            {announcement.authorName && (
-              <span className="flex items-center gap-1.5">
-                <User className="w-4 h-4 text-stone-400" />
-                <span>Published by: {announcement.authorName}</span>
-              </span>
-            )}
           </div>
         </div>
 
