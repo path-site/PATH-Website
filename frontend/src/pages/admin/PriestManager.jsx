@@ -135,7 +135,7 @@ export default function PriestManager() {
             Priests Directory Management
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Maintain the 3 priests assigned per set, past sets, biographies, and terms.
+            Maintain the 3 priests assigned per set, past sets, biographies, and terms. Within each year range, the Team Moderator is listed first.
           </p>
         </div>
         <button
@@ -154,7 +154,7 @@ export default function PriestManager() {
             Auto-Sorted by Year
           </span>
           <span>
-            The directory is automatically sorted with the <strong>Current Set</strong> on top, followed by <strong>Past Sets</strong> in descending order based on their ministry term.
+            The directory is automatically sorted with the <strong>Current Set</strong> on top, followed by <strong>Past Sets</strong> in descending order by year. Within each year range, the <strong>Team Moderator is placed first</strong>.
           </span>
         </div>
         <div className="shrink-0 font-semibold text-stone-600">
@@ -182,7 +182,7 @@ export default function PriestManager() {
           >
             <div>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider ${
                     p.priestStatus === 'CURRENT'
                       ? 'bg-emerald-100 text-emerald-800'
@@ -190,6 +190,11 @@ export default function PriestManager() {
                   }`}>
                     {p.priestStatus === 'CURRENT' ? 'CURRENT SET' : 'PAST SET'}
                   </span>
+                  {p.title?.toLowerCase().includes('moderator') && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider bg-amber-100 text-[#8F6B1E] border border-[#C59B3F]/40 flex items-center gap-1">
+                      <span>★</span> Moderator (1st in Set)
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-stone-400 font-mono">Order: #{idx + 1}</span>
               </div>
@@ -306,7 +311,7 @@ export default function PriestManager() {
                     className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#A81B2B]"
                   />
                   <div className="flex flex-wrap gap-1 mt-1.5">
-                    {['Parish Priest / Team Moderator', 'Parochial Vicar', 'Former Parish Priest'].map(t => (
+                    {['Team Moderator', 'Parish Priest', 'Parochial Vicar', 'Former Team Moderator', 'Former Parish Priest'].map(t => (
                       <button
                         type="button"
                         key={t}
@@ -317,6 +322,9 @@ export default function PriestManager() {
                       </button>
                     ))}
                   </div>
+                  <p className="text-[11px] text-stone-500 mt-1 italic">
+                    Note: Priests with "Team Moderator" in their title are automatically placed 1st within their year range.
+                  </p>
                 </div>
 
                 <div>

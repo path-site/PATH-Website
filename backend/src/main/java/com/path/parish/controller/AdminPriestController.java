@@ -84,17 +84,18 @@ public class AdminPriestController {
             if (aCurrent != bCurrent) {
                 return aCurrent ? -1 : 1; // CURRENT on top
             }
-            int aEnd = parseYear(a.getServiceEnd());
-            int bEnd = parseYear(b.getServiceEnd());
+            int aEnd = aCurrent ? (parseYear(a.getServiceEnd()) > 0 ? parseYear(a.getServiceEnd()) : 9999) : parseYear(a.getServiceEnd());
+            int bEnd = bCurrent ? (parseYear(b.getServiceEnd()) > 0 ? parseYear(b.getServiceEnd()) : 9999) : parseYear(b.getServiceEnd());
             if (aEnd != bEnd) return Integer.compare(bEnd, aEnd); // Year descending
+
+            // Within the year range, Team Moderator is unconditionally first
+            int aRole = getRoleRank(a.getTitle());
+            int bRole = getRoleRank(b.getTitle());
+            if (aRole != bRole) return Integer.compare(aRole, bRole);
 
             int aStart = parseYear(a.getServiceStart());
             int bStart = parseYear(b.getServiceStart());
             if (aStart != bStart) return Integer.compare(bStart, aStart); // Year descending
-
-            int aRole = getRoleRank(a.getTitle());
-            int bRole = getRoleRank(b.getTitle());
-            if (aRole != bRole) return Integer.compare(aRole, bRole);
 
             int aOrder = a.getDisplayOrder() != null ? a.getDisplayOrder() : 0;
             int bOrder = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;

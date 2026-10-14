@@ -35,19 +35,19 @@ export const sortPriests = (list = []) => {
       return bCurrent - aCurrent; // CURRENT (1) comes before FORMER (0)
     }
 
-    // 2. Sort by serviceEnd year descending
-    const aEnd = parseYear(a.serviceEnd);
-    const bEnd = parseYear(b.serviceEnd);
+    // 2. Sort by serviceEnd year descending (Present = 9999)
+    const aEnd = aCurrent ? (parseYear(a.serviceEnd) || 9999) : parseYear(a.serviceEnd);
+    const bEnd = bCurrent ? (parseYear(b.serviceEnd) || 9999) : parseYear(b.serviceEnd);
     if (aEnd !== bEnd) return bEnd - aEnd;
 
-    // 3. Sort by serviceStart year descending
+    // 3. Within the year range, Team Moderator is unconditionally first!
+    const rankDiff = getRoleRank(a.title) - getRoleRank(b.title);
+    if (rankDiff !== 0) return rankDiff;
+
+    // 4. Sort by serviceStart year descending
     const aStart = parseYear(a.serviceStart);
     const bStart = parseYear(b.serviceStart);
     if (aStart !== bStart) return bStart - aStart;
-
-    // 4. Role hierarchy rank
-    const rankDiff = getRoleRank(a.title) - getRoleRank(b.title);
-    if (rankDiff !== 0) return rankDiff;
 
     // 5. Display order / id
     const aOrder = a.displayOrder != null ? a.displayOrder : 0;

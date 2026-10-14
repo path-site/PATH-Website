@@ -41,7 +41,7 @@ export default function PriestsPage() {
             Our Parish Priests
           </h1>
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
-            By diocesan assignment, our parish is served by a set of three (3) priests dedicated to celebrating the Holy Eucharist, administering the Sacraments, and shepherding our parish community.
+            By diocesan assignment, our parish is served by a team of three (3) priests headed by the Team Moderator. The clergy directory is arranged chronologically, with the current set on top, and the Team Moderator placed first within each year range.
           </p>
         </div>
 
@@ -104,7 +104,11 @@ export default function PriestsPage() {
                           </div>
                         )}
                         <div className="absolute bottom-3 left-3">
-                          <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-xs text-xs font-bold text-[#A81B2B] shadow-xs border border-[#C59B3F]/20 transition-transform group-hover:scale-105">
+                          <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
+                            p.title?.toLowerCase().includes('moderator')
+                              ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
+                              : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
+                          }`}>
                             {p.title || 'Parish Priest'}
                           </span>
                         </div>
@@ -168,7 +172,11 @@ export default function PriestsPage() {
                           </div>
                         )}
                         <div className="absolute bottom-3 left-3">
-                          <span className="px-3 py-1 rounded-full bg-[#1C1814]/90 text-white text-xs font-semibold">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-xs ${
+                            p.title?.toLowerCase().includes('moderator')
+                              ? 'bg-[#8F6B1E] text-white border border-[#DFBE7B]/50 font-bold ring-2 ring-amber-400/30'
+                              : 'bg-[#1C1814]/90 text-white'
+                          }`}>
                             {p.title || 'Former Pastor'}
                           </span>
                         </div>
