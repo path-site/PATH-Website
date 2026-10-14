@@ -2,7 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
-import { Calendar, Plus, Edit, Trash2, Eye, EyeOff, Check, X, Clock, MapPin } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, Eye, EyeOff, Check, X, Clock, MapPin, RefreshCw } from 'lucide-react';
+
+const generateRandomSlug = (length = 8) => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    const array = new Uint8Array(length);
+    window.crypto.getRandomValues(array);
+    for (let i = 0; i < length; i++) {
+      result += chars[array[i] % chars.length];
+    }
+  } else {
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  }
+  return result;
+};
 
 export default function EventManager() {
   const [events, setEvents] = useState([]);
@@ -46,7 +63,7 @@ export default function EventManager() {
     const defaultStart = new Date(now.getTime() + 86400000).toISOString().slice(0, 16);
     setFormData({
       title: '',
-      slug: '',
+      slug: generateRandomSlug(),
       description: '',
       eventImageUrl: '',
       startDatetime: defaultStart,
@@ -63,7 +80,7 @@ export default function EventManager() {
     setEditingItem(item);
     setFormData({
       title: item.title,
-      slug: item.slug,
+      slug: item.slug || generateRandomSlug(),
       description: item.description || '',
       eventImageUrl: item.eventImageUrl || '',
       startDatetime: item.startDatetime ? item.startDatetime.slice(0, 16) : '',
@@ -79,10 +96,12 @@ export default function EventManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const finalSlug = (formData.slug || '').trim() || generateRandomSlug();
+      const payload = { ...formData, slug: finalSlug };
       if (editingItem) {
-        await adminApi.updateEvent(editingItem.id, formData);
+        await adminApi.updateEvent(editingItem.id, payload);
       } else {
-        await adminApi.createEvent(formData);
+        await adminApi.createEvent(payload);
       }
       setModalOpen(false);
       fetchEvents();
@@ -238,11 +257,38 @@ export default function EventManager() {
                     setFormData({
                       ...formData,
                       title: e.target.value,
-                      slug: !editingItem ? e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : formData.slug
                     });
                   }}
                   className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#800020]"
                 />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
+                    URL Slug <span className="text-rose-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, slug: generateRandomSlug() }))}
+                    className="text-[11px] font-semibold text-[#800020] hover:text-[#5a0016] flex items-center gap-1 transition-colors"
+                    title="Generate new random slug"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Randomize
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                  placeholder="e.g. 7f9b2c8a"
+                  className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm font-mono text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#800020]"
+                />
+                <p className="mt-1 text-[11px] text-stone-500">
+                  Random alphanumeric characters avoid duplicate URL conflicts.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -36,10 +36,10 @@ public class AdminAnnouncementController {
     @PostMapping
     public ResponseEntity<ApiResponse<Announcement>> createAnnouncement(@RequestBody Announcement announcement) {
         if (announcement.getSlug() == null || announcement.getSlug().isBlank()) {
-            announcement.setSlug(generateSlug(announcement.getTitle()));
+            announcement.setSlug(generateRandomSlug());
         }
-        if (announcementRepository.existsBySlug(announcement.getSlug())) {
-            announcement.setSlug(announcement.getSlug() + "-" + System.currentTimeMillis() % 10000);
+        while (announcementRepository.existsBySlug(announcement.getSlug())) {
+            announcement.setSlug(generateRandomSlug());
         }
         if (announcement.getAuthorName() == null || announcement.getAuthorName().isBlank()) {
             announcement.setAuthorName(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -125,8 +125,7 @@ public class AdminAnnouncementController {
         }).orElse(ResponseEntity.status(404).body(ApiResponse.error("Announcement not found")));
     }
 
-    private String generateSlug(String title) {
-        if (title == null) return "announcement-" + System.currentTimeMillis();
-        return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    private String generateRandomSlug() {
+        return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 }

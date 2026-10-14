@@ -34,10 +34,10 @@ public class AdminEventController {
     @PostMapping
     public ResponseEntity<ApiResponse<ParishEvent>> createEvent(@RequestBody ParishEvent event) {
         if (event.getSlug() == null || event.getSlug().isBlank()) {
-            event.setSlug(generateSlug(event.getTitle()));
+            event.setSlug(generateRandomSlug());
         }
-        if (parishEventRepository.existsBySlug(event.getSlug())) {
-            event.setSlug(event.getSlug() + "-" + System.currentTimeMillis() % 10000);
+        while (parishEventRepository.existsBySlug(event.getSlug())) {
+            event.setSlug(generateRandomSlug());
         }
         ParishEvent saved = parishEventRepository.save(event);
         return ResponseEntity.ok(ApiResponse.ok("Event created successfully", saved));
@@ -88,8 +88,7 @@ public class AdminEventController {
         }).orElse(ResponseEntity.status(404).body(ApiResponse.error("Event not found")));
     }
 
-    private String generateSlug(String title) {
-        if (title == null) return "event-" + System.currentTimeMillis();
-        return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    private String generateRandomSlug() {
+        return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 }
