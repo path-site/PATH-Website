@@ -84,14 +84,6 @@ export default function Navbar() {
             </span>
             <span className="sm:hidden font-bold text-stone-800">PATH • CEBU</span>
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <Link 
-              to="/contact#mass-schedule" 
-              className="px-2.5 py-0.5 rounded-full bg-[#C59B3F]/15 hover:bg-[#C59B3F]/30 text-amber-900 border border-[#C59B3F]/40 font-semibold transition-colors"
-            >
-              Mass Schedules
-            </Link>
-          </div>
         </div>
       </div>
 
