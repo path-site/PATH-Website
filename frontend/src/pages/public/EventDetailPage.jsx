@@ -104,7 +104,7 @@ export default function EventDetailPage() {
 
         {/* Title and Category */}
         <div className="space-y-4 mb-8">
-          <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-200">
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block">
             {event.category || 'Parish Activity'}
           </span>
 

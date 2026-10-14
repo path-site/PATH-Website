@@ -15,10 +15,9 @@ export default function ContactSection({ config = {} }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center max-w-2xl mx-auto mb-14 scroll-reveal">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-2">
-            <MapPin className="w-3.5 h-3.5" />
-            <span>Connect & Worship</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-2">
+            Connect & Worship
+          </span>
           <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
             {heading}
           </h2>

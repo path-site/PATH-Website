@@ -44,10 +44,9 @@ export default function AnnouncementCardsSection({ config = {} }) {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6B1D2F]/10 text-[#6B1D2F] text-xs font-semibold uppercase tracking-wider mb-2">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Announcements</span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#6B1D2F] block mb-2">
+              Announcements
+            </span>
             <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
               {heading}
             </h2>

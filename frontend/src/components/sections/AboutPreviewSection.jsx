@@ -53,10 +53,9 @@ export default function AboutPreviewSection({ config = {} }) {
 
           {/* Right: Content */}
           <div className="space-y-6 scroll-reveal-right">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#C59B3F]/20 border border-[#C59B3F]/50 text-amber-200 text-xs font-bold uppercase tracking-wider animate-fade-in-up stagger-1">
-              <Church className="w-3.5 h-3.5 text-[#DFBE7B]" />
-              <span>About the Parish</span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-300 block animate-fade-in-up stagger-1">
+              About the Parish
+            </span>
 
             <h2 className="font-serif-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight animate-fade-in-up stagger-2">
               {heading}

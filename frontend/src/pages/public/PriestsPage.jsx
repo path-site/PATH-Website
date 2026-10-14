@@ -32,10 +32,9 @@ export default function PriestsPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C59B3F]/15 text-[#8F6B1E] text-xs font-bold uppercase tracking-wider mb-4 border border-[#C59B3F]/35">
-            <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
-            <span>Clergy of the Parish</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#8F6B1E] block mb-3">
+            Clergy of the Parish
+          </span>
           <h1 className="font-serif-heading text-4xl sm:text-5xl font-bold text-[#1C1814] tracking-tight leading-tight">
             Our Parish Priests
           </h1>

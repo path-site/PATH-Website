@@ -57,10 +57,9 @@ export default function DashboardOverview() {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-[#800020] to-[#541624] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
-            <Church className="w-3.5 h-3.5" />
-            <span>Welcome to Parish Administration</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-300 block mb-2">
+            Welcome to Parish Administration
+          </span>
           <h1 className="font-serif-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
             Parish Content Management System
           </h1>

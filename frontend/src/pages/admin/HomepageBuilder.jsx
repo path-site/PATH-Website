@@ -418,10 +418,9 @@ export default function HomepageBuilder() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider mb-1.5 border border-amber-200">
-            <LayoutTemplate className="w-3.5 h-3.5 text-amber-600" />
-            <span>Modular CMS</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-1.5">
+            Modular CMS
+          </span>
           <h1 className="font-serif-heading text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
             Homepage Section Builder
           </h1>

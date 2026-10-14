@@ -38,10 +38,9 @@ export default function PriestCardsSection({ config = {} }) {
         
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#C59B3F]/15 border border-[#C59B3F]/35 text-[#8F6B1E] text-xs font-bold uppercase tracking-wider mb-2.5">
-              <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
-              <span>Current Set of Priests</span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#8F6B1E] block mb-2.5">
+              Current Set of Priests
+            </span>
             <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-[#1C1814] tracking-tight">
               {heading}
             </h2>

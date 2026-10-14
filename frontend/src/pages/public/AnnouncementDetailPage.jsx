@@ -96,10 +96,9 @@ export default function AnnouncementDetailPage() {
 
         {/* Title and Meta */}
         <div className="space-y-4 mb-8">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider border border-amber-200">
-            <Tag className="w-3 h-3 text-amber-600" />
-            <span>{announcement.category || 'General'}</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block">
+            {announcement.category || 'General'}
+          </span>
 
           <h1 className="font-serif-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-stone-900 leading-tight">
             {announcement.title}

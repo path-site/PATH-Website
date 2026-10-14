@@ -55,10 +55,9 @@ export default function MinistriesPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-widest border border-amber-200">
-            <Users className="w-3.5 h-3.5 text-amber-600" />
-            <span>Pastoral Apostolates & Organizations</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block">
+            Pastoral Apostolates & Organizations
+          </span>
           <h1 className="font-serif-heading text-4xl sm:text-5xl font-extrabold text-[#071838] tracking-tight leading-tight">
             Parish Ministries
           </h1>
@@ -73,10 +72,9 @@ export default function MinistriesPage() {
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none"></div>
           
           <div className="relative z-10 text-center space-y-6 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300 text-xs font-semibold">
-              <Clock className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '6s' }} />
-              <span>Section Under Preparation</span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-300 block">
+              Section Under Preparation
+            </span>
 
             <h2 className="font-serif-heading text-2xl sm:text-3xl font-bold text-amber-300 leading-snug">
               Ministries Directory is Currently in the Making

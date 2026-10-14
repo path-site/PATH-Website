@@ -42,10 +42,9 @@ export default function EventsPage() {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3 border border-amber-200">
-            <Calendar className="w-3.5 h-3.5 text-amber-600" />
-            <span>Liturgical & Pastoral Calendar</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-3">
+            Liturgical & Pastoral Calendar
+          </span>
           <h1 className="font-serif-heading text-4xl sm:text-5xl font-bold text-stone-900 tracking-tight leading-tight">
             Parish Events & Activities
           </h1>

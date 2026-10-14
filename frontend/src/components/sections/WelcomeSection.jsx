@@ -18,10 +18,9 @@ export default function WelcomeSection({ config = {} }) {
     return (
       <section className="py-20 bg-stone-50/60 border-b border-stone-200/60">
         <div className="max-w-4xl mx-auto px-4 text-center scroll-reveal-scale">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-4">
-            <Church className="w-3.5 h-3.5 text-amber-700" />
-            <span>Welcome to PATH</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-3">
+            Welcome to PATH
+          </span>
           <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
             {heading}
           </h2>

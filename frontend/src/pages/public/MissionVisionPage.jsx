@@ -60,10 +60,9 @@ export default function MissionVisionPage() {
         
         {/* Header Ribbon / Identification */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FAF7F0] text-amber-900 text-xs font-bold uppercase tracking-wider mb-4 border border-[#C59B3F]/50 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#A81B2B] inline-block ring-1 ring-[#C59B3F]"></span>
-            <span>Spiritual Identity & Purpose</span>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#8F6B1E] block mb-3">
+            Spiritual Identity & Purpose
+          </span>
           <h1 className="font-serif-heading text-4xl sm:text-5xl font-extrabold text-[#1C1814] tracking-tight leading-tight uppercase">
             Vision, Mission & Core Values
           </h1>
@@ -147,10 +146,9 @@ export default function MissionVisionPage() {
         {/* Section 3: Official Parish CORE VALUES */}
         <div className="bg-[#FAF7F0] rounded-3xl p-8 sm:p-12 border-2 border-[#C59B3F]/40 shadow-lg relative overflow-hidden scroll-reveal-scale">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C59B3F]/15 border border-[#C59B3F]/40 text-amber-900 text-xs font-bold uppercase tracking-wider mb-3">
-              <Shield className="w-4 h-4 text-amber-800" />
-              <span>Giya sa Kinabuhi ug Pag-alagad</span>
-            </div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#8F6B1E] block mb-2">
+              Giya sa Kinabuhi ug Pag-alagad
+            </span>
             <h2 className="font-serif-heading text-3xl sm:text-4xl font-extrabold text-[#1C1814] tracking-tight uppercase">
               CORE VALUES
             </h2>
@@ -162,7 +160,6 @@ export default function MissionVisionPage() {
           {/* Part A: PATHWAYS */}
           <div className="mb-14 scroll-reveal">
             <div className="flex items-center gap-3 mb-6 border-b-2 border-[#C59B3F]/30 pb-3">
-              <span className="w-3 h-3 rounded-full bg-[#0B3B95] inline-block"></span>
               <h3 className="font-serif-heading text-xl sm:text-2xl font-bold text-[#1C1814] tracking-wider uppercase">
                 P • A • T • H • W • A • Y • S
               </h3>
@@ -207,7 +204,6 @@ export default function MissionVisionPage() {
           {/* Part B: HEARTS */}
           <div className="scroll-reveal">
             <div className="flex items-center gap-3 mb-6 border-b-2 border-[#C59B3F]/30 pb-3">
-              <span className="w-3 h-3 rounded-full bg-[#A81B2B] inline-block animate-pulse-ruby"></span>
               <h3 className="font-serif-heading text-xl sm:text-2xl font-bold text-[#1C1814] tracking-wider uppercase">
                 H • E • A • R • T • S
               </h3>
@@ -241,7 +237,7 @@ export default function MissionVisionPage() {
 
           {/* Devotional Footer Tag */}
           <div className="mt-12 text-center border-t border-[#C59B3F]/30 pt-6">
-            <span className="inline-block px-4 py-1 rounded-full bg-amber-100/60 text-amber-900 text-xs font-mono font-bold tracking-tight">
+            <span className="inline-block text-amber-900/80 text-xs font-mono font-bold tracking-tight">
               #PATHwaystowardstheHEARTSofJesusandMary
             </span>
           </div>
