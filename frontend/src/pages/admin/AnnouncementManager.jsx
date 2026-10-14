@@ -4,7 +4,7 @@ import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { 
   Bell, Plus, Edit, Trash2, Eye, EyeOff, Archive, Check, X, 
-  Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox, Search, RefreshCw 
+  Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox, Search 
 } from 'lucide-react';
 
 const generateRandomSlug = (length = 8) => {
@@ -632,30 +632,17 @@ export default function AnnouncementManager() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider">
-                      URL Slug <span className="text-rose-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, slug: generateRandomSlug() }))}
-                      className="text-[11px] font-semibold text-[#800020] hover:text-[#5a0016] flex items-center gap-1 transition-colors"
-                      title="Generate new random slug"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Randomize
-                    </button>
-                  </div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                    URL Slug
+                  </label>
                   <input
                     type="text"
-                    required
+                    readOnly
                     value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    placeholder="e.g. 7f9b2c8a"
-                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm font-mono text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#800020]/30 focus:border-[#800020]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-100/80 text-sm font-mono text-stone-500 cursor-not-allowed select-all focus:outline-none"
                   />
-                  <p className="mt-1 text-[11px] text-stone-500">
-                    Random alphanumeric characters avoid duplicate URL conflicts.
+                  <p className="mt-1 text-[11px] text-stone-400">
+                    Auto-generated unique identifier (read-only).
                   </p>
                 </div>
 
