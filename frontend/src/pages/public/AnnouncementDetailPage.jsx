@@ -159,7 +159,7 @@ export default function AnnouncementDetailPage() {
                 Parish of the Alliance of the Two Hearts
               </p>
               <p className="text-xs text-stone-500">
-                Official Parish Communication
+                Official Parish Social Communication
               </p>
             </div>
           </div>
