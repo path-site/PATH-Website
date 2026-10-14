@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { sortPriests } from '../../utils/priestSorter';
 import { Users, Plus, Edit, Trash2, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 
 export default function PriestManager() {
@@ -25,7 +26,7 @@ export default function PriestManager() {
   const fetchPriests = async () => {
     try {
       const res = await adminApi.getPriests();
-      if (res.data) setPriests(res.data);
+      if (res.data) setPriests(sortPriests(res.data));
     } catch (err) {
       console.error(err);
     } finally {
@@ -150,10 +151,10 @@ export default function PriestManager() {
       <div className="bg-[#FAF7F0] border border-[#C59B3F]/35 rounded-2xl p-4 text-xs text-stone-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start sm:items-center gap-2.5">
           <span className="font-bold text-[#8F6B1E] uppercase tracking-wider text-[11px] shrink-0 px-2 py-0.5 bg-[#C59B3F]/15 rounded-md border border-[#C59B3F]/30">
-            Parish Policy
+            Auto-Sorted by Year
           </span>
           <span>
-            The parish is served by a team of <strong>3 priests every set</strong> (Team Moderator / Parish Priest + 2 Parochial Vicars). Use the <strong>↑ / ↓</strong> arrows to organize priests into their respective sets.
+            The directory is automatically sorted with the <strong>Current Set</strong> on top, followed by <strong>Past Sets</strong> in descending order based on their ministry term.
           </span>
         </div>
         <div className="shrink-0 font-semibold text-stone-600">

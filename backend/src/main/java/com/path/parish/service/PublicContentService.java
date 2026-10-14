@@ -119,7 +119,9 @@ public class PublicContentService {
     }
 
     public List<Priest> getPriests() {
-        return priestRepository.findByIsPublishedTrueOrderByDisplayOrderAsc();
+        List<Priest> list = new ArrayList<>(priestRepository.findByIsPublishedTrueOrderByDisplayOrderAsc());
+        sortPriests(list);
+        return list;
     }
 
     public List<HistoryMilestone> getHistoryMilestones() {
@@ -147,5 +149,51 @@ public class PublicContentService {
             map.put(s.getSettingKey(), s.getSettingValue());
         }
         return map;
+    }
+
+    private void sortPriests(List<Priest> list) {
+        list.sort((a, b) -> {
+            boolean aCurrent = "CURRENT".equalsIgnoreCase(a.getPriestStatus());
+            boolean bCurrent = "CURRENT".equalsIgnoreCase(b.getPriestStatus());
+            if (aCurrent != bCurrent) {
+                return aCurrent ? -1 : 1; // CURRENT on top
+            }
+            int aEnd = parseYear(a.getServiceEnd());
+            int bEnd = parseYear(b.getServiceEnd());
+            if (aEnd != bEnd) return Integer.compare(bEnd, aEnd); // Year descending
+
+            int aStart = parseYear(a.getServiceStart());
+            int bStart = parseYear(b.getServiceStart());
+            if (aStart != bStart) return Integer.compare(bStart, aStart); // Year descending
+
+            int aRole = getRoleRank(a.getTitle());
+            int bRole = getRoleRank(b.getTitle());
+            if (aRole != bRole) return Integer.compare(aRole, bRole);
+
+            int aOrder = a.getDisplayOrder() != null ? a.getDisplayOrder() : 0;
+            int bOrder = b.getDisplayOrder() != null ? b.getDisplayOrder() : 0;
+            return Integer.compare(aOrder, bOrder);
+        });
+    }
+
+    private int getRoleRank(String title) {
+        if (title == null) return 4;
+        String t = title.toLowerCase();
+        if (t.contains("moderator")) return 1;
+        if (t.contains("parish priest")) return 2;
+        if (t.contains("vicar")) return 3;
+        return 4;
+    }
+
+    private int parseYear(String val) {
+        if (val == null) return 0;
+        if ("present".equalsIgnoreCase(val.trim())) return 9999;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d{4}").matcher(val);
+        if (m.find()) {
+            try {
+                return Integer.parseInt(m.group());
+            } catch (Exception ignored) {}
+        }
+        return 0;
     }
 }

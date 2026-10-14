@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { sortPriests } from '../../utils/priestSorter';
 import { Church, ArrowRight, Calendar } from 'lucide-react';
 
 export default function PriestCardsSection({ config = {} }) {
@@ -19,9 +20,9 @@ export default function PriestCardsSection({ config = {} }) {
       try {
         const res = await publicApi.getPriests();
         if (res.data) {
-          // Filter to current priests first, then limit
-          const current = res.data.filter(p => p.priestStatus === 'CURRENT');
-          setPriests(current.length > 0 ? current.slice(0, maxItems) : res.data.slice(0, maxItems));
+          const sorted = sortPriests(res.data);
+          const current = sorted.filter(p => p.priestStatus === 'CURRENT');
+          setPriests(current.length > 0 ? current.slice(0, maxItems) : sorted.slice(0, maxItems));
         }
       } catch (err) {
         console.error('Failed to load priests', err);

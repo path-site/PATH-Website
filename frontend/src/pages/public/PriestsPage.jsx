@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import { sortPriests } from '../../utils/priestSorter';
 import { Church, Calendar, BookOpen, Clock } from 'lucide-react';
 
 export default function PriestsPage() {
@@ -12,7 +13,7 @@ export default function PriestsPage() {
       try {
         const res = await publicApi.getPriests();
         if (res.data) {
-          setPriests(res.data);
+          setPriests(sortPriests(res.data));
         }
       } catch (err) {
         console.error('Failed to load priests', err);
@@ -23,8 +24,9 @@ export default function PriestsPage() {
     fetchPriests();
   }, []);
 
-  const currentPriests = priests.filter(p => p.priestStatus === 'CURRENT');
-  const formerPriests = priests.filter(p => p.priestStatus === 'FORMER');
+  const sortedPriests = sortPriests(priests);
+  const currentPriests = sortedPriests.filter(p => p.priestStatus === 'CURRENT');
+  const formerPriests = sortedPriests.filter(p => p.priestStatus === 'FORMER');
 
   return (
     <div className="min-h-screen bg-[#F7F4EB] py-14 lg:py-20">
