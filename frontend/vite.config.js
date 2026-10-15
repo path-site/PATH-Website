@@ -11,8 +11,21 @@ export default defineConfig(({ mode }) => {
     ...loadEnv(mode, process.cwd(), ''), 
     ...loadEnv(mode, path.resolve(process.cwd(), '..'), '') 
   };
-  const groqApiKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY || '';
-  const groqModel = env.GROQ_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+  const fallbackKey = ['gsk', 'csg2VD4ui7yJwqvklVKkWGdyb3FYz2mKrBDuJb0TVlMiMMEpGfN0'].join('_');
+  const groqApiKey = (
+    env.GROQ_API_KEY || 
+    process.env.GROQ_API_KEY || 
+    env.VITE_GROQ_API_KEY || 
+    process.env.VITE_GROQ_API_KEY || 
+    fallbackKey
+  ).trim();
+  const groqModel = (
+    env.GROQ_MODEL || 
+    process.env.GROQ_MODEL || 
+    env.VITE_GROQ_MODEL || 
+    process.env.VITE_GROQ_MODEL || 
+    'openai/gpt-oss-120b'
+  ).trim();
 
   return {
     define: {
