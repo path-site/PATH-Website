@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
-import { Settings, CheckCircle2, AlertCircle, Save, ShieldCheck } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { OVERALL_MAINTENANCE_DEFAULTS, isOverallMaintenance } from '../../config/maintenanceConfig';
+import { 
+  Settings, CheckCircle2, AlertCircle, Save, 
+  ShieldCheck, Power, ExternalLink, Wrench, ShieldAlert 
+} from 'lucide-react';
 
 export default function GeneralSettings() {
+  const { refreshSettings } = useTheme();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,11 +41,33 @@ export default function GeneralSettings() {
     setSettings((prev) => ({ ...prev, [key]: val }));
   };
 
+  const handleInstantOverallToggle = async () => {
+    const currentState = isOverallMaintenance(settings);
+    const nextState = !currentState;
+    const nextVal = nextState ? 'true' : 'false';
+    const updated = { ...settings, maintenance_overall: nextVal };
+    setSettings(updated);
+    setSaving(true);
+    try {
+      await adminApi.saveSettings({ maintenance_overall: nextVal });
+      if (refreshSettings) await refreshSettings();
+      notify('success', nextState 
+        ? 'System-Wide Maintenance Mode turned ON. Entire public website is now shielded.'
+        : 'System-Wide Maintenance Mode turned OFF. Public website is now LIVE.'
+      );
+    } catch (err) {
+      notify('error', 'Failed to update overall maintenance mode.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSave = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSaving(true);
     try {
       await adminApi.saveSettings(settings);
+      if (refreshSettings) await refreshSettings();
       notify('success', 'General system settings saved successfully.');
     } catch (err) {
       notify('error', 'Failed to save settings.');
@@ -47,6 +75,8 @@ export default function GeneralSettings() {
       setSaving(false);
     }
   };
+
+  const isOverall = isOverallMaintenance(settings);
 
   return (
     <div className="space-y-6">
@@ -81,6 +111,150 @@ export default function GeneralSettings() {
           <span>{notification.message}</span>
         </div>
       )}
+
+      {/* Overall Maintenance Mode Master Control Card */}
+      <div className={`p-6 sm:p-7 rounded-2xl border transition-all shadow-xs ${
+        isOverall
+          ? 'bg-gradient-to-br from-amber-50/95 via-amber-100/40 to-orange-50/80 border-amber-300 ring-2 ring-amber-400/40 shadow-md'
+          : 'bg-white border-stone-200'
+      }`}>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-stone-200/80">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider ${
+                isOverall
+                  ? 'bg-amber-600 text-white shadow-xs animate-pulse'
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${isOverall ? 'bg-white animate-ping' : 'bg-emerald-600'}`} />
+                {isOverall ? 'Master Maintenance ON (Site Shielded)' : 'Public Website is Live'}
+              </span>
+              <span className="text-xs text-stone-500 font-medium">
+                • Universal Switch for Entire Portal
+              </span>
+            </div>
+            <h2 className="text-xl font-serif-heading font-bold text-stone-900 pt-1">
+              Overall Website Maintenance Mode
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+              When switched <strong>ON</strong>, the entire public site is shielded. Visitors see the dedicated Catholic maintenance notice with parish office contact details and sacramental reassurances. Church staff and administrators can still log in and manage the site.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {isOverall && (
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-stone-300 text-stone-700 hover:text-stone-950 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Preview Notice</span>
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={handleInstantOverallToggle}
+              disabled={saving}
+              className={`inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md cursor-pointer ${
+                isOverall
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                  : 'bg-amber-500 hover:bg-amber-600 text-stone-950 shadow-amber-500/20'
+              }`}
+            >
+              <Power className="w-4 h-4" />
+              <span>{isOverall ? 'Turn OFF (Make Website Live)' : 'Turn ON Overall Maintenance'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Master Maintenance Configuration Options */}
+        <div className="pt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-stone-700">
+              Notice Appearance & Pastoral Message (Visitor Screen)
+            </h4>
+            <span className="text-[11px] text-stone-400 italic">
+              Customizes the full-screen visitor portal
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-stone-600 mb-1">
+                Notice Badge Pill
+              </label>
+              <input
+                type="text"
+                value={settings.maintenance_overall_badge || ''}
+                onChange={(e) => handleChange('maintenance_overall_badge', e.target.value)}
+                placeholder={OVERALL_MAINTENANCE_DEFAULTS.defaultBadge}
+                className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-stone-600 mb-1">
+                Main Notice Headline
+              </label>
+              <input
+                type="text"
+                value={settings.maintenance_overall_title || ''}
+                onChange={(e) => handleChange('maintenance_overall_title', e.target.value)}
+                placeholder={OVERALL_MAINTENANCE_DEFAULTS.defaultTitle}
+                className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-stone-600 mb-1">
+              Detailed Announcement / Pastoral Explanation
+            </label>
+            <textarea
+              rows={3}
+              value={settings.maintenance_overall_desc || ''}
+              onChange={(e) => handleChange('maintenance_overall_desc', e.target.value)}
+              placeholder={OVERALL_MAINTENANCE_DEFAULTS.defaultDesc}
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-stone-600 mb-1">
+              Sacramental & Mass Schedule Reassurance Note
+            </label>
+            <input
+              type="text"
+              value={settings.maintenance_overall_advisory || ''}
+              onChange={(e) => handleChange('maintenance_overall_advisory', e.target.value)}
+              placeholder={OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory}
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-6 pt-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-700">
+              <input
+                type="checkbox"
+                checked={settings.maintenance_overall_show_phone !== 'false'}
+                onChange={(e) => handleChange('maintenance_overall_show_phone', e.target.checked ? 'true' : 'false')}
+                className="rounded text-[#A81B2B] focus:ring-[#A81B2B]"
+              />
+              <span>Display Parish Office Telephone on Screen</span>
+            </label>
+            <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-700">
+              <input
+                type="checkbox"
+                checked={settings.maintenance_overall_show_fb !== 'false'}
+                onChange={(e) => handleChange('maintenance_overall_show_fb', e.target.checked ? 'true' : 'false')}
+                className="rounded text-[#A81B2B] focus:ring-[#A81B2B]"
+              />
+              <span>Display Official Facebook Link on Screen</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       {/* Main Settings Form */}
       <form onSubmit={handleSave} className="bg-white rounded-2xl border border-stone-200 shadow-xs p-6 space-y-6">

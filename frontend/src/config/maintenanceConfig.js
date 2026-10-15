@@ -169,8 +169,29 @@ export const getSectionById = (id) => {
   return MAINTENANCE_SECTIONS.find((sec) => sec.id === id) || null;
 };
 
+export const OVERALL_MAINTENANCE_DEFAULTS = {
+  settingKey: 'maintenance_overall',
+  defaultBadge: 'Scheduled System-Wide Maintenance',
+  defaultTitle: 'Parish Digital Portal is Undergoing Scheduled Maintenance',
+  defaultDesc: 'Our parish digital team is currently performing essential system-wide updates, security enhancements, and pastoral content refreshes. Sacramental celebrations, regular Mass schedules, confessions, and parish office operations remain fully active.',
+  defaultAdvisory: 'Mass celebrations, Sacraments, and Parish Office operations proceed as scheduled.',
+};
+
+export const isOverallMaintenance = (settings) => {
+  if (!settings) return false;
+  const val = settings.maintenance_overall;
+  return val !== undefined && (String(val) === 'true' || val === true || val === '1');
+};
+
 export const isSectionUnderMaintenance = (section, settings) => {
-  if (!section || !settings) return false;
+  if (!settings) return false;
+
+  // If System-Wide Overall Maintenance is ON, every section is under maintenance
+  if (isOverallMaintenance(settings)) {
+    return true;
+  }
+
+  if (!section) return false;
   const sec = typeof section === 'string' ? getSectionById(section) : section;
   if (!sec) return false;
 

@@ -7,7 +7,8 @@ import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   MAINTENANCE_SECTIONS, 
   getSectionByPath, 
-  isSectionUnderMaintenance 
+  isSectionUnderMaintenance,
+  isOverallMaintenance
 } from '../../config/maintenanceConfig';
 import { 
   LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
@@ -42,6 +43,9 @@ export default function AdminLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [headerSaving, setHeaderSaving] = useState(false);
+
+  // Overall system-wide maintenance mode
+  const isOverallMaint = isOverallMaintenance(settings);
 
   // Determine current active section for topbar maintenance control
   const activeSection = getSectionByPath(location.pathname);
@@ -139,8 +143,16 @@ export default function AdminLayout() {
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-stone-400'}`} />
-                  <span className="truncate">{item.label}</span>
-                  {isItemMaintenance && (
+                  {item.path === ADMIN_ROUTES.settings && isOverallMaint && (
+                    <span 
+                      title="Master Maintenance Mode is ACTIVE. The entire public website is shielded."
+                      className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold tracking-wider uppercase shadow-xs shrink-0 animate-pulse"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-stone-950 animate-ping shrink-0" />
+                      <span>MASTER ON</span>
+                    </span>
+                  )}
+                  {item.path !== ADMIN_ROUTES.settings && isItemMaintenance && (
                     <span 
                       title={`${item.label} is currently in Under Maintenance Mode`}
                       className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-stone-950 text-[10px] font-bold tracking-wider uppercase shadow-xs shrink-0"
@@ -229,6 +241,18 @@ export default function AdminLayout() {
                 <span className="hidden md:inline">{activeSection.shortLabel}:</span>
                 <span>{isCurrentSectionMaintenance ? 'Maintenance ON' : 'Live Mode'}</span>
               </button>
+            )}
+
+            {isOverallMaint && (
+              <Link
+                to={ADMIN_ROUTES.settings}
+                title="System-Wide Maintenance Mode is ACTIVE. The entire public website is shielded. Click to manage in Settings."
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-500 text-stone-950 text-[11px] sm:text-xs font-extrabold shadow-sm ring-2 ring-amber-300 animate-pulse shrink-0 whitespace-nowrap hover:bg-amber-400 transition-colors"
+              >
+                <span className="w-2 h-2 rounded-full bg-stone-950 animate-ping shrink-0" />
+                <span className="hidden md:inline">Master Maintenance:</span>
+                <span>SHIELDED</span>
+              </Link>
             )}
 
             <Link

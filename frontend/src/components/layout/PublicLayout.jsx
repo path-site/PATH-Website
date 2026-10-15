@@ -3,9 +3,14 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ParishAIAssistant from '../common/ParishAIAssistant';
+import OverallMaintenanceScreen from '../common/OverallMaintenanceScreen';
+import { useTheme } from '../../context/ThemeContext';
+import { isOverallMaintenance } from '../../config/maintenanceConfig';
 import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
+  const { settings } = useTheme();
+  const isOverallMaint = isOverallMaintenance(settings);
   const { pathname } = useLocation();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -14,6 +19,10 @@ export default function PublicLayout() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pathname]);
+
+  if (isOverallMaint) {
+    return <OverallMaintenanceScreen />;
+  }
 
   // Track scroll depth and toggle floating scroll-to-top button
   useEffect(() => {
