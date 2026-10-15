@@ -516,6 +516,9 @@ RULES:
           setIsTyping(false);
           return;
         }
+      } else {
+        const errJson = await response.json().catch(() => ({}));
+        console.warn('AI endpoint error:', response.status, errJson);
       }
     } catch (err) {
       console.warn('Backend /api/chat unavailable, using parish engine:', err.message);
