@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Sparkles,
   X,
@@ -20,6 +21,142 @@ import {
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
 import { sortPriests } from '../../utils/priestSorter';
+
+// Inline rich formatting helper for AI messages
+function renderFormattedInline(text) {
+  if (!text) return '';
+
+  const regex = /(\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|__([^_]+)__|(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_)|<u>([^<]+)<\/u>)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  let keyIdx = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+
+    const fullMatch = match[0];
+    if (fullMatch.startsWith('[') && match[2] && match[3]) {
+      // Markdown link: [label](url)
+      const label = match[2];
+      const url = match[3];
+      const isInternal = url.startsWith('/') || url.startsWith('#');
+      if (isInternal) {
+        parts.push(
+          <Link
+            key={keyIdx++}
+            to={url}
+            className="text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] transition-colors"
+          >
+            {label}
+          </Link>
+        );
+      } else {
+        parts.push(
+          <a
+            key={keyIdx++}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] transition-colors"
+          >
+            {label}
+          </a>
+        );
+      }
+    } else if (fullMatch.startsWith('**') || fullMatch.startsWith('__')) {
+      // Bold
+      const content = match[4] || match[5];
+      parts.push(
+        <strong key={keyIdx++} className="font-bold text-stone-900">
+          {content}
+        </strong>
+      );
+    } else if (fullMatch.startsWith('<u>')) {
+      // Underline
+      const content = match[8];
+      parts.push(
+        <span key={keyIdx++} className="underline decoration-[#C59B3F] font-medium">
+          {content}
+        </span>
+      );
+    } else if (fullMatch.startsWith('*') || fullMatch.startsWith('_')) {
+      // Italic
+      const content = match[6] || match[7];
+      parts.push(
+        <em key={keyIdx++} className="italic text-stone-800">
+          {content}
+        </em>
+      );
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
+// Formatted block message component for structured lists and paragraphs
+function FormattedMessage({ text }) {
+  if (!text) return null;
+
+  const blocks = text.split(/\n\n+/);
+
+  return (
+    <div className="space-y-2.5 text-xs sm:text-[13px] leading-relaxed text-stone-800 font-sans">
+      {blocks.map((block, bIdx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+
+        const lines = trimmed.split('\n');
+
+        return (
+          <div key={bIdx} className="space-y-1">
+            {lines.map((line, lIdx) => {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) return null;
+
+              // Bullet item: •, -, or *
+              const bulletMatch = trimmedLine.match(/^([•\-\*])\s+(.*)$/);
+              if (bulletMatch) {
+                return (
+                  <div key={lIdx} className="flex items-start gap-2 pl-0.5 py-0.5">
+                    <span className="text-[#800020] font-bold mt-0.5 shrink-0 text-sm leading-none select-none">•</span>
+                    <span className="flex-1 leading-snug">{renderFormattedInline(bulletMatch[2])}</span>
+                  </div>
+                );
+              }
+
+              // Numbered list item: 1. 2. etc
+              const numberedMatch = trimmedLine.match(/^(\d+[\.\)])\s+(.*)$/);
+              if (numberedMatch) {
+                return (
+                  <div key={lIdx} className="flex items-start gap-2 pl-0.5 py-0.5">
+                    <span className="text-[#8F6B1E] font-bold text-xs shrink-0 select-none">{numberedMatch[1]}</span>
+                    <span className="flex-1 leading-snug">{renderFormattedInline(numberedMatch[2])}</span>
+                  </div>
+                );
+              }
+
+              // Standard paragraph line
+              return (
+                <p key={lIdx} className="leading-relaxed">
+                  {renderFormattedInline(trimmedLine)}
+                </p>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 // Fallback canonical knowledge base
 const CANONICAL_KNOWLEDGE = {
@@ -90,9 +227,8 @@ export default function ParishAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
-
+  
   // Custom API key stored in localStorage for instant browser testing
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [savedKey, setSavedKey] = useState(() => localStorage.getItem('path_groq_api_key') || '');
@@ -129,14 +265,6 @@ export default function ParishAIAssistant() {
     }
   }, [messages, isOpen]);
 
-  // Show welcoming tooltip after 3 seconds on initial visit
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTooltip(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Fetch live parish data for dynamic AI context
   useEffect(() => {
     const loadLiveContext = async () => {
@@ -165,17 +293,17 @@ export default function ParishAIAssistant() {
   const buildSystemPrompt = () => {
     const currentPriests = (contextData.priests || [])
       .filter(p => p.priestStatus === 'CURRENT')
-      .map(p => `• ${p.fullName} (${p.title}, Term: ${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
-      .join('\n') || `• Rev. Fr. Rizalino Raypan Jr. (Team Moderator, 2025 – Present)\n• Rev. Fr. Lucas Inoc (Parish Priest, 2025 – Present)\n• Rev. Fr. Miguelito Fortich (Parish Priest, 2025 – Present)`;
+      .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
+      .join('\n') || `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
 
     const recentAnnouncements = (contextData.announcements || [])
       .slice(0, 3)
-      .map(a => `• ${a.title}${a.summary ? `: ${a.summary}` : ''}`)
+      .map(a => `• **${a.title}**${a.summary ? `: ${a.summary}` : ''}`)
       .join('\n');
 
     const upcomingEvents = (contextData.events || [])
       .slice(0, 3)
-      .map(e => `• ${e.title} (${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'})`)
+      .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`)
       .join('\n');
 
     const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
@@ -185,6 +313,12 @@ export default function ParishAIAssistant() {
     return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
 Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
 Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with you").
+
+FORMATTING GUIDELINES:
+- Use clean Markdown formatting: use **bold** for names, mass times, or key headings.
+- Use bullet points (• ) for lists of schedules, requirements, or clergy.
+- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
+- Keep responses concise, organized, and pleasant to read.
 
 OFFICIAL PARISH DATA & KNOWLEDGE BASE:
 
@@ -208,9 +342,9 @@ ${currentPriests}
 Note: Under our pastoral model, the parish is served by a team of three priests headed by the Team Moderator.
 
 5. PAST CLERGY (2018 – 2025 SET):
-• Rev. Fr. Benjamin Trazo (Former Team Moderator)
-• Rev. Sungcad, Russell Emmanuel Montayre (Former Parish Priest)
-• Rev. Fr. Alex Cola Jr. (Former Parish Priest)
+• **Rev. Fr. Benjamin Trazo** — Former Team Moderator (2018 – 2025)
+• **Rev. Sungcad, Russell Emmanuel Montayre** — Former Parish Priest (2018 – 2025)
+• **Rev. Fr. Alex Cola Jr.** — Former Parish Priest (2018 – 2025)
 
 6. SACRAMENTS & MINISTRIES:
 - BAPTISM:
@@ -231,7 +365,6 @@ ${upcomingEvents || 'Liturgical calendar observed regularly.'}
 RULES:
 - Answer accurately based ONLY on official parish facts above.
 - Be concise, friendly, and practical.
-- Use clear bullet points when explaining schedules or requirements.
 - Never invent mass times or policies outside Catholic doctrine and the parish data above.
 - For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
   };
@@ -286,9 +419,9 @@ RULES:
       const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
       if (current.length > 0) {
         const list = current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
-        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nWithin our pastoral team structure, the **Team Moderator** leads pastoral ministry alongside our assigned priests. You can view all clergy bios on our [Priests Directory](/about/priests) page.`;
+        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nWithin each ministry set, the **Team Moderator** is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
       }
-      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nWithin each ministry set, the Team Moderator is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
+      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nWithin each ministry set, the **Team Moderator** is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
     }
 
     if (q.includes('confess') || q.includes('kumpisal') || q.includes('reconciliation') || q.includes('penance') || q.includes('forgive')) {
@@ -296,11 +429,11 @@ RULES:
     }
 
     if (q.includes('baptis') || q.includes('binyag') || q.includes('christening') || q.includes('godparent') || q.includes('ninong') || q.includes('ninang')) {
-      return `${CANONICAL_KNOWLEDGE.baptism}\n\nPlease visit the Parish Office during office hours to submit documents and reserve your schedule.`;
+      return `**Sacrament of Baptism:**\n\n${CANONICAL_KNOWLEDGE.baptism}\n\nPlease visit the Parish Office during office hours to submit documents and reserve your schedule.`;
     }
 
     if (q.includes('wed') || q.includes('marri') || q.includes('kasal') || q.includes('matrimon') || q.includes('bride') || q.includes('groom')) {
-      return `${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office at least 3 to 6 months in advance.`;
+      return `**Sacrament of Holy Matrimony (Church Wedding):**\n\n${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office at least 3 to 6 months in advance.`;
     }
 
     if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
@@ -441,53 +574,19 @@ RULES:
   return (
     <>
       {/* =========================================================================
-          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT)
+          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST)
          ========================================================================= */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-
-        {/* Gentle Onboarding Tooltip Bubble */}
-        {showTooltip && !isOpen && (
-          <div className="mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-[#C59B3F]/40 text-xs font-semibold text-stone-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span>Have questions? Ask PATH AI</span>
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }}
-              className="text-stone-400 hover:text-stone-700 ml-1 p-0.5"
-              aria-label="Dismiss tooltip"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
-
-        {/* Main Floating Trigger Button */}
+        {/* Minimalist Floating Trigger Button */}
         <button
-          onClick={() => {
-            setIsOpen(!isOpen);
-            setShowTooltip(false);
-          }}
+          onClick={() => setIsOpen(!isOpen)}
           aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
-          className={`relative group flex items-center justify-center rounded-full shadow-2xl transition-all duration-300 transform active:scale-95 focus:outline-none ${isOpen
-            ? 'w-13 h-13 bg-[#1C1814] text-white border-2 border-[#C59B3F]/60 rotate-90 hover:bg-[#800020]'
-            : 'w-14 h-14 bg-gradient-to-br from-[#800020] via-[#981226] to-[#600018] text-white border-2 border-[#C59B3F] hover:scale-105 hover:shadow-[0_0_25px_rgba(197,155,63,0.6)]'
-            }`}
+          className="w-12 h-12 rounded-full bg-[#1C1814] text-white border border-stone-800 shadow-md hover:shadow-lg hover:border-[#C59B3F]/60 transition-all duration-200 flex items-center justify-center active:scale-95 group focus:outline-none"
         >
-          {/* Animated Gold Aura / Ring */}
-          {!isOpen && (
-            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#C59B3F]/40 via-amber-300/30 to-[#800020]/40 blur-xs animate-pulse pointer-events-none" />
-          )}
-
           {isOpen ? (
-            <X className="w-6 h-6 transition-transform" />
+            <X className="w-5 h-5 text-stone-300 group-hover:text-white transition-colors" />
           ) : (
-            <div className="relative flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-[#DFBE7B] transition-transform group-hover:scale-110" />
-              {/* Online Green Indicator Dot */}
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
-              </span>
-            </div>
+            <Sparkles className="w-5 h-5 text-[#DFBE7B] group-hover:scale-110 transition-transform" />
           )}
         </button>
       </div>
@@ -497,7 +596,7 @@ RULES:
          ========================================================================= */}
       {isOpen && (
         <div
-          className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-200"
+          className="fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-200"
           style={{ boxShadow: '0 25px 60px -15px rgba(28, 24, 20, 0.4), 0 0 0 1px rgba(197, 155, 63, 0.25)' }}
         >
 
@@ -516,12 +615,13 @@ RULES:
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-serif-heading text-base font-bold tracking-wide text-white leading-tight">
-                    PATH AI
+                    Parish Staff
                   </h3>
-                  <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 ${isGroqActive
-                      ? 'bg-amber-400/20 text-amber-200 border border-amber-400/40'
+                  <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 ${
+                    isGroqActive 
+                      ? 'bg-amber-400/20 text-amber-200 border border-amber-400/40' 
                       : 'bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40'
-                    }`}>
+                  }`}>
                     {isGroqActive ? 'Groq AI' : 'Guide'}
                   </span>
                 </div>
@@ -632,16 +732,21 @@ RULES:
                   ? 'bg-[#800020] text-white rounded-tr-xs font-sans'
                   : 'bg-white border border-[#C59B3F]/25 text-stone-800 rounded-tl-xs parchment-card'
                   }`}>
-                  <div className="whitespace-pre-line font-normal space-y-1">
-                    {msg.text}
-                  </div>
-                  <div className="flex items-center justify-between gap-2 mt-1.5">
-                    {msg.sender === 'ai' && msg.source === 'groq' && (
+                  {msg.sender === 'ai' ? (
+                    <FormattedMessage text={msg.text} />
+                  ) : (
+                    <div className="whitespace-pre-line font-normal space-y-1">
+                      {msg.text}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-stone-100/60">
+                    {msg.sender === 'ai' && msg.source === 'groq' ? (
                       <span className="text-[9px] text-[#8F6B1E] font-medium flex items-center gap-0.5">
                         <Sparkles className="w-2.5 h-2.5" /> Groq AI
                       </span>
-                    )}
-                    <span className={`block text-[10px] font-mono ${msg.sender === 'user' ? 'text-rose-200/80 text-right ml-auto' : 'text-stone-400'
+                    ) : <span />}
+                    <span className={`block text-[10px] font-mono ${msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
                       }`}>
                       {msg.timestamp}
                     </span>
