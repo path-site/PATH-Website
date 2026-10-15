@@ -599,65 +599,6 @@ export default function MinistriesManager() {
         </div>
       </div>
 
-      {/* Directory Status Pill Card */}
-      <div className="bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] rounded-2xl p-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md border border-amber-400/20">
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center shrink-0">
-            <HeartHandshake className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white">
-                Public Directory Status:
-              </span>
-              <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                  pageSettings.ministries_banner_enabled === 'true'
-                    ? 'bg-amber-400/30 text-amber-300 border border-amber-400/50'
-                    : 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/50'
-                }`}
-              >
-                {pageSettings.ministries_banner_enabled === 'true'
-                  ? 'Showing "In the Making" Notice'
-                  : 'Notice Banner Hidden (Full Roster Active)'}
-              </span>
-            </div>
-            <p className="text-xs text-stone-300 mt-0.5">
-              {ministries.length} total ministries configured •{' '}
-              {ministries.filter((m) => m.isPublished).length} visible on the live website.
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            const nextVal = pageSettings.ministries_banner_enabled === 'true' ? 'false' : 'true';
-            setPageSettings((prev) => ({ ...prev, ministries_banner_enabled: nextVal }));
-            adminApi.saveSettings({ ministries_banner_enabled: nextVal }).then(() => {
-              refreshSettings();
-              showNotice(
-                nextVal === 'true'
-                  ? 'Notice banner enabled on public page.'
-                  : 'Notice banner hidden. Ministries grid is now front and center!'
-              );
-            });
-          }}
-          disabled={saving}
-          className="shrink-0 text-xs font-bold px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer flex items-center gap-2"
-        >
-          {pageSettings.ministries_banner_enabled === 'true' ? (
-            <>
-              <EyeOff className="w-3.5 h-3.5 text-amber-300" />
-              <span>Hide Notice Banner</span>
-            </>
-          ) : (
-            <>
-              <Eye className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Show Notice Banner</span>
-            </>
-          )}
-        </button>
-      </div>
 
       {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl p-4 border border-stone-200 shadow-xs space-y-3">

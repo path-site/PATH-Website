@@ -50,11 +50,19 @@ export const ThemeProvider = ({ children }) => {
     try {
       applyThemeStyles();
       const res = await publicApi.getSettings();
-      if (res.data) {
+      let dataMap = null;
+      if (res) {
+        if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+          dataMap = (res.data.data && typeof res.data.data === 'object') ? res.data.data : res.data;
+        } else if (typeof res === 'object') {
+          dataMap = res;
+        }
+      }
+      if (dataMap && typeof dataMap === 'object') {
         // Merge operational settings (contact, schedules) while keeping theme tokens strictly from code
         setSettings(prev => ({
           ...prev,
-          ...res.data,
+          ...dataMap,
           ...BRAND_THEME, // Code-defined theme always takes precedence
         }));
       }

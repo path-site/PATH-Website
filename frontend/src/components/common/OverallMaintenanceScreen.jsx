@@ -106,7 +106,7 @@ export default function OverallMaintenanceScreen() {
             {showPhone && (
               <a
                 href={`tel:${phone}`}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition-all shadow-lg hover:scale-102"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition-all shadow-lg hover:scale-[1.02] active:scale-95"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Parish Office: {phone}</span>
@@ -118,7 +118,7 @@ export default function OverallMaintenanceScreen() {
                 href={fbUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#1877F2] hover:bg-blue-600 text-white transition-all shadow-lg hover:scale-102"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#1877F2] hover:bg-blue-600 text-white transition-all shadow-lg hover:scale-[1.02] active:scale-95"
               >
                 <FacebookIcon className="w-4 h-4" />
                 <span>Inquire via Facebook</span>

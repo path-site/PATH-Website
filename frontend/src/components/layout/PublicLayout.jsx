@@ -20,12 +20,9 @@ export default function PublicLayout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pathname]);
 
-  if (isOverallMaint) {
-    return <OverallMaintenanceScreen />;
-  }
-
   // Track scroll depth and toggle floating scroll-to-top button
   useEffect(() => {
+    if (isOverallMaint) return;
     const handleScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
@@ -38,11 +35,11 @@ export default function PublicLayout() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isOverallMaint]);
 
   // Universal Scroll-Triggered Reveal Animations System for ALL screens
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (isOverallMaint || typeof window === 'undefined') return;
 
     if (observerRef.current) {
       observerRef.current.disconnect();
@@ -142,11 +139,16 @@ export default function PublicLayout() {
         observerRef.current.disconnect();
       }
     };
-  }, [pathname]);
+  }, [pathname, isOverallMaint]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Full-screen sacred maintenance mode view when overall portal is shielded
+  if (isOverallMaint) {
+    return <OverallMaintenanceScreen />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">

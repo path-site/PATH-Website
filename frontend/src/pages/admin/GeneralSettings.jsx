@@ -27,10 +27,38 @@ export default function GeneralSettings() {
     setLoading(true);
     try {
       const res = await adminApi.getSettings();
-      if (res.data?.success) {
-        setSettings(res.data.data || {});
+      let settingsMap = {};
+      if (res) {
+        if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+          if (res.data.data && typeof res.data.data === 'object') {
+            settingsMap = res.data.data;
+          } else {
+            settingsMap = res.data;
+          }
+        } else if (typeof res === 'object') {
+          settingsMap = res;
+        }
       }
+
+      setSettings({
+        site_name: settingsMap.site_name || 'Parish of the Alliance of the Two Hearts',
+        site_tagline: settingsMap.site_tagline || settingsMap.tagline || 'A community united in faith, prayer, and devotion to the Sacred Hearts of Jesus and Mary',
+        tagline: settingsMap.tagline || settingsMap.site_tagline || 'A community united in faith, prayer, and devotion to the Sacred Hearts of Jesus and Mary',
+        seo_default_title: settingsMap.seo_default_title || 'Parish of the Alliance of the Two Hearts — Official Website',
+        seo_default_description: settingsMap.seo_default_description || 'Official online home of the Parish of the Alliance of the Two Hearts (PATH) in Banawa, Cebu City. Mass schedules, sacraments, announcements, and parish ministries.',
+        notification_email: settingsMap.notification_email || settingsMap.email || 'office@pathparish.org',
+        session_timeout: settingsMap.session_timeout || '24h',
+        maintenance_overall: settingsMap.maintenance_overall || 'false',
+        maintenance_overall_badge: settingsMap.maintenance_overall_badge || OVERALL_MAINTENANCE_DEFAULTS.defaultBadge,
+        maintenance_overall_title: settingsMap.maintenance_overall_title || OVERALL_MAINTENANCE_DEFAULTS.defaultTitle,
+        maintenance_overall_desc: settingsMap.maintenance_overall_desc || OVERALL_MAINTENANCE_DEFAULTS.defaultDesc,
+        maintenance_overall_advisory: settingsMap.maintenance_overall_advisory || OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory,
+        maintenance_overall_show_phone: settingsMap.maintenance_overall_show_phone !== 'false' ? 'true' : 'false',
+        maintenance_overall_show_fb: settingsMap.maintenance_overall_show_fb !== 'false' ? 'true' : 'false',
+        ...settingsMap,
+      });
     } catch (err) {
+      console.error('Failed to load settings:', err);
       notify('error', 'Failed to load settings.');
     } finally {
       setLoading(false);
@@ -38,24 +66,46 @@ export default function GeneralSettings() {
   };
 
   const handleChange = (key, val) => {
-    setSettings((prev) => ({ ...prev, [key]: val }));
+    setSettings((prev) => {
+      const next = { ...prev, [key]: val };
+      if (key === 'site_tagline') next.tagline = val;
+      if (key === 'tagline') next.site_tagline = val;
+      return next;
+    });
   };
 
   const handleInstantOverallToggle = async () => {
     const currentState = isOverallMaintenance(settings);
     const nextState = !currentState;
     const nextVal = nextState ? 'true' : 'false';
-    const updated = { ...settings, maintenance_overall: nextVal };
+    const updated = { 
+      ...settings, 
+      maintenance_overall: nextVal,
+      // Persist the current notice text and options even when turning off or on
+      maintenance_overall_badge: settings.maintenance_overall_badge || OVERALL_MAINTENANCE_DEFAULTS.defaultBadge,
+      maintenance_overall_title: settings.maintenance_overall_title || OVERALL_MAINTENANCE_DEFAULTS.defaultTitle,
+      maintenance_overall_desc: settings.maintenance_overall_desc || OVERALL_MAINTENANCE_DEFAULTS.defaultDesc,
+      maintenance_overall_advisory: settings.maintenance_overall_advisory || OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory,
+      maintenance_overall_show_phone: settings.maintenance_overall_show_phone !== 'false' ? 'true' : 'false',
+      maintenance_overall_show_fb: settings.maintenance_overall_show_fb !== 'false' ? 'true' : 'false',
+    };
     setSettings(updated);
     setSaving(true);
     try {
-      await adminApi.saveSettings({ maintenance_overall: nextVal });
+      const payload = {};
+      Object.entries(updated).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && typeof v !== 'object') {
+          payload[k] = String(v);
+        }
+      });
+      await adminApi.saveSettings(payload);
       if (refreshSettings) await refreshSettings();
       notify('success', nextState 
         ? 'System-Wide Maintenance Mode turned ON. Entire public website is now shielded.'
         : 'System-Wide Maintenance Mode turned OFF. Public website is now LIVE.'
       );
     } catch (err) {
+      console.error('Failed to update overall maintenance mode:', err);
       notify('error', 'Failed to update overall maintenance mode.');
     } finally {
       setSaving(false);
@@ -66,10 +116,23 @@ export default function GeneralSettings() {
     if (e) e.preventDefault();
     setSaving(true);
     try {
-      await adminApi.saveSettings(settings);
+      const payload = {};
+      Object.entries(settings).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && typeof v !== 'object') {
+          payload[k] = String(v);
+        }
+      });
+      if (!payload.maintenance_overall_badge) payload.maintenance_overall_badge = OVERALL_MAINTENANCE_DEFAULTS.defaultBadge;
+      if (!payload.maintenance_overall_title) payload.maintenance_overall_title = OVERALL_MAINTENANCE_DEFAULTS.defaultTitle;
+      if (!payload.maintenance_overall_desc) payload.maintenance_overall_desc = OVERALL_MAINTENANCE_DEFAULTS.defaultDesc;
+      if (!payload.maintenance_overall_advisory) payload.maintenance_overall_advisory = OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory;
+      if (!payload.tagline && payload.site_tagline) payload.tagline = payload.site_tagline;
+
+      await adminApi.saveSettings(payload);
       if (refreshSettings) await refreshSettings();
       notify('success', 'General system settings saved successfully.');
     } catch (err) {
+      console.error('Failed to save settings:', err);
       notify('error', 'Failed to save settings.');
     } finally {
       setSaving(false);
@@ -77,6 +140,15 @@ export default function GeneralSettings() {
   };
 
   const isOverall = isOverallMaintenance(settings);
+
+  if (loading) {
+    return (
+      <div className="min-h-[400px] flex flex-col items-center justify-center p-12 text-stone-500">
+        <div className="w-9 h-9 border-3 border-[#800020] border-t-transparent rounded-full animate-spin mb-3" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">Loading System Settings...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
