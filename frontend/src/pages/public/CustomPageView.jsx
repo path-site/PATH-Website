@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import SectionRenderer from '../../components/sections/SectionRenderer';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Church, ArrowLeft } from 'lucide-react';
 
 export default function CustomPageView() {
+  const isMaintenance = useSectionMaintenance('pages');
   const { slug } = useParams();
   const [page, setPage] = useState(null);
   const [sections, setSections] = useState([]);
@@ -85,8 +87,12 @@ export default function CustomPageView() {
         </div>
       </div>
 
-      {/* Sections rendering or fallback content */}
-      {sections.length > 0 ? (
+      {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide page content sections */}
+      {isMaintenance ? (
+        <div className="py-12 px-4 max-w-4xl mx-auto">
+          <PublicMaintenanceNotice sectionKey="pages" forceShow />
+        </div>
+      ) : sections.length > 0 ? (
         <SectionRenderer sections={sections} />
       ) : (
         <div className="max-w-4xl mx-auto px-4 py-16 prose prose-stone">

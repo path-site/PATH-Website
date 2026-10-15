@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
+import { useTheme } from '../../context/ThemeContext';
+import { isSectionUnderMaintenance } from '../../config/maintenanceConfig';
 
 // Inline rich formatting helper for AI messages
 function renderFormattedInline(text) {
@@ -222,10 +224,15 @@ const SUGGESTED_QUERIES = [
 ];
 
 export default function ParishAIAssistant() {
+  const { settings } = useTheme();
+  const isMaintenance = isSectionUnderMaintenance('aiResponses', settings);
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  if (isMaintenance) return null;
 
   // Smooth open animation: mount first, then trigger scale/fade in next frame
   const openAssistant = () => {

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Search, Calendar, ArrowRight, BookOpen, Tag } from 'lucide-react';
 
 export default function AnnouncementsPage() {
+  const isMaintenance = useSectionMaintenance('announcements');
   const [announcements, setAnnouncements] = useState([]);
   const [category, setCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,8 +63,11 @@ export default function AnnouncementsPage() {
           </p>
         </div>
 
-        {/* Public Maintenance Notice when activated by Admin */}
-        <PublicMaintenanceNotice sectionKey="announcements" />
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide all announcements and filter bars */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="announcements" forceShow />
+        ) : (
+          <>
 
         {/* Filter & Search Bar */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-200/80 shadow-xs mb-10 space-y-4">
@@ -184,6 +188,8 @@ export default function AnnouncementsPage() {
               </article>
             ))}
           </div>
+        )}
+          </>
         )}
 
       </div>

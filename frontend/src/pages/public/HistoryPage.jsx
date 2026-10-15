@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Clock, Calendar, Church, ArrowDown } from 'lucide-react';
 
 export default function HistoryPage() {
+  const isMaintenance = useSectionMaintenance('history');
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,8 +42,11 @@ export default function HistoryPage() {
           </p>
         </div>
 
-        {/* Public Maintenance Notice when activated by Admin */}
-        <PublicMaintenanceNotice sectionKey="history" />
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide timeline and archival milestones */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="history" forceShow />
+        ) : (
+          <>
 
         {/* Timeline */}
         {loading ? (
@@ -114,6 +118,8 @@ export default function HistoryPage() {
             As the Parish of the Alliance of the Two Hearts moves forward, our gratitude remains steadfast to all bishops, parish priests, benefactors, and parishioners whose prayers and dedication built this sanctuary.
           </p>
         </div>
+          </>
+        )}
 
       </div>
     </div>

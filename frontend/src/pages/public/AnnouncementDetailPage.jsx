@@ -3,8 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { ArrowLeft, Calendar, Tag, Share2, Church } from 'lucide-react';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 
 export default function AnnouncementDetailPage() {
+  const isMaintenance = useSectionMaintenance('announcements');
   const { slug } = useParams();
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,25 @@ export default function AnnouncementDetailPage() {
       alert('Link copied to clipboard!');
     }
   };
+
+  if (isMaintenance) {
+    return (
+      <div className="min-h-[70vh] bg-[#FCFBF9] py-14 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Link
+              to="/announcements"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-stone-600 hover:text-[#6B1D2F] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Announcements</span>
+            </Link>
+          </div>
+          <PublicMaintenanceNotice sectionKey="announcements" forceShow />
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Calendar, Clock, MapPin, ArrowRight, Tag } from 'lucide-react';
 
 export default function EventsPage() {
+  const isMaintenance = useSectionMaintenance('events');
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' or 'past'
   const [eventsData, setEventsData] = useState({ upcoming: [], past: [] });
   const [loading, setLoading] = useState(true);
@@ -53,33 +54,38 @@ export default function EventsPage() {
             Participate in our sacramental celebrations, parish recollections, novenas, and community apostolates.
           </p>
 
-          {/* Public Maintenance Notice when activated by Admin */}
-          <PublicMaintenanceNotice sectionKey="events" />
-
-          {/* Tab Selector */}
-          <div className="mt-8 inline-flex p-1.5 rounded-full bg-stone-200/80 border border-stone-300">
-            <button
-              onClick={() => setActiveTab('upcoming')}
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
-                activeTab === 'upcoming'
-                  ? 'bg-[#6B1D2F] text-white shadow-xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              Upcoming Activities ({eventsData.upcoming ? eventsData.upcoming.length : 0})
-            </button>
-            <button
-              onClick={() => setActiveTab('past')}
-              className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
-                activeTab === 'past'
-                  ? 'bg-[#6B1D2F] text-white shadow-xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              Past Activities ({eventsData.past ? eventsData.past.length : 0})
-            </button>
-          </div>
         </div>
+
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide all content inside */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="events" forceShow />
+        ) : (
+          <>
+            {/* Tab Selector */}
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex p-1.5 rounded-full bg-stone-200/80 border border-stone-300">
+                <button
+                  onClick={() => setActiveTab('upcoming')}
+                  className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
+                    activeTab === 'upcoming'
+                      ? 'bg-[#6B1D2F] text-white shadow-xs'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  Upcoming Activities ({eventsData.upcoming ? eventsData.upcoming.length : 0})
+                </button>
+                <button
+                  onClick={() => setActiveTab('past')}
+                  className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
+                    activeTab === 'past'
+                      ? 'bg-[#6B1D2F] text-white shadow-xs'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  Past Activities ({eventsData.past ? eventsData.past.length : 0})
+                </button>
+              </div>
+            </div>
 
         {/* Events Grid */}
         {loading ? (
@@ -174,6 +180,8 @@ export default function EventsPage() {
               );
             })}
           </div>
+        )}
+          </>
         )}
 
       </div>

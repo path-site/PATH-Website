@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Heart, Compass, Shield, BookOpen, Church, Leaf, Users, CheckCircle2 } from 'lucide-react';
 
 const defaultMissionVisionData = {
@@ -31,6 +32,7 @@ const defaultMissionVisionData = {
 };
 
 export default function MissionVisionPage() {
+  const isMaintenance = useSectionMaintenance('pages');
   const [data, setData] = useState(defaultMissionVisionData);
 
   useEffect(() => {
@@ -71,8 +73,13 @@ export default function MissionVisionPage() {
           </p>
         </div>
 
-        {/* Section 1: Official Parish VISION Card */}
-        <div className="mb-16 scroll-reveal-scale scroll-glow-reveal">
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide page content */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="pages" forceShow />
+        ) : (
+          <>
+            {/* Section 1: Official Parish VISION Card */}
+            <div className="mb-16 scroll-reveal-scale scroll-glow-reveal">
           <div className="relative bg-[#FAF7F0] rounded-3xl p-8 sm:p-12 border-2 border-[#C59B3F]/40 shadow-md overflow-hidden card-lift shimmer-sweep">
             <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A81B2B]" />
             <div className="flex flex-col md:flex-row md:items-center gap-6 mb-6">
@@ -242,6 +249,8 @@ export default function MissionVisionPage() {
             </span>
           </div>
         </div>
+          </>
+        )}
 
       </div>
     </div>

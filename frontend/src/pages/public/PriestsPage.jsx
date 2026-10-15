@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Church, Calendar, BookOpen, Clock } from 'lucide-react';
 
 export default function PriestsPage() {
+  const isMaintenance = useSectionMaintenance('priests');
   const [priests, setPriests] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,10 +47,10 @@ export default function PriestsPage() {
           </p>
         </div>
 
-        {/* Public Maintenance Notice when activated by Admin */}
-        <PublicMaintenanceNotice sectionKey="priests" />
-
-        {loading ? (
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide all priest cards and directories */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="priests" forceShow />
+        ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map(n => (
               <div key={n} className="bg-white rounded-3xl h-96 animate-pulse border border-[#C59B3F]/20" />

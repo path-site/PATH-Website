@@ -9,8 +9,20 @@ import GalleryPreviewSection from './GalleryPreviewSection';
 import ContactSection from './ContactSection';
 import RichTextSection from './RichTextSection';
 
+import { useTheme } from '../../context/ThemeContext';
+import { isSectionUnderMaintenance } from '../../config/maintenanceConfig';
+
 export default function SectionRenderer({ section }) {
+  const { settings } = useTheme();
+
   if (!section || section.isVisible === false) return null;
+
+  // STRICT MAINTENANCE MODE: If corresponding section is under maintenance, strictly hide section
+  if (section.sectionType === 'ANNOUNCEMENT_CARDS' && isSectionUnderMaintenance('announcements', settings)) return null;
+  if (section.sectionType === 'EVENT_CARDS' && isSectionUnderMaintenance('events', settings)) return null;
+  if (section.sectionType === 'PRIEST_CARDS' && isSectionUnderMaintenance('priests', settings)) return null;
+  if (section.sectionType === 'GALLERY_PREVIEW' && isSectionUnderMaintenance('gallery', settings)) return null;
+  if (section.sectionType === 'CONTACT_SECTION' && isSectionUnderMaintenance('contactSettings', settings)) return null;
 
   let config = {};
   if (section.contentJson) {

@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import { FacebookIcon } from '../../components/common/SocialIcons';
 import MassScheduleView from '../../components/common/MassScheduleView';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 
 export default function ContactPage() {
+  const isMaintenance = useSectionMaintenance('contactSettings');
   const { settings } = useTheme();
   const location = useLocation();
   const [formData, setFormData] = useState({
@@ -73,8 +74,11 @@ export default function ContactPage() {
           </p>
         </div>
 
-        {/* Public Maintenance Notice when activated by Admin */}
-        <PublicMaintenanceNotice sectionKey="contactSettings" />
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide schedules, office details, contact form & maps */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="contactSettings" forceShow />
+        ) : (
+          <>
 
         {/* Official Parish Mass Schedules Display */}
         <section id="mass-schedule" className="mb-14 scroll-mt-28 scroll-reveal">
@@ -299,6 +303,8 @@ export default function ContactPage() {
           </div>
 
         </div>
+          </>
+        )}
 
       </div>
     </div>

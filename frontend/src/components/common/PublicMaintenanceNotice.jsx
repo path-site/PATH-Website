@@ -4,6 +4,11 @@ import { getSectionById, isSectionUnderMaintenance } from '../../config/maintena
 import { Phone, Wrench, AlertCircle, ExternalLink, ShieldAlert } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
 
+export function useSectionMaintenance(sectionKey) {
+  const { settings } = useTheme();
+  return isSectionUnderMaintenance(sectionKey, settings);
+}
+
 export default function PublicMaintenanceNotice({
   sectionKey,
   defaultBadge,
@@ -11,34 +16,51 @@ export default function PublicMaintenanceNotice({
   defaultDesc,
   variant = 'card',
   className = '',
+  forceShow = false,
 }) {
   const { settings } = useTheme();
   const section = getSectionById(sectionKey);
-  const isMaintenance = isSectionUnderMaintenance(sectionKey, settings);
+  const isMaintenance = forceShow || isSectionUnderMaintenance(sectionKey, settings);
 
   if (!isMaintenance) return null;
 
-  // Resolved texts from settings overrides or config defaults
+  // Resolved texts from settings overrides, legacy keys, or config defaults
+  const legacyPrefix = section?.legacyKey ? section.legacyKey.replace('_enabled', '') : null;
   const badge =
     settings?.[`maintenance_${sectionKey}_badge`] ||
+    (legacyPrefix ? settings?.[`${legacyPrefix}_badge`] : null) ||
     defaultBadge ||
     section?.defaultBadge ||
     'Section Under Preparation & Maintenance';
 
   const title =
     settings?.[`maintenance_${sectionKey}_title`] ||
+    (legacyPrefix ? settings?.[`${legacyPrefix}_title`] : null) ||
     defaultTitle ||
     section?.defaultTitle ||
     'This Section is Currently Under Maintenance';
 
   const desc =
     settings?.[`maintenance_${sectionKey}_desc`] ||
+    (legacyPrefix ? settings?.[`${legacyPrefix}_desc`] : null) ||
     defaultDesc ||
     section?.defaultDesc ||
     'Our parish team is currently making updates to this section. Please check back shortly or contact the Parish Office.';
 
-  const showPhone = settings?.[`maintenance_${sectionKey}_show_phone`] !== 'false';
-  const showFb = settings?.[`maintenance_${sectionKey}_show_fb`] !== 'false';
+  const showPhone =
+    settings?.[`maintenance_${sectionKey}_show_phone`] !== undefined
+      ? settings?.[`maintenance_${sectionKey}_show_phone`] !== 'false'
+      : (legacyPrefix && settings?.[`${legacyPrefix}_show_phone`] !== undefined
+          ? settings?.[`${legacyPrefix}_show_phone`] !== 'false'
+          : true);
+
+  const showFb =
+    settings?.[`maintenance_${sectionKey}_show_fb`] !== undefined
+      ? settings?.[`maintenance_${sectionKey}_show_fb`] !== 'false'
+      : (legacyPrefix && settings?.[`${legacyPrefix}_show_fb`] !== undefined
+          ? settings?.[`${legacyPrefix}_show_fb`] !== 'false'
+          : true);
+
   const phone = settings?.phone || '(032) 255 3241';
   const fbUrl = settings?.facebook_url || 'https://www.facebook.com/PATHBanawa';
 

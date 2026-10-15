@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
+import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Layers, Maximize2 } from 'lucide-react';
 
 export default function GalleryPage() {
+  const isMaintenance = useSectionMaintenance('gallery');
   const [albums, setAlbums] = useState([]);
   const [selectedAlbumId, setSelectedAlbumId] = useState('all');
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -79,37 +80,39 @@ export default function GalleryPage() {
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
             Photographs of church liturgical rites, parish fiesta celebrations, youth apostolates, and sacred architecture.
           </p>
+        </div>
 
-          {/* Public Maintenance Notice when activated by Admin */}
-          <PublicMaintenanceNotice sectionKey="gallery" />
-
-          {/* Album Selector Tabs */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-            <button
-              onClick={() => setSelectedAlbumId('all')}
-              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-                selectedAlbumId === 'all'
-                  ? 'bg-[#6B1D2F] text-white shadow-xs'
-                  : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
-              }`}
-            >
-              All Photographs
-            </button>
-            {albums.map((a) => (
+        {/* STRICT MAINTENANCE MODE CHECK: If ON, strictly hide albums and photographs */}
+        {isMaintenance ? (
+          <PublicMaintenanceNotice sectionKey="gallery" forceShow />
+        ) : (
+          <>
+            {/* Album Selector Tabs */}
+            <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
               <button
-                key={a.album.id}
-                onClick={() => setSelectedAlbumId(a.album.id.toString())}
+                onClick={() => setSelectedAlbumId('all')}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-                  selectedAlbumId === a.album.id.toString()
+                  selectedAlbumId === 'all'
                     ? 'bg-[#6B1D2F] text-white shadow-xs'
                     : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
                 }`}
               >
-                {a.album.title}
+                All Photographs
               </button>
-            ))}
-          </div>
-        </div>
+              {albums.map((a) => (
+                <button
+                  key={a.album.id}
+                  onClick={() => setSelectedAlbumId(a.album.id.toString())}
+                  className={`px-4 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+                    selectedAlbumId === a.album.id.toString()
+                      ? 'bg-[#6B1D2F] text-white shadow-xs'
+                      : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+                  }`}
+                >
+                  {a.album.title}
+                </button>
+              ))}
+            </div>
 
         {/* Photos Grid */}
         {loading ? (
@@ -157,11 +160,13 @@ export default function GalleryPage() {
             ))}
           </div>
         )}
+          </>
+        )}
 
       </div>
 
       {/* Lightbox Modal */}
-      {lightboxIndex !== null && activePhotos[lightboxIndex] && createPortal(
+      {!isMaintenance && lightboxIndex !== null && activePhotos[lightboxIndex] && createPortal(
         <div
           className="fixed inset-0 z-[100] w-screen h-screen bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
           onClick={closeLightbox}
