@@ -36,11 +36,11 @@ export default function PriestCardsSection({ config = {} }) {
   return (
     <section className="py-20 bg-[#F7F4EB] border-b border-[#C59B3F]/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 scroll-reveal">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#8F6B1E] block mb-2.5">
-              Current Set of Priests
+              Current Team of Parish Priests
             </span>
             <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-[#1C1814] tracking-tight">
               {heading}
@@ -78,9 +78,8 @@ export default function PriestCardsSection({ config = {} }) {
               return (
                 <div
                   key={p.id}
-                  className={`bg-white rounded-3xl overflow-hidden border shadow-xs card-lift scroll-reveal-scale flex flex-col group shimmer-sweep ${
-                    isDeceased ? 'border-stone-400/80 ring-1 ring-stone-900/10' : 'border-[#C59B3F]/25'
-                  }`}
+                  className={`bg-white rounded-3xl overflow-hidden border shadow-xs card-lift scroll-reveal-scale flex flex-col group shimmer-sweep ${isDeceased ? 'border-stone-400/80 ring-1 ring-stone-900/10' : 'border-[#C59B3F]/25'
+                    }`}
                 >
                   <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative img-zoom-hover">
                     {isDeceased && (
@@ -94,9 +93,8 @@ export default function PriestCardsSection({ config = {} }) {
                       <img
                         src={resolveMediaUrl(p.portraitImageUrl)}
                         alt={p.fullName}
-                        className={`w-full h-full object-cover object-top transition-all duration-500 ${
-                          isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
-                        }`}
+                        className={`w-full h-full object-cover object-top transition-all duration-500 ${isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
+                          }`}
                         loading="lazy"
                       />
                     ) : (
@@ -114,11 +112,10 @@ export default function PriestCardsSection({ config = {} }) {
                       </div>
                     )}
                     <div className="absolute bottom-3 left-3">
-                      <span className={`inline-block px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
-                        p.title?.toLowerCase().includes('moderator')
+                      <span className={`inline-block px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${p.title?.toLowerCase().includes('moderator')
                           ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
                           : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
-                      }`}>
+                        }`}>
                         {p.title || 'Parish Priest'}
                       </span>
                     </div>
