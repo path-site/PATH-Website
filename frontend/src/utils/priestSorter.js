@@ -22,14 +22,12 @@ export const parseYear = (val) => {
 };
 
 /**
- * Rank titles so Team Moderator / Parochial Vicar appear ahead within the same term
+ * Rank titles so Team Moderator appears ahead within the same term
  */
 export const getRoleRank = (title = '') => {
   const t = title.toLowerCase();
   if (t.includes('moderator')) return 1;
-  if (t.includes('vicar')) return 2;
-  if (t.includes('parish priest')) return 3;
-  return 4;
+  return 2;
 };
 
 /**

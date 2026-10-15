@@ -308,7 +308,7 @@ export default function PriestManager() {
                 className={`bg-white rounded-3xl p-6 border shadow-xs flex flex-col justify-between transition-all ${
                   isDeceased
                     ? 'border-stone-800 bg-stone-50/70 ring-1 ring-stone-900/10'
-                    : (p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar')
+                    : (p.title?.toLowerCase().includes('moderator')
                       ? 'border-[#C59B3F]/70 ring-2 ring-[#C59B3F]/25 shadow-amber-50'
                       : 'border-stone-200')
                 }`}
@@ -359,7 +359,7 @@ export default function PriestManager() {
                         {isDeceased && <span className="text-stone-500 font-serif font-bold">†</span>}
                         <span className="truncate">{p.fullName}</span>
                       </h3>
-                      {p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar') ? (
+                      {p.title?.toLowerCase().includes('moderator') ? (
                         <span className="inline-block text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#C59B3F] text-[#1C1814] border border-amber-300 mt-1 shadow-2xs">
                           {p.title}
                         </span>
@@ -465,7 +465,7 @@ export default function PriestManager() {
                   />
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {['Team Moderator', 'Parish Priest', 'Parochial Vicar', 'Former Team Moderator', 'Former Parish Priest', 'Former Parochial Vicar'].map(t => {
-                      const isGold = t.toLowerCase().includes('moderator') || t.toLowerCase().includes('vicar');
+                      const isGold = t.toLowerCase().includes('moderator');
                       return (
                         <button
                           type="button"
@@ -483,7 +483,7 @@ export default function PriestManager() {
                     })}
                   </div>
                   <p className="text-[11px] text-stone-500 mt-1 italic">
-                    Note: Priests with "Team Moderator" or "Parochial Vicar" receive the gold status label effect and are placed ahead within their year range.
+                    Note: Priests with "Team Moderator" receive the distinctive gold status label effect and are placed first within their pastoral set.
                   </p>
                 </div>
 
