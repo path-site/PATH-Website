@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import SectionRenderer from '../../components/sections/SectionRenderer';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
-import { Church } from 'lucide-react';
+import ParishChurchOutlineIcon from '../../components/common/ParishChurchOutlineIcon';
 
 export default function HomePage() {
   const isMaintenance = useSectionMaintenance('homepage');
@@ -30,7 +30,7 @@ export default function HomePage() {
       <div className="min-h-screen bg-[#FCFBF9] flex flex-col justify-center py-16 px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-6">
           <div className="w-16 h-16 rounded-full bg-[#6B1D2F] text-amber-300 flex items-center justify-center mx-auto mb-4 shadow-md">
-            <Church className="w-8 h-8" />
+            <ParishChurchOutlineIcon className="w-10 h-auto text-amber-300" />
           </div>
           <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-2">
             Archdiocese of Cebu

@@ -142,7 +142,8 @@ export default function AdminLayout() {
                       : 'text-stone-300 hover:bg-stone-800/80 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-stone-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-300' : 'text-stone-400'}`} />
+                  <span className="truncate flex-1">{item.label}</span>
                   {item.path === ADMIN_ROUTES.settings && isOverallMaint && (
                     <span 
                       title="Master Maintenance Mode is ACTIVE. The entire public website is shielded."

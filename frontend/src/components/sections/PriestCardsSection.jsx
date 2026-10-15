@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
-import { Church, ArrowRight, Calendar } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
+import ParishChurchOutlineIcon from '../common/ParishChurchOutlineIcon';
 
 export default function PriestCardsSection({ config = {} }) {
   const {
@@ -103,7 +104,7 @@ export default function PriestCardsSection({ config = {} }) {
                           {isDeceased ? (
                             <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
                           ) : (
-                            <Church className="w-10 h-10 text-[#DFBE7B]" />
+                            <ParishChurchOutlineIcon className="w-12 h-auto text-[#DFBE7B]" />
                           )}
                         </div>
                         <span className="text-xs uppercase font-serif tracking-widest text-[#DFBE7B]">

@@ -3,7 +3,8 @@ import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
-import { Church, Calendar, BookOpen, Clock } from 'lucide-react';
+import { Calendar, BookOpen, Clock } from 'lucide-react';
+import ParishChurchOutlineIcon from '../../components/common/ParishChurchOutlineIcon';
 
 export default function PriestsPage() {
   const isMaintenance = useSectionMaintenance('priests');
@@ -119,7 +120,7 @@ export default function PriestsPage() {
                                 {isDeceased ? (
                                   <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
                                 ) : (
-                                  <Church className="w-10 h-10 text-[#DFBE7B]" />
+                                  <ParishChurchOutlineIcon className="w-12 h-auto text-[#DFBE7B]" />
                                 )}
                               </div>
                               <span className="text-xs uppercase font-serif tracking-widest text-[#DFBE7B]">
@@ -214,7 +215,7 @@ export default function PriestsPage() {
                                 {isDeceased ? (
                                   <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
                                 ) : (
-                                  <Church className="w-10 h-10 text-[#DFBE7B]" />
+                                  <ParishChurchOutlineIcon className="w-12 h-auto text-[#DFBE7B]" />
                                 )}
                               </div>
                               <span className="text-xs uppercase font-serif tracking-widest text-[#DFBE7B]">

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { ArrowLeft, Calendar, Tag, Share2, Church } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, Share2 } from 'lucide-react';
+import ParishChurchOutlineIcon from '../../components/common/ParishChurchOutlineIcon';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
 
 export default function AnnouncementDetailPage() {
@@ -173,7 +174,7 @@ export default function AnnouncementDetailPage() {
         <div className="mt-14 pt-8 border-t border-stone-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#6B1D2F] text-amber-300 flex items-center justify-center">
-              <Church className="w-5 h-5" />
+              <ParishChurchOutlineIcon className="w-6 h-auto text-amber-300" />
             </div>
             <div>
               <p className="text-xs font-bold text-stone-800 uppercase tracking-wide">

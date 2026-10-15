@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { OVERALL_MAINTENANCE_DEFAULTS } from '../../config/maintenanceConfig';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
-import { 
-  Wrench, Phone, MapPin, Clock, Calendar, 
-  ShieldCheck, Lock, ExternalLink, Church 
+import {
+  Wrench, Phone, MapPin, Clock, Calendar,
+  ShieldCheck, Lock, ExternalLink
 } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
+import ParishChurchOutlineIcon from './ParishChurchOutlineIcon';
 
 export default function OverallMaintenanceScreen() {
   const { settings } = useTheme();
@@ -27,7 +28,7 @@ export default function OverallMaintenanceScreen() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#051329] via-[#071838] to-[#0A2250] text-white flex flex-col justify-between selection:bg-[#D4AF37] selection:text-stone-900 relative overflow-hidden">
-      
+
       {/* Decorative Gold & Blue Atmospheric Radial Glows */}
       <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
@@ -38,7 +39,7 @@ export default function OverallMaintenanceScreen() {
 
       {/* Main Content Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex-1 flex flex-col items-center justify-center text-center relative z-10">
-        
+
         {/* Parish Seal Logo */}
         <div className="mb-6 relative">
           <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white p-1.5 shadow-2xl ring-4 ring-[#D4AF37]/80 flex items-center justify-center mx-auto animate-float-slow">
@@ -56,7 +57,7 @@ export default function OverallMaintenanceScreen() {
         {/* Parish Identification */}
         <div className="space-y-1.5 mb-8">
           <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-amber-400 block font-serif">
-            Archdiocese of Cebu
+            The Roman Catholic Archdiocese of Cebu
           </span>
           <h1 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
             {settings?.site_name || 'Parish of the Alliance of the Two Hearts'}
@@ -89,7 +90,7 @@ export default function OverallMaintenanceScreen() {
           {/* Pastoral & Sacramental Reassurance Box */}
           {advisory && (
             <div className="p-4 sm:p-5 rounded-2xl bg-amber-400/10 border border-amber-400/25 text-left flex items-start gap-3.5 max-w-xl mx-auto">
-              <Church className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+              <ParishChurchOutlineIcon className="w-6 h-auto text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold text-amber-300 text-xs uppercase tracking-wider block mb-0.5">
                   Pastoral Notice
@@ -144,27 +145,8 @@ export default function OverallMaintenanceScreen() {
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
-
-      {/* Dignified Footer with discreet Clergy / Admin Gateway link */}
-      <footer className="w-full border-t border-white/10 px-4 py-6 text-center text-xs text-stone-400 relative z-10 bg-black/20">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p>
-            {settings?.footer_copyright || '© 2026 Parish of the Alliance of the Two Hearts. All Rights Reserved.'}
-          </p>
-          <Link
-            to={ADMIN_ROUTES.login}
-            className="inline-flex items-center gap-1.5 text-stone-400 hover:text-amber-300 transition-colors py-1 px-2.5 rounded-lg hover:bg-white/5 font-medium"
-          >
-            <Lock className="w-3 h-3 text-amber-400/80" />
-            <span>Parish Staff & Clergy Portal</span>
-          </Link>
-        </div>
-      </footer>
-
     </div>
   );
 }

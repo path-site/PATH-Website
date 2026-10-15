@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { Church, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
 import ParishChurchOutlineIcon from '../common/ParishChurchOutlineIcon';
 
 export default function AboutPreviewSection({ config = {} }) {

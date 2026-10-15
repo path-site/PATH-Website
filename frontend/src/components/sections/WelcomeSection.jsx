@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { ArrowRight, Church } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function WelcomeSection({ config = {} }) {
   const {

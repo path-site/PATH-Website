@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import SectionRenderer from '../../components/sections/SectionRenderer';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
-import { Church, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import ParishChurchOutlineIcon from '../../components/common/ParishChurchOutlineIcon';
 
 export default function CustomPageView() {
   const isMaintenance = useSectionMaintenance('pages');
@@ -51,7 +52,7 @@ export default function CustomPageView() {
     return (
       <div className="py-28 px-4 text-center max-w-xl mx-auto">
         <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center mx-auto mb-4">
-          <Church className="w-8 h-8" />
+          <ParishChurchOutlineIcon className="w-10 h-auto text-stone-400" />
         </div>
         <h1 className="text-3xl font-serif-heading font-bold text-stone-800 mb-2">Page Not Found</h1>
         <p className="text-stone-600 mb-6">

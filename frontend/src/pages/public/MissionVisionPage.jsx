@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
-import { Heart, Compass, Shield, BookOpen, Church, Leaf, Users, CheckCircle2 } from 'lucide-react';
+import { Heart, Compass, Shield, BookOpen, Leaf, Users, CheckCircle2 } from 'lucide-react';
 
 const defaultMissionVisionData = {
   vision: "Katilingban sa parokya nga nagpuyo sa Ebanghelyo ug nagkahiusa sa panaw sa pagtoo paingon sa kapuno sa kinabuhi dinasig sa gugma ni Hesus ug Maria",

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
-import { Clock, Calendar, Church, ArrowDown } from 'lucide-react';
+import { Clock, Calendar, ArrowDown } from 'lucide-react';
+import ParishChurchOutlineIcon from '../../components/common/ParishChurchOutlineIcon';
 
 export default function HistoryPage() {
   const isMaintenance = useSectionMaintenance('history');
@@ -110,7 +111,7 @@ export default function HistoryPage() {
 
         {/* Bottom Epilogue */}
         <div className="mt-20 p-8 rounded-3xl bg-amber-50/70 border border-amber-200/80 text-center max-w-2xl mx-auto shadow-xs scroll-reveal-scale">
-          <Church className="w-10 h-10 text-[#6B1D2F] mx-auto mb-3" />
+          <ParishChurchOutlineIcon className="w-20 h-auto text-[#6B1D2F] mx-auto mb-3" />
           <h4 className="font-serif-heading text-lg font-bold text-stone-800">
             Continuing the Grace of God
           </h4>
