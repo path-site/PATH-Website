@@ -1,68 +1,24 @@
-export const config = {
-  runtime: 'edge',
-};
-
 export default async function handler(req, res) {
-  const isNode = res && typeof res.status === 'function';
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Helper response sender
-  const send = (status, data, headers = {}) => {
-    if (isNode) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      for (const [k, v] of Object.entries(headers)) {
-        res.setHeader(k, v);
-      }
-      return res.status(status).json(data);
-    }
-    return new Response(JSON.stringify(data), {
-      status,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        ...headers
-      }
-    });
-  };
-
-  // CORS preflight
   if (req.method === 'OPTIONS') {
-    if (isNode) {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      return res.status(200).end();
-    }
-    return new Response(null, {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
-    });
+    return res.status(200).end();
   }
 
   if (req.method !== 'POST') {
-    return send(405, { error: 'Method not allowed. Only POST is accepted.' });
+    return res.status(405).json({ error: 'Method not allowed. Only POST is accepted.' });
   }
 
   const apiKey = (process.env.GROQ_API_KEY || '').trim();
   if (!apiKey) {
-    return send(500, { error: 'GROQ_API_KEY is not configured in Vercel Environment Variables.' });
+    return res.status(500).json({ error: 'GROQ_API_KEY is not configured in Vercel Environment Variables.' });
   }
 
   try {
-    let body;
-    if (isNode) {
-      body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    } else {
-      body = await req.json().catch(() => ({}));
-    }
-
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const {
       messages,
       model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
@@ -71,7 +27,7 @@ export default async function handler(req, res) {
     } = body;
 
     if (!messages || !Array.isArray(messages)) {
-      return send(400, { error: 'Invalid payload: messages array is required.' });
+      return res.status(400).json({ error: 'Invalid payload: messages array is required.' });
     }
 
     const sendRequest = async (targetModel) => {
@@ -92,7 +48,7 @@ export default async function handler(req, res) {
 
     let response = await sendRequest(model);
 
-    // Fallback if model is not available or deprecated on Groq account
+    // Fallback if model is not available on user account
     if (!response.ok && model !== 'openai/gpt-oss-120b') {
       const errClone = await response.clone().json().catch(() => ({}));
       if (errClone.error?.message?.includes('does not exist') || errClone.error?.code === 'model_not_found') {
@@ -102,14 +58,18 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      return send(response.status, { error: errData.error?.message || `Groq API returned error status ${response.status}` });
+      return res.status(response.status).json({
+        error: errData.error?.message || `Groq API returned error status ${response.status}`
+      });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
 
-    return send(200, { content });
+    return res.status(200).json({ content });
   } catch (error) {
-    return send(500, { error: error.message || 'Internal server error while contacting AI Assistant.' });
+    return res.status(500).json({
+      error: error.message || 'Internal server error while contacting AI Assistant.'
+    });
   }
 }

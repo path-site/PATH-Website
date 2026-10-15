@@ -478,64 +478,51 @@ RULES:
     setInputMessage('');
     setIsTyping(true);
 
-    // Format chat messages
-    const formattedHistory = newHistory.slice(-10).map(m => ({
-      role: m.sender === 'user' ? 'user' : 'assistant',
-      content: m.text
-    }));
-
-    const chatPayload = {
-      messages: [
-        { role: 'system', content: buildSystemPrompt() },
-        ...formattedHistory
-      ],
-      temperature: 0.5,
-      max_tokens: 800
-    };
-
-    let replyContent = null;
-
-    // Stage 1: Try secure serverless proxy endpoint (/api/chat)
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(chatPayload)
-      });
+      // Format chat messages
+      const formattedHistory = newHistory.slice(-10).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
 
-      if (response.ok) {
-        const data = await response.json().catch(() => ({}));
-        if (data.content) {
-          replyContent = data.content;
-        }
-      }
-    } catch (err) {
-      // Backend endpoint unavailable or static Vercel host
-    }
+      const chatPayload = {
+        messages: [
+          { role: 'system', content: buildSystemPrompt() },
+          ...formattedHistory
+        ],
+        temperature: 0.5,
+        max_tokens: 800
+      };
 
-    // Stage 2: Direct Groq API call using compile-time GROQ_API_KEY if /api/chat was not available
-    if (!replyContent) {
+      let replyContent = null;
+
+      // Priority 1: Direct Groq API call using compile-time injected GROQ_API_KEY (instant, no serverless cold start/stall)
       const directKey = (typeof __GROQ_API_KEY__ !== 'undefined' ? __GROQ_API_KEY__ : '').trim();
       const directModel = (typeof __GROQ_MODEL__ !== 'undefined' && __GROQ_MODEL__ ? __GROQ_MODEL__ : 'openai/gpt-oss-120b').trim();
 
       if (directKey) {
         try {
           const callGroq = async (targetModel) => {
-            return fetch('https://api.groq.com/openai/v1/chat/completions', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${directKey}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                model: targetModel,
-                messages: chatPayload.messages,
-                temperature: chatPayload.temperature,
-                max_tokens: chatPayload.max_tokens
-              })
-            });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second safety timeout
+            try {
+              return await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${directKey}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: targetModel,
+                  messages: chatPayload.messages,
+                  temperature: chatPayload.temperature,
+                  max_tokens: chatPayload.max_tokens
+                }),
+                signal: controller.signal
+              });
+            } finally {
+              clearTimeout(timeoutId);
+            }
           };
 
           let groqRes = await callGroq(directModel);
@@ -553,31 +540,56 @@ RULES:
             if (groqData.choices?.[0]?.message?.content) {
               replyContent = groqData.choices[0].message.content;
             }
+          } else {
+            const errData = await groqRes.json().catch(() => ({}));
+            console.warn('Groq direct API error status:', groqRes.status, errData);
           }
         } catch (directErr) {
-          console.warn('Groq direct call error:', directErr);
+          console.warn('Direct Groq call error or timeout:', directErr);
         }
       }
-    }
 
-    // Stage 3: If live AI responded from either stage, render live reply
-    if (replyContent) {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'ai',
-          text: replyContent,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          source: 'groq'
+      // Priority 2: If direct Groq was unavailable or failed, try serverless endpoint (/api/chat) with strict 8s timeout
+      if (!replyContent) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout to prevent hanging
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatPayload),
+            signal: controller.signal
+          }).finally(() => clearTimeout(timeoutId));
+
+          if (response.ok) {
+            const data = await response.json().catch(() => ({}));
+            if (data.content) {
+              replyContent = data.content;
+            }
+          }
+        } catch (err) {
+          console.warn('Serverless /api/chat error or timeout:', err.message);
         }
-      ]);
-      setIsTyping(false);
-      return;
-    }
+      }
 
-    // Stage 4: Seamless fallback to local high-fidelity parish engine if completely offline
-    setTimeout(() => {
+      // Priority 3: Render live response if received
+      if (replyContent) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            sender: 'ai',
+            text: replyContent,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            source: 'groq'
+          }
+        ]);
+        return;
+      }
+
+      // Priority 4: Offline canonical response fallback
       const aiReplyText = generateLocalResponse(messageText);
       const aiMsg = {
         id: (Date.now() + 1).toString(),
@@ -587,8 +599,22 @@ RULES:
         source: 'local'
       };
       setMessages(prev => [...prev, aiMsg]);
+    } catch (globalErr) {
+      console.error('Unexpected error in handleSend:', globalErr);
+      const aiReplyText = generateLocalResponse(messageText);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'ai',
+          text: aiReplyText,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          source: 'local'
+        }
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 300);
+    }
   };
 
   const handleKeyDown = (e) => {
