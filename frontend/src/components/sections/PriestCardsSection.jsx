@@ -105,19 +105,17 @@ export default function PriestCardsSection({ config = {} }) {
                   </div>
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-serif-heading text-lg font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors">
-                      {p.fullName}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-3">
-                      <Calendar className="w-3.5 h-3.5 text-[#C59B3F]" />
-                      <span>Term: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
-                    </div>
-                    <p className="text-xs text-stone-600 leading-relaxed font-normal line-clamp-4">
-                      {p.biography}
-                    </p>
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="font-serif-heading text-lg font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors min-h-[3.25rem] flex items-start">
+                    {p.fullName}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-3 h-5">
+                    <Calendar className="w-3.5 h-3.5 text-[#C59B3F] shrink-0" />
+                    <span>Term: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
                   </div>
+                  <p className="text-xs text-stone-600 leading-relaxed font-normal line-clamp-4">
+                    {p.biography}
+                  </p>
                 </div>
               </div>
             ))}

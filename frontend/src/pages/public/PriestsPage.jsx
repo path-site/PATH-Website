@@ -114,19 +114,17 @@ export default function PriestsPage() {
                         </div>
                       </div>
 
-                      <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
-                        <div>
-                          <h3 className="font-serif-heading text-xl font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors">
-                            {p.fullName}
-                          </h3>
-                          <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-4">
-                            <Calendar className="w-3.5 h-3.5 text-[#C59B3F]" />
-                            <span>Service Term: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
-                          </div>
-                          <p className="text-sm text-stone-600 leading-relaxed font-normal">
-                            {p.biography}
-                          </p>
+                      <div className="p-6 sm:p-7 flex-1 flex flex-col">
+                        <h3 className="font-serif-heading text-xl font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors min-h-[3.5rem] flex items-start">
+                          {p.fullName}
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-4 h-5">
+                          <Calendar className="w-3.5 h-3.5 text-[#C59B3F] shrink-0" />
+                          <span>Service Term: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
                         </div>
+                        <p className="text-sm text-stone-600 leading-relaxed font-normal">
+                          {p.biography}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -182,19 +180,17 @@ export default function PriestsPage() {
                         </div>
                       </div>
 
-                      <div className="p-6 sm:p-7 flex-1 flex flex-col justify-between">
-                        <div>
-                          <h3 className="font-serif-heading text-xl font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors">
-                            {p.fullName}
-                          </h3>
-                          <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-4">
-                            <Calendar className="w-3.5 h-3.5 text-[#C59B3F]" />
-                            <span>Years in Ministry: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
-                          </div>
-                          <p className="text-sm text-stone-600 leading-relaxed font-normal">
-                            {p.biography}
-                          </p>
+                      <div className="p-6 sm:p-7 flex-1 flex flex-col">
+                        <h3 className="font-serif-heading text-xl font-bold text-[#1C1814] leading-snug group-hover:text-[#A81B2B] transition-colors min-h-[3.5rem] flex items-start">
+                          {p.fullName}
+                        </h3>
+                        <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mt-1 mb-4 h-5">
+                          <Calendar className="w-3.5 h-3.5 text-[#C59B3F] shrink-0" />
+                          <span>Years in Ministry: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
                         </div>
+                        <p className="text-sm text-stone-600 leading-relaxed font-normal">
+                          {p.biography}
+                        </p>
                       </div>
                     </div>
                   ))}
