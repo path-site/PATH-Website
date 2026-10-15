@@ -1,0 +1,510 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Sparkles, 
+  X, 
+  Send, 
+  RotateCcw, 
+  Church, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  Phone, 
+  BookOpen, 
+  HelpCircle,
+  ChevronRight,
+  User,
+  HeartHandshake
+} from 'lucide-react';
+import { publicApi } from '../../services/api';
+import { sortPriests } from '../../utils/priestSorter';
+
+// Fallback canonical knowledge base
+const CANONICAL_KNOWLEDGE = {
+  massSchedules: `Monday – Friday:
+• 6:00 AM [Cebuano]
+• 6:30 AM [English]
+• 12:15 PM [English]
+• 5:00 PM [Cebuano] (Every Monday at the Columbary)
+• 6:00 PM [English] 🔴 LIVE streamed
+
+Saturday:
+• 6:00 AM [Cebuano]
+• 6:30 AM [English]
+• 5:30 PM [English] 🔴 LIVE Anticipated Mass
+
+Sunday (The Lord's Day):
+• 5:30 AM [Cebuano]
+• 7:00 AM [English]
+• 9:00 AM [English] 🔴 LIVE streamed
+• 11:00 AM [English]
+• 4:00 PM [English]
+• 5:30 PM [Cebuano] 🔴 LIVE streamed
+• 7:00 PM [English]`,
+
+  officeHours: `Tuesday – Saturday: 8:00 AM – 12:00 PM, 1:30 PM – 5:00 PM
+Sunday: 8:00 AM – 12:00 PM
+Monday: Office Closed`,
+
+  location: `J. Fortich St., Banawa, Cebu City, Philippines
+Telephone: (032) 255 3241
+Email: office@pathparish.org`,
+
+  confessions: `To receive the Sacrament of Reconciliation (Confession), you may approach the Parish Priest directly at the sacristy after any Holy Mass, or kindly inform any of the altar servers or parish staff.`,
+
+  baptism: `Requirements for the Sacrament of Baptism:
+1. Child's PSA/NSO Birth Certificate (original & photocopy).
+2. Parents' Catholic Marriage Certificate (or PSA Marriage Contract).
+3. Godparents' Catholic Confirmation Certificate (at least one practicing Catholic sponsor).
+4. Attendance in the Pre-Baptism Seminar for parents and godparents.
+5. Registration at the Parish Office at least 1–2 weeks prior to desired date.`,
+
+  wedding: `Requirements for the Sacrament of Holy Matrimony:
+1. Canonical Pre-Nuptial Interview with the Priest (schedule at least 3–6 months in advance).
+2. Baptismal & Confirmation Certificates with the specific annotation: "For Marriage Purposes" (issued within 6 months).
+3. PSA Certificate of No Marriage (CENOMAR) for both bride and groom.
+4. Civil Marriage License (from Local Civil Registrar) or PSA Marriage Contract (if civilly married).
+5. Pre-Cana Marriage Preparation Seminar.
+6. Publication of Wedding Banns for three (3) consecutive Sundays.`,
+
+  massIntentions: `You may offer Mass Intentions (Thanksgiving, Soul/Requiem, Healing/Recovery, Special Intentions):
+• In Person: Visit the Parish Office during regular office hours.
+• Before Mass: Request an intention envelope at the sacristy or parish counter before each scheduled mass.`,
+
+  anointing: `For the Sacrament of the Anointing of the Sick or emergency Viaticum:
+• Please call the parish office at (032) 255 3241 immediately, or visit the office to schedule a pastoral hospital or home visitation by one of our priests.`
+};
+
+const SUGGESTED_QUERIES = [
+  { label: 'Mass Schedules', icon: Clock, prompt: 'What are the Mass schedules?' },
+  { label: 'Our Parish Priests', icon: Church, prompt: 'Who are the current parish priests?' },
+  { label: 'Baptism Requirements', icon: BookOpen, prompt: 'What are the requirements for Baptism?' },
+  { label: 'Office Hours & Location', icon: MapPin, prompt: 'What are the parish office hours and location?' },
+  { label: 'Confession Details', icon: HeartHandshake, prompt: 'How can I go to confession?' },
+  { label: 'Wedding Inquiries', icon: HelpCircle, prompt: 'What are the requirements for a church wedding?' },
+];
+
+export default function ParishAIAssistant() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [contextData, setContextData] = useState({
+    priests: [],
+    announcements: [],
+    events: [],
+    settings: {}
+  });
+
+  const [messages, setMessages] = useState([
+    {
+      id: 'welcome',
+      sender: 'ai',
+      text: "Pax Christi! Peace be with you. I am the PATH Parish Virtual Guide for the Parish of the Alliance of the Two Hearts.\n\nI can assist you with Mass schedules, sacramental requirements (Baptism, Weddings), our assigned clergy, parish office hours, and church announcements. How can I help you today?",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Auto-scroll to bottom of chat
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+      setTimeout(() => inputRef.current?.focus(), 200);
+    }
+  }, [messages, isOpen]);
+
+  // Show welcoming tooltip after 3 seconds on initial visit
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTooltip(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch live parish data for dynamic AI context
+  useEffect(() => {
+    const loadLiveContext = async () => {
+      try {
+        const [priestsRes, announcementsRes, eventsRes, settingsRes] = await Promise.allSettled([
+          publicApi.getPriests(),
+          publicApi.getAnnouncements({ page: 0, size: 5 }),
+          publicApi.getEvents(),
+          publicApi.getContactSettings()
+        ]);
+
+        setContextData({
+          priests: priestsRes.status === 'fulfilled' && priestsRes.value.data ? sortPriests(priestsRes.value.data) : [],
+          announcements: announcementsRes.status === 'fulfilled' && announcementsRes.value.data ? announcementsRes.value.data.content || announcementsRes.value.data : [],
+          events: eventsRes.status === 'fulfilled' && eventsRes.value.data ? eventsRes.value.data : [],
+          settings: settingsRes.status === 'fulfilled' && settingsRes.value.data ? settingsRes.value.data : {}
+        });
+      } catch (err) {
+        console.warn('Could not preload live context for AI Assistant', err);
+      }
+    };
+    loadLiveContext();
+  }, []);
+
+  // Generate intelligent response based on query
+  const generateResponse = (query) => {
+    const q = query.toLowerCase().trim();
+
+    // 1. Mass Schedules
+    if (q.includes('mass') || q.includes('schedule') || q.includes('time') || q.includes('misa') || q.includes('sunday mass') || q.includes('live')) {
+      return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${CANONICAL_KNOWLEDGE.massSchedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
+    }
+
+    // 2. Priests / Clergy
+    if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator')) {
+      const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
+      if (current.length > 0) {
+        const list = current.map((p, idx) => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
+        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nWithin our pastoral team structure, the **Team Moderator** leads pastoral ministry alongside our assigned priests. You can view all clergy bios on our [Priests Directory](/about/priests) page.`;
+      }
+      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nWithin each ministry set, the Team Moderator is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
+    }
+
+    // 3. Confession / Reconciliation
+    if (q.includes('confess') || q.includes('kumpisal') || q.includes('reconciliation') || q.includes('penance') || q.includes('forgive')) {
+      return `**Sacrament of Reconciliation (Confession):**\n\n${CANONICAL_KNOWLEDGE.confessions}\n\nIf you require a dedicated pastoral counseling or spiritual direction session, you may coordinate with the parish office.`;
+    }
+
+    // 4. Baptism / Binyag
+    if (q.includes('baptis') || q.includes('binyag') || q.includes('christening') || q.includes('godparent') || q.includes('ninong') || q.includes('ninang')) {
+      return `${CANONICAL_KNOWLEDGE.baptism}\n\nPlease visit the Parish Office during office hours to submit documents and reserve your schedule.`;
+    }
+
+    // 5. Wedding / Matrimony / Kasal
+    if (q.includes('wed') || q.includes('marri') || q.includes('kasal') || q.includes('matrimon') || q.includes('bride') || q.includes('groom')) {
+      return `${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office early to secure their date and complete all canonical interviews.`;
+    }
+
+    // 6. Office Hours / Schedule
+    if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
+      const addr = contextData.settings.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
+      const phone = contextData.settings.phone || '(032) 255 3241';
+      const email = contextData.settings.email || 'office@pathparish.org';
+      return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone:** ${phone}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${CANONICAL_KNOWLEDGE.officeHours}`;
+    }
+
+    // 7. Mass Intentions / Pamisa
+    if (q.includes('intention') || q.includes('pamisa') || q.includes('thanksgiving') || q.includes('requiem') || q.includes('soul') || q.includes('petition')) {
+      return `**Mass Intentions:**\n\n${CANONICAL_KNOWLEDGE.massIntentions}`;
+    }
+
+    // 8. Anointing of the Sick / Viaticum / Hospital Visit
+    if (q.includes('anoint') || q.includes('sick') || q.includes('viaticum') || q.includes('hospital') || q.includes('emergency') || q.includes('dying')) {
+      return `**Anointing of the Sick:**\n\n${CANONICAL_KNOWLEDGE.anointing}`;
+    }
+
+    // 9. Announcements / News
+    if (q.includes('announcement') || q.includes('news') || q.includes('bulletin') || q.includes('update')) {
+      if (contextData.announcements && contextData.announcements.length > 0) {
+        const top = contextData.announcements.slice(0, 3);
+        const list = top.map(a => `• **${a.title}**${a.category ? ` [${a.category}]` : ''}`).join('\n');
+        return `Here are recent parish announcements:\n\n${list}\n\nYou can read the full notices on our [Announcements](/announcements) page.`;
+      }
+      return `You can view our latest parish bulletins and circulars on the [Announcements](/announcements) page.`;
+    }
+
+    // 10. Events / Activities
+    if (q.includes('event') || q.includes('activit') || q.includes('fiesta') || q.includes('feast') || q.includes('calendar')) {
+      if (contextData.events && contextData.events.length > 0) {
+        const top = contextData.events.slice(0, 3);
+        const list = top.map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`).join('\n');
+        return `Upcoming Parish Events:\n\n${list}\n\nCheck our [Events Calendar](/events) for full details and schedules.`;
+      }
+      return `Our parish hosts various spiritual formation activities and apostolates throughout the year. You can view all upcoming parish dates on our [Events](/events) page.`;
+    }
+
+    // 11. Patron Saint / Two Hearts / About
+    if (q.includes('alliance') || q.includes('two hearts') || q.includes('patron') || q.includes('history') || q.includes('sacred heart') || q.includes('immaculate heart')) {
+      return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more about our parish heritage and pastoral journey on the [Church History](/about/history) page.`;
+    }
+
+    // 12. Friendly Greetings
+    if (q.includes('hello') || q.includes('hi') || q.includes('good morning') || q.includes('good afternoon') || q.includes('good evening') || q.includes('kamusta') || q.includes('maayong')) {
+      return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests, or parish office schedules.`;
+    }
+
+    // Default polite ecclesiastical fallback
+    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Clergy)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone)\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** or visit us along J. Fortich St., Banawa, Cebu City.`;
+  };
+
+  const handleSend = (textToSend) => {
+    const messageText = textToSend || inputMessage;
+    if (!messageText.trim() || isTyping) return;
+
+    const userMsg = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: messageText.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setInputMessage('');
+    setIsTyping(true);
+
+    // Simulate realistic thoughtful AI typing delay
+    setTimeout(() => {
+      const aiReplyText = generateResponse(messageText);
+      const aiMsg = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: aiReplyText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, aiMsg]);
+      setIsTyping(false);
+    }, 600);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const resetChat = () => {
+    setMessages([
+      {
+        id: 'welcome',
+        sender: 'ai',
+        text: "Conversation refreshed. Peace be with you! How may I assist you with our parish services today?",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  };
+
+  return (
+    <>
+      {/* =========================================================================
+          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT)
+         ========================================================================= */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        
+        {/* Gentle Onboarding Tooltip Bubble */}
+        {showTooltip && !isOpen && (
+          <div className="mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-[#C59B3F]/40 text-xs font-semibold text-stone-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span>Have questions? Ask PATH AI</span>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }}
+              className="text-stone-400 hover:text-stone-700 ml-1 p-0.5"
+              aria-label="Dismiss tooltip"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Main Floating Trigger Button */}
+        <button
+          onClick={() => {
+            setIsOpen(!isOpen);
+            setShowTooltip(false);
+          }}
+          aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
+          className={`relative group flex items-center justify-center rounded-full shadow-2xl transition-all duration-300 transform active:scale-95 focus:outline-none ${
+            isOpen
+              ? 'w-13 h-13 bg-[#1C1814] text-white border-2 border-[#C59B3F]/60 rotate-90 hover:bg-[#800020]'
+              : 'w-14 h-14 bg-gradient-to-br from-[#800020] via-[#981226] to-[#600018] text-white border-2 border-[#C59B3F] hover:scale-105 hover:shadow-[0_0_25px_rgba(197,155,63,0.6)]'
+          }`}
+        >
+          {/* Animated Gold Aura / Ring */}
+          {!isOpen && (
+            <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#C59B3F]/40 via-amber-300/30 to-[#800020]/40 blur-xs animate-pulse pointer-events-none" />
+          )}
+
+          {isOpen ? (
+            <X className="w-6 h-6 transition-transform" />
+          ) : (
+            <div className="relative flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-[#DFBE7B] transition-transform group-hover:scale-110" />
+              {/* Online Green Indicator Dot */}
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-white"></span>
+              </span>
+            </div>
+          )}
+        </button>
+      </div>
+
+      {/* =========================================================================
+          2. POP-UP AI AGENT CHAT WINDOW
+         ========================================================================= */}
+      {isOpen && (
+        <div 
+          className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-200"
+          style={{ boxShadow: '0 25px 60px -15px rgba(28, 24, 20, 0.4), 0 0 0 1px rgba(197, 155, 63, 0.25)' }}
+        >
+          
+          {/* Header */}
+          <div className="bg-gradient-to-r from-[#800020] via-[#5C0017] to-[#1C1814] p-4 sm:p-5 text-white flex items-center justify-between border-b border-[#C59B3F]/30 relative overflow-hidden shrink-0">
+            {/* Subtle liturgical ornament watermark */}
+            <div className="absolute right-0 top-0 translate-x-6 -translate-y-6 opacity-10 pointer-events-none">
+              <Church className="w-36 h-36" />
+            </div>
+
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-[#C59B3F]/30 to-[#800020]/40 border border-[#DFBE7B]/50 flex items-center justify-center shadow-inner">
+                <Sparkles className="w-5 h-5 text-[#DFBE7B]" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#5C0017]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif-heading text-base font-bold tracking-wide text-white leading-tight">
+                    PATH Parish AI
+                  </h3>
+                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40">
+                    Guide
+                  </span>
+                </div>
+                <p className="text-[11px] text-stone-300 font-sans mt-0.5">
+                  Alliance of the Two Hearts Parish
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 relative z-10">
+              <button
+                onClick={resetChat}
+                title="Restart conversation"
+                className="p-1.5 text-stone-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Restart chat"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                title="Close assistant"
+                className="p-1.5 text-stone-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Close chat"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FDFCF9]">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {msg.sender === 'ai' && (
+                  <div className="w-7 h-7 rounded-full bg-[#FAF7F0] border border-[#C59B3F]/40 flex items-center justify-center shrink-0 text-[#8F6B1E] shadow-2xs mt-1">
+                    <Church className="w-3.5 h-3.5" />
+                  </div>
+                )}
+
+                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs ${
+                  msg.sender === 'user'
+                    ? 'bg-[#800020] text-white rounded-tr-xs font-sans'
+                    : 'bg-white border border-[#C59B3F]/25 text-stone-800 rounded-tl-xs parchment-card'
+                }`}>
+                  <div className="whitespace-pre-line font-normal space-y-1">
+                    {msg.text}
+                  </div>
+                  <span className={`block text-[10px] mt-1.5 font-mono ${
+                    msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
+                  }`}>
+                    {msg.timestamp}
+                  </span>
+                </div>
+
+                {msg.sender === 'user' && (
+                  <div className="w-7 h-7 rounded-full bg-[#800020]/15 border border-[#800020]/30 flex items-center justify-center shrink-0 text-[#800020] shadow-2xs mt-1">
+                    <User className="w-3.5 h-3.5" />
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Simulated Typing Indicator */}
+            {isTyping && (
+              <div className="flex gap-2.5 justify-start items-center">
+                <div className="w-7 h-7 rounded-full bg-[#FAF7F0] border border-[#C59B3F]/40 flex items-center justify-center shrink-0 text-[#8F6B1E] shadow-2xs">
+                  <Church className="w-3.5 h-3.5" />
+                </div>
+                <div className="bg-white border border-[#C59B3F]/25 px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="text-[11px] text-stone-500 font-sans ml-1">PATH AI is writing...</span>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Quick Preset Action Chips */}
+          <div className="px-3.5 py-2 bg-[#F9F7F2] border-t border-stone-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+            {SUGGESTED_QUERIES.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSend(item.prompt)}
+                  disabled={isTyping}
+                  className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white hover:bg-[#C59B3F]/15 border border-[#C59B3F]/30 hover:border-[#C59B3F] text-[11px] font-medium text-stone-700 hover:text-[#800020] transition-colors flex items-center gap-1 shadow-2xs shrink-0 disabled:opacity-50"
+                >
+                  <Icon className="w-3 h-3 text-[#C59B3F]" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Input Form Bar */}
+          <div className="p-3 sm:p-3.5 bg-white border-t border-stone-200/80 shrink-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask about mass, sacraments, clergy..."
+                disabled={isTyping}
+                className="flex-1 px-3.5 py-2.5 rounded-xl bg-stone-100/80 border border-stone-200 text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#800020] focus:bg-white transition-all disabled:opacity-60"
+              />
+              <button
+                type="submit"
+                disabled={!inputMessage.trim() || isTyping}
+                aria-label="Send query"
+                className="p-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all transform active:scale-95 shrink-0"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </form>
+            <div className="flex items-center justify-between text-[10px] text-stone-400 mt-2 px-1">
+              <span>Parish of the Alliance of the Two Hearts</span>
+              <span className="flex items-center gap-1 text-[#8F6B1E]">
+                <Sparkles className="w-2.5 h-2.5" /> AI Virtual Guide
+              </span>
+            </div>
+          </div>
+
+        </div>
+      )}
+    </>
+  );
+}

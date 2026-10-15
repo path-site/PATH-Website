@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import ParishAIAssistant from '../common/ParishAIAssistant';
 import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
@@ -160,18 +161,21 @@ export default function PublicLayout() {
 
       <Footer />
 
-      {/* Smooth Floating Scroll to Top Button with Micro-Animation */}
+      {/* Smooth Floating Scroll to Top Button (Positioned above AI Assistant) */}
       <button
         onClick={scrollToTop}
         aria-label="Scroll back to top"
-        className={`fixed bottom-6 right-6 z-40 p-3.5 rounded-full bg-white/95 text-[#A81B2B] border-2 border-[#C59B3F]/60 shadow-2xl backdrop-blur-md transition-all duration-300 hover:bg-[#A81B2B] hover:text-white hover:border-[#A81B2B] hover:scale-110 active:scale-95 group ${
+        className={`fixed bottom-24 right-7.5 z-40 w-11 h-11 flex items-center justify-center rounded-full bg-white/95 text-[#A81B2B] border-2 border-[#C59B3F]/60 shadow-xl backdrop-blur-md transition-all duration-300 hover:bg-[#A81B2B] hover:text-white hover:border-[#A81B2B] hover:scale-110 active:scale-95 group ${
           showScrollTop 
             ? 'opacity-100 translate-y-0 pointer-events-auto' 
             : 'opacity-0 translate-y-6 pointer-events-none'
         }`}
       >
-        <ChevronUp className="w-5 h-5 transition-transform group-hover:-translate-y-1" />
+        <ChevronUp className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
       </button>
+
+      {/* Floating Parish AI Agent at bottom right */}
+      <ParishAIAssistant />
 
     </div>
   );
