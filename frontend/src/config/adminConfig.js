@@ -19,5 +19,6 @@ export const ADMIN_ROUTES = {
   media: `${ADMIN_SECRET_PATH}/media`,
   contactSettings: `${ADMIN_SECRET_PATH}/contact-settings`,
   users: `${ADMIN_SECRET_PATH}/users`,
+  aiResponses: `${ADMIN_SECRET_PATH}/ai-responses`,
   settings: `${ADMIN_SECRET_PATH}/settings`,
 };

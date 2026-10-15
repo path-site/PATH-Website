@@ -35,6 +35,7 @@ import MediaLibrary from './pages/admin/MediaLibrary';
 import ContactSettings from './pages/admin/ContactSettings';
 import UserManager from './pages/admin/UserManager';
 import GeneralSettings from './pages/admin/GeneralSettings';
+import AIResponsesManager from './pages/admin/AIResponsesManager';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -106,6 +107,7 @@ export default function App() {
               <Route path="theme" element={<Navigate to={ADMIN_ROUTES.base} replace />} />
               <Route path="contact-settings" element={<ContactSettings />} />
               <Route path="users" element={<UserManager />} />
+              <Route path="ai-responses" element={<AIResponsesManager />} />
               <Route path="settings" element={<GeneralSettings />} />
             </Route>
 

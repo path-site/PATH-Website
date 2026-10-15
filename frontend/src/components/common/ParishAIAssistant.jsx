@@ -256,6 +256,8 @@ export default function ParishAIAssistant() {
     priests: [],
     announcements: [],
     events: [],
+    history: [],
+    customResponses: [],
     settings: {}
   });
 
@@ -263,7 +265,7 @@ export default function ParishAIAssistant() {
     {
       id: 'welcome',
       sender: 'ai',
-      text: "Pax Christi! Peace be with you. I am the Parish Assistant for the Parish of the Alliance of the Two Hearts.\n\nI can assist you with Mass schedules, sacramental requirements (Baptism, Weddings), our assigned clergy, parish office hours, and church announcements. How can I help you today?",
+      text: "Pax Christi! Peace be with you. I am the Parish Assistant for the Parish of the Alliance of the Two Hearts.\n\nI can assist you with Mass schedules, sacramental requirements (Baptism, Weddings), our assigned clergy and priest history, church announcements, and upcoming events. How can I help you today?",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -283,71 +285,134 @@ export default function ParishAIAssistant() {
     }
   }, [messages, isOpen]);
 
-  // Fetch live parish data for dynamic AI context
-  useEffect(() => {
-    const loadLiveContext = async () => {
-      try {
-        const [priestsRes, announcementsRes, eventsRes, settingsRes] = await Promise.allSettled([
-          publicApi.getPriests(),
-          publicApi.getAnnouncements({ page: 0, size: 5 }),
-          publicApi.getEvents(),
-          publicApi.getSettings ? publicApi.getSettings() : Promise.resolve({})
-        ]);
+  // Fetch live parish data for dynamic AI context from the database
+  const loadLiveContext = async () => {
+    try {
+      const [priestsRes, announcementsRes, eventsRes, historyRes, settingsRes] = await Promise.allSettled([
+        publicApi.getPriests(),
+        publicApi.getAnnouncements({ page: 0, size: 8 }),
+        publicApi.getEvents(),
+        publicApi.getHistory(),
+        publicApi.getSettings ? publicApi.getSettings() : Promise.resolve({})
+      ]);
 
-        const rawPriests = priestsRes.status === 'fulfilled' && priestsRes.value ? (priestsRes.value.data || priestsRes.value) : [];
-        const normalizedPriests = Array.isArray(rawPriests) ? sortPriests(rawPriests) : [];
+      const rawPriests = priestsRes.status === 'fulfilled' && priestsRes.value ? (priestsRes.value.data || priestsRes.value) : [];
+      const normalizedPriests = Array.isArray(rawPriests) ? sortPriests(rawPriests) : [];
 
-        const rawAnnouncements = announcementsRes.status === 'fulfilled' && announcementsRes.value ? (announcementsRes.value.data || announcementsRes.value) : [];
-        const normalizedAnnouncements = Array.isArray(rawAnnouncements)
-          ? rawAnnouncements
-          : (Array.isArray(rawAnnouncements?.content) ? rawAnnouncements.content : []);
+      const rawAnnouncements = announcementsRes.status === 'fulfilled' && announcementsRes.value ? (announcementsRes.value.data || announcementsRes.value) : [];
+      const normalizedAnnouncements = Array.isArray(rawAnnouncements)
+        ? rawAnnouncements
+        : (Array.isArray(rawAnnouncements?.content) ? rawAnnouncements.content : []);
 
-        const rawEvents = eventsRes.status === 'fulfilled' && eventsRes.value ? (eventsRes.value.data || eventsRes.value) : [];
-        const normalizedEvents = Array.isArray(rawEvents)
-          ? rawEvents
-          : (Array.isArray(rawEvents?.upcoming) ? rawEvents.upcoming : (Array.isArray(rawEvents?.content) ? rawEvents.content : []));
+      const rawEvents = eventsRes.status === 'fulfilled' && eventsRes.value ? (eventsRes.value.data || eventsRes.value) : [];
+      const normalizedEvents = Array.isArray(rawEvents)
+        ? rawEvents
+        : (Array.isArray(rawEvents?.upcoming) ? rawEvents.upcoming : (Array.isArray(rawEvents?.content) ? rawEvents.content : []));
 
-        const rawSettings = settingsRes.status === 'fulfilled' && settingsRes.value ? (settingsRes.value.data || settingsRes.value) : {};
+      const rawHistory = historyRes.status === 'fulfilled' && historyRes.value ? (historyRes.value.data || historyRes.value) : [];
+      const normalizedHistory = Array.isArray(rawHistory) ? rawHistory.filter(h => h && h.isPublished !== false) : [];
 
-        setContextData({
-          priests: normalizedPriests,
-          announcements: normalizedAnnouncements,
-          events: normalizedEvents,
-          settings: typeof rawSettings === 'object' && rawSettings !== null ? rawSettings : {}
-        });
-      } catch (err) {
-        console.warn('Could not preload live context for AI Assistant', err);
+      const rawSettings = settingsRes.status === 'fulfilled' && settingsRes.value ? (settingsRes.value.data || settingsRes.value) : {};
+
+      let customResponses = [];
+      if (rawSettings && rawSettings.ai_custom_responses) {
+        try {
+          const parsed = typeof rawSettings.ai_custom_responses === 'string'
+            ? JSON.parse(rawSettings.ai_custom_responses)
+            : rawSettings.ai_custom_responses;
+          if (Array.isArray(parsed)) {
+            customResponses = parsed.filter(r => r && r.isActive !== false);
+          }
+        } catch (parseErr) {
+          console.warn('Could not parse ai_custom_responses', parseErr);
+        }
       }
-    };
+
+      setContextData({
+        priests: normalizedPriests,
+        announcements: normalizedAnnouncements,
+        events: normalizedEvents,
+        history: normalizedHistory,
+        customResponses: customResponses,
+        settings: typeof rawSettings === 'object' && rawSettings !== null ? rawSettings : {}
+      });
+    } catch (err) {
+      console.warn('Could not preload live context for AI Assistant', err);
+    }
+  };
+
+  useEffect(() => {
     loadLiveContext();
   }, []);
+
+  // Whenever the assistant is opened, refresh the database context
+  useEffect(() => {
+    if (isOpen) {
+      loadLiveContext();
+    }
+  }, [isOpen]);
 
   // Build high-context system prompt for Groq LLM
   const buildSystemPrompt = () => {
     try {
       const priestsList = Array.isArray(contextData.priests) ? contextData.priests : [];
-      const currentPriests = priestsList
-        .filter(p => p && p.priestStatus === 'CURRENT')
-        .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
-        .join('\n') || `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
+      const currentPriestsList = priestsList.filter(p => p && p.priestStatus === 'CURRENT');
+      const formerPriestsList = priestsList.filter(p => p && p.priestStatus === 'FORMER');
+
+      const currentPriests = currentPriestsList.length > 0
+        ? currentPriestsList
+            .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})${p.biography ? ` [${p.biography}]` : ''}`)
+            .join('\n')
+        : `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
+
+      const formerPriests = formerPriestsList.length > 0
+        ? formerPriestsList
+            .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` [${p.biography}]` : ''}`)
+            .join('\n')
+        : `• **Rev. Fr. Benjamin Miralles Trazo** — Former Team Moderator (2019 – 2025)\n• **Rev. Russell Emmanuel Montayre Sungcad** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Alex Jr. Kinanahan Cola** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Bertoldo Igloria** — Former Team Moderator (2016 – 2019)\n• **Fr. Socrates del Mundo Saldua** — Parish Priest (2016 – 2019)\n• **Rev. Fr. Wendell Jose Barrit Balbuena** — Former Team Moderator (2013 – 2016)`;
+
+      const historyList = Array.isArray(contextData.history) ? contextData.history : [];
+      const parishHistory = historyList.length > 0
+        ? historyList
+            .map(h => `• **${h.eventDate ? `${h.eventDate}: ` : ''}${h.title}**${h.description ? ` — ${h.description}` : ''}`)
+            .join('\n')
+        : `• **1988**: Parish of the Alliance of the Two Hearts founded in Banawa, Cebu City, dedicated to the Sacred Heart of Jesus and the Immaculate Heart of Mary.`;
+
+      const customResponsesList = Array.isArray(contextData.customResponses) ? contextData.customResponses : [];
+      const dynamicResponses = customResponsesList.length > 0
+        ? customResponsesList
+            .map(r => {
+              const kw = Array.isArray(r.keywords) ? r.keywords.join(', ') : r.keywords;
+              return `---
+RULE TOPIC: ${r.title}
+TRIGGER KEYWORDS: ${kw}
+SCHEDULED DATE / TIMEFRAME: ${r.eventDate || 'Ongoing'}
+DYNAMIC RESPONSE & INSTRUCTIONS:
+${r.responseText}`;
+            })
+            .join('\n\n')
+        : '';
 
       const announcementsList = Array.isArray(contextData.announcements) ? contextData.announcements : [];
       const recentAnnouncements = announcementsList
-        .slice(0, 3)
+        .slice(0, 5)
         .filter(Boolean)
-        .map(a => `• **${a.title}**${a.summary ? `: ${a.summary}` : ''}`)
+        .map(a => `• **${a.title}**${a.category ? ` [${a.category}]` : ''}${a.summary ? `: ${a.summary}` : ''}`)
         .join('\n');
 
       const eventsList = Array.isArray(contextData.events) ? contextData.events : [];
       const upcomingEvents = eventsList
-        .slice(0, 3)
+        .slice(0, 5)
         .filter(Boolean)
-        .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`)
+        .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}${e.description ? `: ${e.description}` : ''}`)
         .join('\n');
 
       const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
       const phone = contextData.settings?.phone || '(032) 255 3241';
       const email = contextData.settings?.email || 'office@pathparish.org';
+      const officeHours = contextData.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
+      const massSchedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
+      const confessionSchedule = contextData.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
 
       return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
 Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
@@ -356,10 +421,10 @@ Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with yo
 FORMATTING GUIDELINES:
 - Use clean Markdown formatting: use **bold** for names, mass times, or key headings.
 - Use bullet points (• ) for lists of schedules, requirements, or clergy.
-- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
+- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Church History](/about/history), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
 - Keep responses concise, organized, and pleasant to read.
 
-OFFICIAL PARISH DATA & KNOWLEDGE BASE:
+OFFICIAL PARISH DATA & LIVE DATABASE KNOWLEDGE BASE:
 
 1. PARISH IDENTITY & PATRONS:
 - Name: Parish of the Alliance of the Two Hearts (PATH)
@@ -368,24 +433,30 @@ OFFICIAL PARISH DATA & KNOWLEDGE BASE:
 - Telephone: ${phone}
 - Email: ${email}
 - Office Hours:
-${CANONICAL_KNOWLEDGE.officeHours}
+${officeHours}
 
 2. HOLY MASS SCHEDULES:
-${CANONICAL_KNOWLEDGE.massSchedules}
+${massSchedules}
 
 3. CONFESSION (SACRAMENT OF RECONCILIATION):
-${CANONICAL_KNOWLEDGE.confessions}
+${confessionSchedule}
 
-4. ACTIVE CLERGY (2025 – PRESENT SET):
+4. ACTIVE CLERGY (CURRENT SET):
 ${currentPriests}
 Note: Under our pastoral model, the parish is served by a team of three priests headed by the Team Moderator.
 
-5. PAST CLERGY (2018 – 2025 SET):
-• **Rev. Fr. Benjamin Trazo** — Former Team Moderator (2018 – 2025)
-• **Rev. Sungcad, Russell Emmanuel Montayre** — Former Parish Priest (2018 – 2025)
-• **Rev. Fr. Alex Cola Jr.** — Former Parish Priest (2018 – 2025)
+5. FORMER CLERGY & PRIEST HISTORY (PAST SETS FROM DATABASE):
+${formerPriests}
+CRITICAL INSTRUCTION ON PRIEST HISTORY:
+If the user asks about priest history, former priests, past pastors, previous sets, or all priests who have served the parish, provide the complete updated list above directly from our database. Each priest's service years, role (e.g. Team Moderator, Parish Priest), and biographical details/sacerdotal anniversaries are official records.
 
-6. SACRAMENTS & MINISTRIES:
+6. CHURCH HISTORY & PARISH MILESTONES (FROM DATABASE):
+${parishHistory}
+
+7. DYNAMIC ADMIN-CONFIGURED KEYWORD & DATE-TRIGGERED KNOWLEDGE BASE:
+${dynamicResponses ? `${dynamicResponses}\n\nCRITICAL INSTRUCTION: If the user inquiry touches on any of the trigger keywords, dates, or topics in these dynamic rules, prioritize and deliver the specific dynamic response instructions configured above!` : 'No special date/keyword override currently active.'}
+
+8. SACRAMENTS & MINISTRIES:
 - BAPTISM:
 ${CANONICAL_KNOWLEDGE.baptism}
 - WEDDING (HOLY MATRIMONY):
@@ -395,15 +466,17 @@ ${CANONICAL_KNOWLEDGE.massIntentions}
 - ANOINTING OF THE SICK & VIATICUM:
 ${CANONICAL_KNOWLEDGE.anointing}
 
-7. RECENT ANNOUNCEMENTS:
+9. RECENT ANNOUNCEMENTS (FROM DATABASE):
 ${recentAnnouncements || 'Check official parish bulletin on site.'}
 
-8. UPCOMING EVENTS:
+10. UPCOMING EVENTS (FROM DATABASE):
 ${upcomingEvents || 'Liturgical calendar observed regularly.'}
 
 RULES:
-- Answer accurately based ONLY on official parish facts above.
-- Be concise, friendly, and practical.
+- Answer accurately based on the official live parish database facts above.
+- Be concise, friendly, and pastoral.
+- When asked about priests (both current and former sets), use the comprehensive database list.
+- When asked about dates, feast days, or dynamic keywords configured by the admin, follow the dynamic instructions.
 - Never invent mass times or policies outside Catholic doctrine and the parish data above.
 - For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
     } catch (err) {
@@ -412,52 +485,109 @@ RULES:
     }
   };
 
-
-
   // Local fallback response generator if no key or offline
   const generateLocalResponse = (query) => {
     const q = query.toLowerCase().trim();
 
-    if (q.includes('mass') || q.includes('schedule') || q.includes('time') || q.includes('misa') || q.includes('sunday mass') || q.includes('live')) {
-      return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${CANONICAL_KNOWLEDGE.massSchedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
+    // 1. Dynamic Admin-Configured Keyword & Date matching
+    const activeRules = Array.isArray(contextData.customResponses) ? contextData.customResponses : [];
+    for (const rule of activeRules) {
+      const keywords = Array.isArray(rule.keywords) ? rule.keywords : [];
+      const matchedKw = keywords.find(k => k && q.includes(k.toLowerCase()));
+      const matchedTitle = rule.title && q.includes(rule.title.toLowerCase());
+      const matchedDate = rule.eventDate && q.includes(rule.eventDate.toLowerCase());
+
+      if (matchedKw || matchedTitle || matchedDate) {
+        return `**${rule.title}**${rule.eventDate ? `\n📅 **Date/Schedule:** ${rule.eventDate}` : ''}\n\n${rule.responseText}`;
+      }
     }
 
+    // 2. Mass Schedules
+    if (q.includes('mass') || q.includes('schedule') || q.includes('time') || q.includes('misa') || q.includes('sunday mass') || q.includes('live')) {
+      const schedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
+      return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${schedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
+    }
+
+    // 3. Priests & Clergy (Current, Former, History, Specific Names)
     if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator')) {
+      const isAskingPast = q.includes('past') || q.includes('former') || q.includes('history') || q.includes('previous') || q.includes('before') || q.includes('all');
+      const isAskingAll = q.includes('all') || q.includes('list') || q.includes('everyone') || q.includes('sets');
+
       const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
+      const former = contextData.priests.filter(p => p.priestStatus === 'FORMER');
+
+      // Check if user is asking about a specific priest by surname/name
+      const specificPriest = contextData.priests.find(p => {
+        if (!p.fullName) return false;
+        const nameParts = p.fullName.toLowerCase().replace(/rev\.?|fr\.?|father/g, '').split(/[\s,]+/);
+        return nameParts.some(part => part.length > 3 && q.includes(part));
+      });
+
+      if (specificPriest) {
+        return `**${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title}\n• **Status:** ${specificPriest.priestStatus === 'CURRENT' ? 'Active Pastoral Team' : 'Former Clergy'}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
+      }
+
+      if (isAskingPast && !isAskingAll && former.length > 0) {
+        const formerList = former.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` — *${p.biography}*` : ''}`).join('\n');
+        return `Here are the reverend priests who previously served in our parish pastoral sets:\n\n${formerList}\n\nYou can view our complete clergy history on our [About / Priests](/about/priests) page.`;
+      }
+
+      if (isAskingAll || (isAskingPast && former.length > 0)) {
+        let text = '';
+        if (current.length > 0) {
+          text += `**Active Pastoral Clergy (Current Set):**\n` + current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n') + '\n\n';
+        }
+        if (former.length > 0) {
+          text += `**Former Clergy & Past Sets:**\n` + former.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` — *${p.biography}*` : ''}`).join('\n') + '\n\n';
+        }
+        text += `Within each ministry set, the **Team Moderator** is placed first. Full clergy profiles and anniversary dates are available on our [About / Priests](/about/priests) page.`;
+        return text;
+      }
+
       if (current.length > 0) {
         const list = current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
-        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nWithin each ministry set, the **Team Moderator** is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
+        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nUnder our diocesan structure, the **Team Moderator** leads the team. You can view all past clergy sets and biographies on our [About / Priests](/about/priests) page.`;
       }
-      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nWithin each ministry set, the **Team Moderator** is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
+
+      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nYou can read all clergy biographies on our [About / Priests](/about/priests) page.`;
     }
 
+    // 4. Confession
     if (q.includes('confess') || q.includes('kumpisal') || q.includes('reconciliation') || q.includes('penance') || q.includes('forgive')) {
-      return `**Sacrament of Reconciliation (Confession):**\n\n${CANONICAL_KNOWLEDGE.confessions}\n\nIf you require dedicated pastoral counseling, you may coordinate directly with the parish office.`;
+      const confession = contextData.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
+      return `**Sacrament of Reconciliation (Confession):**\n\n${confession}\n\nIf you require dedicated pastoral counseling, you may coordinate directly with the parish office.`;
     }
 
+    // 5. Baptism
     if (q.includes('baptis') || q.includes('binyag') || q.includes('christening') || q.includes('godparent') || q.includes('ninong') || q.includes('ninang')) {
       return `**Sacrament of Baptism:**\n\n${CANONICAL_KNOWLEDGE.baptism}\n\nPlease visit the Parish Office during office hours to submit documents and reserve your schedule.`;
     }
 
+    // 6. Wedding
     if (q.includes('wed') || q.includes('marri') || q.includes('kasal') || q.includes('matrimon') || q.includes('bride') || q.includes('groom')) {
       return `**Sacrament of Holy Matrimony (Church Wedding):**\n\n${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office at least 3 to 6 months in advance.`;
     }
 
+    // 7. Office Hours & Location
     if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
       const addr = contextData.settings.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
       const phone = contextData.settings.phone || '(032) 255 3241';
       const email = contextData.settings.email || 'office@pathparish.org';
-      return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone:** ${phone}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${CANONICAL_KNOWLEDGE.officeHours}`;
+      const hours = contextData.settings.office_hours || CANONICAL_KNOWLEDGE.officeHours;
+      return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone:** ${phone}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${hours}`;
     }
 
+    // 8. Mass Intentions
     if (q.includes('intention') || q.includes('pamisa') || q.includes('thanksgiving') || q.includes('requiem') || q.includes('soul') || q.includes('petition')) {
       return `**Mass Intentions:**\n\n${CANONICAL_KNOWLEDGE.massIntentions}`;
     }
 
+    // 9. Anointing of the Sick
     if (q.includes('anoint') || q.includes('sick') || q.includes('viaticum') || q.includes('hospital') || q.includes('emergency') || q.includes('dying')) {
       return `**Anointing of the Sick:**\n\n${CANONICAL_KNOWLEDGE.anointing}`;
     }
 
+    // 10. Announcements
     if (q.includes('announcement') || q.includes('news') || q.includes('bulletin') || q.includes('update')) {
       if (contextData.announcements && contextData.announcements.length > 0) {
         const top = contextData.announcements.slice(0, 3);
@@ -467,6 +597,7 @@ RULES:
       return `You can view our latest parish bulletins and circulars on the [Announcements](/announcements) page.`;
     }
 
+    // 11. Events
     if (q.includes('event') || q.includes('activit') || q.includes('fiesta') || q.includes('feast') || q.includes('calendar')) {
       if (contextData.events && contextData.events.length > 0) {
         const top = contextData.events.slice(0, 3);
@@ -476,15 +607,21 @@ RULES:
       return `Our parish hosts various spiritual formation activities and apostolates throughout the year. You can view all upcoming parish dates on our [Events](/events) page.`;
     }
 
-    if (q.includes('alliance') || q.includes('two hearts') || q.includes('patron') || q.includes('history') || q.includes('sacred heart') || q.includes('immaculate heart')) {
+    // 12. Church History & Milestones
+    if (q.includes('alliance') || q.includes('two hearts') || q.includes('patron') || q.includes('history') || q.includes('sacred heart') || q.includes('immaculate heart') || q.includes('founded') || q.includes('milestone')) {
+      if (contextData.history && contextData.history.length > 0) {
+        const milestones = contextData.history.map(h => `• **${h.eventDate ? `${h.eventDate}: ` : ''}${h.title}**${h.description ? ` — ${h.description}` : ''}`).join('\n');
+        return `**Parish History & Key Milestones:**\n\n${milestones}\n\nFounded in 1988, our parish community is dedicated to the **Alliance of the Two Hearts**. You can read our full historical narrative on the [Church History](/about/history) page.`;
+      }
       return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more about our parish heritage and pastoral journey on the [Church History](/about/history) page.`;
     }
 
+    // 13. Greetings
     if (q.includes('hello') || q.includes('hi') || q.includes('good morning') || q.includes('good afternoon') || q.includes('good evening') || q.includes('kamusta') || q.includes('maayong')) {
-      return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests, or parish office schedules.`;
+      return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests and clergy history, or parish office schedules.`;
     }
 
-    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Clergy)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone)\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** or visit us along J. Fortich St., Banawa, Cebu City.`;
+    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Priest History)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone)\n• **Church History** & Milestones\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** or visit us along J. Fortich St., Banawa, Cebu City.`;
   };
 
   const handleSend = async (textToSend) => {

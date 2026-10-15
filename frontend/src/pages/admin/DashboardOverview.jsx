@@ -4,7 +4,7 @@ import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
-  ArrowRight, Plus, ExternalLink, Church 
+  ArrowRight, Plus, ExternalLink, Church, Bot 
 } from 'lucide-react';
 
 export default function DashboardOverview() {
@@ -76,6 +76,13 @@ export default function DashboardOverview() {
           >
             <LayoutTemplate className="w-4 h-4" />
             <span>Homepage Builder</span>
+          </Link>
+          <Link
+            to={ADMIN_ROUTES.aiResponses}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
+          >
+            <Bot className="w-4 h-4 text-amber-300" />
+            <span>AI Responses</span>
           </Link>
           <a
             href="/"
