@@ -14,6 +14,7 @@ export const ADMIN_ROUTES = {
   announcements: `${ADMIN_SECRET_PATH}/announcements`,
   events: `${ADMIN_SECRET_PATH}/events`,
   priests: `${ADMIN_SECRET_PATH}/priests`,
+  ministries: `${ADMIN_SECRET_PATH}/ministries`,
   history: `${ADMIN_SECRET_PATH}/history`,
   gallery: `${ADMIN_SECRET_PATH}/gallery`,
   media: `${ADMIN_SECRET_PATH}/media`,

@@ -30,6 +30,7 @@ import NavigationManager from './pages/admin/NavigationManager';
 import AnnouncementManager from './pages/admin/AnnouncementManager';
 import EventManager from './pages/admin/EventManager';
 import PriestManager from './pages/admin/PriestManager';
+import MinistriesManager from './pages/admin/MinistriesManager';
 import HistoryManager from './pages/admin/HistoryManager';
 import GalleryManager from './pages/admin/GalleryManager';
 import MediaLibrary from './pages/admin/MediaLibrary';
@@ -103,6 +104,7 @@ export default function App() {
               <Route path="announcements" element={<AnnouncementManager />} />
               <Route path="events" element={<EventManager />} />
               <Route path="priests" element={<PriestManager />} />
+              <Route path="ministries" element={<MinistriesManager />} />
               <Route path="history" element={<HistoryManager />} />
               <Route path="gallery" element={<GalleryManager />} />
               <Route path="media" element={<MediaLibrary />} />

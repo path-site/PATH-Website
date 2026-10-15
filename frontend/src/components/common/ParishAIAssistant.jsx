@@ -214,6 +214,7 @@ Email: office@pathparish.org`,
 const SUGGESTED_QUERIES = [
   { label: 'Mass Schedules', icon: Clock, prompt: 'What are the Mass schedules?' },
   { label: 'Our Parish Priests', icon: Church, prompt: 'Who are the current parish priests?' },
+  { label: 'Parish Ministries', icon: HeartHandshake, prompt: 'What parish ministries and apostolates can I join?' },
   { label: 'Baptism Requirements', icon: BookOpen, prompt: 'What are the requirements for Baptism?' },
   { label: 'Office Hours & Location', icon: MapPin, prompt: 'What are the parish office hours and location?' },
   { label: 'Confession Details', icon: HeartHandshake, prompt: 'How can I go to confession?' },
@@ -414,6 +415,21 @@ ${r.responseText}`;
       const massSchedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
       const confessionSchedule = contextData.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
 
+      let ministriesText = '';
+      if (contextData.settings?.ministries_list) {
+        try {
+          const list = typeof contextData.settings.ministries_list === 'string'
+            ? JSON.parse(contextData.settings.ministries_list)
+            : contextData.settings.ministries_list;
+          if (Array.isArray(list)) {
+            ministriesText = list
+              .filter(m => m.isPublished !== false)
+              .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}${m.schedule ? ` — Schedule: ${m.schedule}` : ''}${m.desc ? `: ${m.desc}` : ''}`)
+              .join('\n');
+          }
+        } catch (e) {}
+      }
+
       return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
 Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
 Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with you").
@@ -421,7 +437,7 @@ Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with yo
 FORMATTING GUIDELINES:
 - Use clean Markdown formatting: use **bold** for names, mass times, or key headings.
 - Use bullet points (• ) for lists of schedules, requirements, or clergy.
-- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Church History](/about/history), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
+- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Church History](/about/history), [Parish Ministries](/ministries), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
 - Keep responses concise, organized, and pleasant to read.
 
 OFFICIAL PARISH DATA & LIVE DATABASE KNOWLEDGE BASE:
@@ -456,7 +472,7 @@ ${parishHistory}
 7. DYNAMIC ADMIN-CONFIGURED KEYWORD & DATE-TRIGGERED KNOWLEDGE BASE:
 ${dynamicResponses ? `${dynamicResponses}\n\nCRITICAL INSTRUCTION: If the user inquiry touches on any of the trigger keywords, dates, or topics in these dynamic rules, prioritize and deliver the specific dynamic response instructions configured above!` : 'No special date/keyword override currently active.'}
 
-8. SACRAMENTS & MINISTRIES:
+8. SACRAMENTS & PARISH MINISTRIES:
 - BAPTISM:
 ${CANONICAL_KNOWLEDGE.baptism}
 - WEDDING (HOLY MATRIMONY):
@@ -465,6 +481,9 @@ ${CANONICAL_KNOWLEDGE.wedding}
 ${CANONICAL_KNOWLEDGE.massIntentions}
 - ANOINTING OF THE SICK & VIATICUM:
 ${CANONICAL_KNOWLEDGE.anointing}
+- ACTIVE PARISH MINISTRIES & APOSTOLATES (FROM DATABASE):
+${ministriesText || '• Liturgical Commission & Altar Servers (Worship & Liturgy)\n• Lectors & Commentators Ministry (Ministry of the Word)\n• Parish Music & Choir Ministry (Liturgical Music)\n• Parish Youth Ministry (PYM) (Youth Apostolate)\n• Family & Life Apostolate (Pastoral Care)\n• Caritas & Social Action Ministry (Charity & Outreach)'}
+(For complete rosters, meeting times, and coordinators, invite visitors to check [Parish Ministries](/ministries)).
 
 9. RECENT ANNOUNCEMENTS (FROM DATABASE):
 ${recentAnnouncements || 'Check official parish bulletin on site.'}
@@ -509,7 +528,7 @@ RULES:
     }
 
     // 3. Priests & Clergy (Current, Former, History, Specific Names)
-    if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator')) {
+    if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator') || q.includes('vicar')) {
       const isAskingPast = q.includes('past') || q.includes('former') || q.includes('history') || q.includes('previous') || q.includes('before') || q.includes('all');
       const isAskingAll = q.includes('all') || q.includes('list') || q.includes('everyone') || q.includes('sets');
 
@@ -616,7 +635,30 @@ RULES:
       return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more about our parish heritage and pastoral journey on the [Church History](/about/history) page.`;
     }
 
-    // 13. Greetings
+    // 13. Ministries & Apostolates
+    if (q.includes('ministr') || q.includes('choir') || q.includes('altar server') || q.includes('apostolate') || q.includes('volunteer') || q.includes('youth') || q.includes('caritas') || q.includes('lector') || q.includes('serve')) {
+      let minList = '';
+      if (contextData.settings?.ministries_list) {
+        try {
+          const list = typeof contextData.settings.ministries_list === 'string'
+            ? JSON.parse(contextData.settings.ministries_list)
+            : contextData.settings.ministries_list;
+          if (Array.isArray(list) && list.length > 0) {
+            minList = list
+              .filter(m => m.isPublished !== false)
+              .slice(0, 6)
+              .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}`)
+              .join('\n');
+          }
+        } catch (e) {}
+      }
+      if (!minList) {
+        minList = `• **Liturgical Commission & Altar Servers** [Worship & Liturgy]\n• **Lectors & Commentators Ministry** [Ministry of the Word]\n• **Parish Music & Choir Ministry** [Liturgical Music]\n• **Parish Youth Ministry (PYM)** [Youth Apostolate]\n• **Family & Life Apostolate** [Pastoral Care]\n• **Caritas & Social Action Ministry** [Charity & Outreach]`;
+      }
+      return `Our parish has various active ministries, pastoral apostolates, and volunteer opportunities:\n\n${minList}\n\nTo view complete schedules, coordinators, and volunteer inquiry information, please visit our [Parish Ministries](/ministries) page.`;
+    }
+
+    // 14. Greetings
     if (q.includes('hello') || q.includes('hi') || q.includes('good morning') || q.includes('good afternoon') || q.includes('good evening') || q.includes('kamusta') || q.includes('maayong')) {
       return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests and clergy history, or parish office schedules.`;
     }

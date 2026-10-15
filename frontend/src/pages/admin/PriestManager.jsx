@@ -175,8 +175,8 @@ export default function PriestManager() {
           <div
             key={p.id}
             className={`bg-white rounded-3xl p-6 border shadow-xs flex flex-col justify-between transition-all ${
-              p.priestStatus === 'CURRENT' && idx < 3
-                ? 'border-[#C59B3F]/50 ring-1 ring-[#C59B3F]/20'
+              p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar')
+                ? 'border-[#C59B3F]/70 ring-2 ring-[#C59B3F]/25 shadow-amber-50'
                 : 'border-stone-200'
             }`}
           >
@@ -207,10 +207,16 @@ export default function PriestManager() {
                   <h3 className="font-serif-heading font-bold text-stone-900 text-base leading-tight truncate">
                     {p.fullName}
                   </h3>
-                  <span className="text-xs text-[#A81B2B] font-bold block mt-0.5">
-                    {p.title}
-                  </span>
-                  <span className="text-xs text-stone-500 font-medium block mt-0.5">
+                  {p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar') ? (
+                    <span className="inline-block text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#C59B3F] text-[#1C1814] border border-amber-300 mt-1 shadow-2xs">
+                      {p.title}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-[#A81B2B] font-bold block mt-0.5">
+                      {p.title}
+                    </span>
+                  )}
+                  <span className="text-xs text-stone-500 font-medium block mt-1">
                     {p.serviceStart} – {p.serviceEnd}
                   </span>
                 </div>
@@ -303,19 +309,26 @@ export default function PriestManager() {
                     className="w-full px-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#A81B2B]"
                   />
                   <div className="flex flex-wrap gap-1 mt-1.5">
-                    {['Team Moderator', 'Parish Priest', 'Parochial Vicar', 'Former Team Moderator', 'Former Parish Priest'].map(t => (
-                      <button
-                        type="button"
-                        key={t}
-                        onClick={() => setFormData({ ...formData, title: t })}
-                        className="text-[10px] px-2 py-0.5 rounded bg-stone-100 text-stone-600 hover:bg-[#C59B3F]/20 hover:text-[#8F6B1E] transition-colors"
-                      >
-                        {t}
-                      </button>
-                    ))}
+                    {['Team Moderator', 'Parish Priest', 'Parochial Vicar', 'Former Team Moderator', 'Former Parish Priest', 'Former Parochial Vicar'].map(t => {
+                      const isGold = t.toLowerCase().includes('moderator') || t.toLowerCase().includes('vicar');
+                      return (
+                        <button
+                          type="button"
+                          key={t}
+                          onClick={() => setFormData({ ...formData, title: t })}
+                          className={`text-[10px] px-2 py-0.5 rounded transition-all cursor-pointer ${
+                            isGold
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold hover:bg-amber-200'
+                              : 'bg-stone-100 text-stone-600 hover:bg-[#C59B3F]/20 hover:text-[#8F6B1E]'
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
                   </div>
                   <p className="text-[11px] text-stone-500 mt-1 italic">
-                    Note: Priests with "Team Moderator" in their title are automatically placed 1st within their year range.
+                    Note: Priests with "Team Moderator" or "Parochial Vicar" receive the gold status label effect and are placed ahead within their year range.
                   </p>
                 </div>
 

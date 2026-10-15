@@ -105,7 +105,7 @@ export default function PriestsPage() {
                         )}
                         <div className="absolute bottom-3 left-3">
                           <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
-                            p.title?.toLowerCase().includes('moderator')
+                            p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar')
                               ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
                               : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
                           }`}>
@@ -171,7 +171,7 @@ export default function PriestsPage() {
                         )}
                         <div className="absolute bottom-3 left-3">
                           <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
-                            p.title?.toLowerCase().includes('moderator')
+                            p.title?.toLowerCase().includes('moderator') || p.title?.toLowerCase().includes('vicar')
                               ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
                               : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
                           }`}>

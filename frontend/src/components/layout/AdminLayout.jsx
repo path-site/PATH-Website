@@ -7,7 +7,7 @@ import {
   LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
   Bell, Calendar, Users, History, Image as ImageIcon, 
   HardDrive, PhoneCall, UserCheck, Settings, 
-  LogOut, ExternalLink, ChevronRight, Church, X, Bot
+  LogOut, ExternalLink, ChevronRight, Church, X, Bot, HeartHandshake
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -18,6 +18,7 @@ const sidebarItems = [
   { path: ADMIN_ROUTES.announcements, label: 'Announcements', icon: Bell },
   { path: ADMIN_ROUTES.events, label: 'Events', icon: Calendar },
   { path: ADMIN_ROUTES.priests, label: 'Priests', icon: Users },
+  { path: ADMIN_ROUTES.ministries, label: 'Ministries', icon: HeartHandshake },
   { path: ADMIN_ROUTES.history, label: 'Church History', icon: History },
   { path: ADMIN_ROUTES.aiResponses, label: 'AI Responses', icon: Bot },
   { path: ADMIN_ROUTES.gallery, label: 'Gallery', icon: ImageIcon },

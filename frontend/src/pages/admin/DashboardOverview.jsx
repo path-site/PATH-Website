@@ -4,7 +4,7 @@ import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
-  ArrowRight, Plus, ExternalLink, Church, Bot 
+  ArrowRight, Plus, ExternalLink, Church, Bot, HeartHandshake 
 } from 'lucide-react';
 
 export default function DashboardOverview() {
@@ -12,6 +12,7 @@ export default function DashboardOverview() {
     announcements: 0,
     events: 0,
     priests: 0,
+    ministries: 6,
     albums: 0,
     pages: 0,
   });
@@ -22,21 +23,31 @@ export default function DashboardOverview() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [annRes, evtRes, priestRes, galleryRes, pagesRes] = await Promise.all([
+        const [annRes, evtRes, priestRes, galleryRes, pagesRes, settingsRes] = await Promise.all([
           adminApi.getAnnouncements(),
           adminApi.getEvents(),
           adminApi.getPriests(),
           adminApi.getAlbums(),
           adminApi.getPages(),
+          adminApi.getSettings().catch(() => ({ data: {} })),
         ]);
 
         const annList = annRes.data || [];
         const evtList = evtRes.data || [];
 
+        let ministriesCount = 6;
+        if (settingsRes?.data?.ministries_list) {
+          try {
+            const parsed = JSON.parse(settingsRes.data.ministries_list);
+            if (Array.isArray(parsed)) ministriesCount = parsed.length;
+          } catch (e) {}
+        }
+
         setStats({
           announcements: annList.length,
           events: evtList.length,
           priests: (priestRes.data || []).length,
+          ministries: ministriesCount,
           albums: (galleryRes.data || []).length,
           pages: (pagesRes.data || []).length,
         });
@@ -78,6 +89,13 @@ export default function DashboardOverview() {
             <span>Homepage Builder</span>
           </Link>
           <Link
+            to={ADMIN_ROUTES.ministries}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
+          >
+            <HeartHandshake className="w-4 h-4 text-amber-300" />
+            <span>Ministries</span>
+          </Link>
+          <Link
             to={ADMIN_ROUTES.aiResponses}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
           >
@@ -97,7 +115,7 @@ export default function DashboardOverview() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <Link to={ADMIN_ROUTES.announcements} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
             <Bell className="w-5 h-5" />
@@ -122,6 +140,14 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Priests</span>
         </Link>
 
+        <Link to={ADMIN_ROUTES.ministries} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3">
+            <HeartHandshake className="w-5 h-5" />
+          </div>
+          <span className="text-2xl font-black text-stone-900 block">{stats.ministries}</span>
+          <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Ministries</span>
+        </Link>
+
         <Link to={ADMIN_ROUTES.gallery} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center mb-3">
             <ImageIcon className="w-5 h-5" />
@@ -130,7 +156,7 @@ export default function DashboardOverview() {
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Photo Albums</span>
         </Link>
 
-        <Link to={ADMIN_ROUTES.pages} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all col-span-2 lg:col-span-1">
+        <Link to={ADMIN_ROUTES.pages} className="bg-white p-5 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all">
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3">
             <LayoutTemplate className="w-5 h-5" />
           </div>

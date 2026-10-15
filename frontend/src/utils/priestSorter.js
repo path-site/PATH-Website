@@ -9,13 +9,13 @@ export const parseYear = (val) => {
 };
 
 /**
- * Rank titles so Team Moderator / Parish Priest appears ahead of assistants within the same term
+ * Rank titles so Team Moderator / Parochial Vicar appear ahead within the same term
  */
 export const getRoleRank = (title = '') => {
   const t = title.toLowerCase();
   if (t.includes('moderator')) return 1;
-  if (t.includes('parish priest')) return 2;
-  if (t.includes('vicar')) return 3;
+  if (t.includes('vicar')) return 2;
+  if (t.includes('parish priest')) return 3;
   return 4;
 };
 
@@ -23,7 +23,7 @@ export const getRoleRank = (title = '') => {
  * Autosorts priests:
  * 1. Current set ('CURRENT') on top
  * 2. Year descending (serviceEnd, then serviceStart)
- * 3. Role hierarchy (Moderator > Parish Priest > Parochial Vicar)
+ * 3. Role hierarchy (Moderator > Parochial Vicar > Parish Priest)
  * 4. Display order / id tie-breaker
  */
 export const sortPriests = (list = []) => {
