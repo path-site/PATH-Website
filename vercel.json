@@ -3,6 +3,10 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
+      "source": "/api/chat",
+      "destination": "/api/chat"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://path-website-production.up.railway.app/api/$1"
     },

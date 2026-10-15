@@ -14,10 +14,7 @@ import {
   HelpCircle,
   ChevronRight,
   User,
-  HeartHandshake,
-  Key,
-  Check,
-  Cpu
+  HeartHandshake
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
 import { sortPriests } from '../../utils/priestSorter';
@@ -227,12 +224,6 @@ export default function ParishAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showConfig, setShowConfig] = useState(false);
-  
-  // Custom API key stored in localStorage for instant browser testing
-  const [apiKeyInput, setApiKeyInput] = useState('');
-  const [savedKey, setSavedKey] = useState(() => localStorage.getItem('path_groq_api_key') || '');
-  const [keyNotice, setKeyNotice] = useState('');
 
   const [contextData, setContextData] = useState({
     priests: [],
@@ -369,43 +360,7 @@ RULES:
 - For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
   };
 
-  // Call Groq API (OpenAI compatible)
-  const callGroqAPI = async (chatHistory, apiKey) => {
-    const model = import.meta.env.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile';
 
-    const systemMessage = {
-      role: 'system',
-      content: buildSystemPrompt()
-    };
-
-    // Keep the conversation history window concise (last 10 turns)
-    const formattedHistory = chatHistory.slice(-10).map(m => ({
-      role: m.sender === 'user' ? 'user' : 'assistant',
-      content: m.text
-    }));
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey.trim()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [systemMessage, ...formattedHistory],
-        temperature: 0.5,
-        max_tokens: 750
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Groq HTTP error ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || '';
-  };
 
   // Local fallback response generator if no key or offline
   const generateLocalResponse = (query) => {
@@ -496,27 +451,47 @@ RULES:
     setInputMessage('');
     setIsTyping(true);
 
-    const activeApiKey = savedKey || import.meta.env.VITE_GROQ_API_KEY || '';
+    // Call secure server endpoint (/api/chat) which authenticates with secret GROQ_API_KEY
+    try {
+      const formattedHistory = newHistory.slice(-10).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text
+      }));
 
-    // If Groq key is present, use Groq Llama 3.3
-    if (activeApiKey) {
-      try {
-        const groqAnswer = await callGroqAPI(newHistory, activeApiKey);
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'ai',
-            text: groqAnswer,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            source: 'groq'
-          }
-        ]);
-        setIsTyping(false);
-        return;
-      } catch (err) {
-        console.warn('Groq API error, falling back to local parish engine:', err.message);
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: buildSystemPrompt() },
+            ...formattedHistory
+          ],
+          temperature: 0.5,
+          max_tokens: 800
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.content) {
+          setMessages(prev => [
+            ...prev,
+            {
+              id: (Date.now() + 1).toString(),
+              sender: 'ai',
+              text: data.content,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              source: 'groq'
+            }
+          ]);
+          setIsTyping(false);
+          return;
+        }
       }
+    } catch (err) {
+      console.warn('Backend /api/chat unavailable, using parish engine:', err.message);
     }
 
     // Seamless Fallback to local high-fidelity parish engine
@@ -531,7 +506,7 @@ RULES:
       };
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 500);
+    }, 450);
   };
 
   const handleKeyDown = (e) => {
@@ -551,25 +526,6 @@ RULES:
       }
     ]);
   };
-
-  const handleSaveApiKey = (e) => {
-    e.preventDefault();
-    if (apiKeyInput.trim()) {
-      localStorage.setItem('path_groq_api_key', apiKeyInput.trim());
-      setSavedKey(apiKeyInput.trim());
-      setKeyNotice('Groq API key saved successfully!');
-    } else {
-      localStorage.removeItem('path_groq_api_key');
-      setSavedKey('');
-      setKeyNotice('Using environment variable or default parish engine.');
-    }
-    setTimeout(() => {
-      setKeyNotice('');
-      setShowConfig(false);
-    }, 1500);
-  };
-
-  const isGroqActive = Boolean(savedKey || import.meta.env.VITE_GROQ_API_KEY);
 
   return (
     <>
@@ -617,12 +573,8 @@ RULES:
                   <h3 className="font-serif-heading text-base font-bold tracking-wide text-white leading-tight">
                     Parish Staff
                   </h3>
-                  <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 ${
-                    isGroqActive 
-                      ? 'bg-amber-400/20 text-amber-200 border border-amber-400/40' 
-                      : 'bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40'
-                  }`}>
-                    {isGroqActive ? 'Groq AI' : 'Guide'}
+                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40">
+                    <Sparkles className="w-2.5 h-2.5" /> AI Assistant
                   </span>
                 </div>
                 <p className="text-[11px] text-stone-300 font-sans mt-0.5">
@@ -632,14 +584,6 @@ RULES:
             </div>
 
             <div className="flex items-center gap-1 relative z-10">
-              <button
-                onClick={() => setShowConfig(!showConfig)}
-                title="Configure Groq API Key"
-                className={`p-1.5 rounded-lg transition-colors ${showConfig ? 'bg-white/20 text-amber-300' : 'text-stone-300 hover:text-white hover:bg-white/10'}`}
-                aria-label="Groq Settings"
-              >
-                <Key className="w-4 h-4" />
-              </button>
               <button
                 onClick={resetChat}
                 title="Restart conversation"
@@ -658,62 +602,6 @@ RULES:
               </button>
             </div>
           </div>
-
-          {/* Configuration Drawer for Groq API Key (Quick testing without rebuild) */}
-          {showConfig && (
-            <div className="bg-[#FAF7F0] border-b border-[#C59B3F]/30 p-3.5 text-xs animate-in slide-in-from-top-2 duration-150 shrink-0">
-              <form onSubmit={handleSaveApiKey} className="space-y-2">
-                <div className="flex items-center justify-between font-bold text-stone-800 text-[11px]">
-                  <span className="flex items-center gap-1.5 text-[#800020]">
-                    <Cpu className="w-3.5 h-3.5 text-[#C59B3F]" /> Groq API Integration
-                  </span>
-                  <span className="text-[10px] text-stone-500 font-normal">
-                    Model: llama-3.3-70b-versatile
-                  </span>
-                </div>
-                <input
-                  type="password"
-                  value={apiKeyInput}
-                  onChange={(e) => setApiKeyInput(e.target.value)}
-                  placeholder={savedKey ? "•••••••••••• (Key Active in Browser)" : (import.meta.env.VITE_GROQ_API_KEY ? "Active via VITE_GROQ_API_KEY" : "Paste gsk_... key for instant testing")}
-                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#800020]"
-                />
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-stone-500">
-                    Get key at <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-[#800020] underline font-semibold">console.groq.com</a>
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    {savedKey && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          localStorage.removeItem('path_groq_api_key');
-                          setSavedKey('');
-                          setApiKeyInput('');
-                          setKeyNotice('Key cleared.');
-                          setTimeout(() => setKeyNotice(''), 1500);
-                        }}
-                        className="text-[10px] px-2 py-1 text-stone-500 hover:text-rose-600"
-                      >
-                        Clear
-                      </button>
-                    )}
-                    <button
-                      type="submit"
-                      className="px-3 py-1 bg-[#800020] text-white rounded-md text-[11px] font-bold shadow-2xs hover:bg-[#68001a]"
-                    >
-                      Save Key
-                    </button>
-                  </div>
-                </div>
-                {keyNotice && (
-                  <p className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                    <Check className="w-3 h-3" /> {keyNotice}
-                  </p>
-                )}
-              </form>
-            </div>
-          )}
 
           {/* Messages Container */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FDFCF9]">
@@ -772,7 +660,7 @@ RULES:
                   <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '300ms' }} />
                   <span className="text-[11px] text-stone-500 font-sans ml-1">
-                    {isGroqActive ? "Groq AI is thinking..." : "Parish Assistant is writing..."}
+                    Parish Assistant is thinking...
                   </span>
                 </div>
               </div>
@@ -830,7 +718,7 @@ RULES:
             <div className="flex items-center justify-between text-[10px] text-stone-400 mt-2 px-1">
               <span>Parish of the Alliance of the Two Hearts</span>
               <span className="flex items-center gap-1 text-[#8F6B1E]">
-                <Sparkles className="w-2.5 h-2.5" /> {isGroqActive ? 'Groq Llama 3.3' : 'Parish Guide'}
+                <Sparkles className="w-2.5 h-2.5" /> AI Assistant
               </span>
             </div>
           </div>
