@@ -42,7 +42,12 @@ import {
   HelpCircle,
   Clock,
   Phone,
-  MessageSquare
+  MessageSquare,
+  Radio,
+  Camera,
+  Gift,
+  GraduationCap,
+  Mic,
 } from 'lucide-react';
 
 // Registry of supported church & apostolate icons
@@ -65,39 +70,49 @@ export const MINISTRY_ICON_MAP = {
   Scroll,
   Feather,
   HandHeart,
+  Radio,
+  Camera,
+  Gift,
+  GraduationCap,
+  Mic,
 };
 
 export const AVAILABLE_ICONS = [
-  { key: 'Shield', label: 'Shield (Liturgical / Servers)' },
+  { key: 'Shield', label: 'Shield (Altar Servers / Protection)' },
   { key: 'BookOpen', label: 'Book (Lectors / Scriptures)' },
-  { key: 'Music', label: 'Music (Choir / Cantors)' },
-  { key: 'Sparkles', label: 'Sparkles (Youth / Charism)' },
-  { key: 'Heart', label: 'Heart (Family & Life / Love)' },
-  { key: 'Users', label: 'Users (Community / Apostles)' },
-  { key: 'Church', label: 'Church (Parish Council / Hall)' },
-  { key: 'Cross', label: 'Cross (Sacramental / Faith)' },
-  { key: 'HeartHandshake', label: 'Handshake (Pastoral Service)' },
-  { key: 'Flame', label: 'Flame (Holy Spirit / Renewal)' },
-  { key: 'Sun', label: 'Sun (Dawn Rosary / Legion of Mary)' },
+  { key: 'Music', label: 'Music (Music Ministry & Cantors)' },
+  { key: 'Cross', label: 'Cross (EMHC / Sacramental)' },
+  { key: 'HeartHandshake', label: 'Handshake (Ushering / Hospitality)' },
+  { key: 'HandHeart', label: 'Hand & Heart (Gift Bearers / Offerings)' },
+  { key: 'Camera', label: 'Camera (Social Communications / Media)' },
+  { key: 'Scroll', label: 'Scroll (Catechists / Doctrine)' },
+  { key: 'GraduationCap', label: 'Cap (Catechists / Faith Formation)' },
+  { key: 'Radio', label: 'Radio (SocCom / Broadcasts)' },
+  { key: 'Mic', label: 'Mic (Cantors / Singing)' },
+  { key: 'Gift', label: 'Gift (Gift Bearers / Offertory)' },
+  { key: 'Users', label: 'Users (Community / Apostolates)' },
+  { key: 'Church', label: 'Church (Parish Sanctuary)' },
+  { key: 'Flame', label: 'Flame (Holy Spirit)' },
+  { key: 'Sun', label: 'Sun (Dawn Rosary / Light)' },
   { key: 'Bell', label: 'Bell (Sacristans / Worship)' },
-  { key: 'Compass', label: 'Compass (Mission / Direction)' },
-  { key: 'Star', label: 'Star (Marian / Guiding Light)' },
-  { key: 'Award', label: 'Award (Honor / Recognition)' },
-  { key: 'Scroll', label: 'Scroll (Catechesis / Decree)' },
-  { key: 'Feather', label: 'Feather (Scriptorium / Secretarial)' },
-  { key: 'HandHeart', label: 'Hand & Heart (Caritas / Charity)' },
+  { key: 'Heart', label: 'Heart (Family & Charity)' },
+  { key: 'Sparkles', label: 'Sparkles (Youth / Charisms)' },
+  { key: 'Star', label: 'Star (Marian Guiding Light)' },
+  { key: 'Award', label: 'Award (Honor / Service)' },
+  { key: 'Feather', label: 'Feather (Secretarial / Scriptorium)' },
 ];
 
 export const CATEGORY_PRESETS = [
   'Worship & Liturgy',
   'Ministry of the Word',
   'Liturgical Music',
-  'Youth Apostolate',
-  'Pastoral Care',
-  'Charity & Outreach',
   'Faith Formation & Catechesis',
+  'Media & Communications',
+  'Hospitality & Service',
+  'Sacramental Ministry',
+  'Youth Apostolate',
   'Family & Life',
-  'Parish Administration & Councils',
+  'Charity & Outreach',
 ];
 
 export const STATUS_PRESETS = [
@@ -110,82 +125,108 @@ export const STATUS_PRESETS = [
 
 export const CANONICAL_INITIAL_MINISTRIES = [
   {
-    id: 'min-liturgical',
-    name: 'Liturgical Commission & Altar Servers',
-    category: 'Worship & Liturgy',
-    desc: 'Servants of the sanctuary assisting the clergy in sacred celebrations and solemn liturgical rites.',
-    icon: 'Shield',
-    coordinator: 'Parish Liturgical Master of Ceremonies',
-    schedule: 'Weekly Masses & Saturday Formations',
+    id: 'min-soccom',
+    name: 'Social Communications Ministry',
+    category: 'Media & Communications',
+    desc: 'Proclaiming the Gospel in the digital continent through live streaming of Eucharistic celebrations, multimedia documentation, social media apostolate, and parish announcements.',
+    icon: 'Camera',
+    coordinator: 'Social Communications Coordinator',
+    schedule: 'Sunday Masses, Parish Events & Solemnities',
     contact: '',
-    statusBadge: 'Roster Updating',
+    statusBadge: 'Active',
     isPublished: true,
     displayOrder: 0,
   },
   {
-    id: 'min-lectors',
-    name: 'Lectors & Commentators Ministry',
-    category: 'Ministry of the Word',
-    desc: 'Proclaimers of the Sacred Scriptures during the Holy Sacrifice of the Mass and liturgical devotions.',
-    icon: 'BookOpen',
-    coordinator: 'Ministry of the Word Coordinator',
-    schedule: 'Sunday Masses & Feast Days',
+    id: 'min-altar-servers',
+    name: 'Ministry of Altar Servers',
+    category: 'Worship & Liturgy',
+    desc: 'Dedicated young servants of the sanctuary assisting the sacred ministers at the altar with reverent devotion during the Holy Sacrifice of the Mass and liturgical rites.',
+    icon: 'Shield',
+    coordinator: 'President, Knights of the Altar',
+    schedule: 'Daily & Sunday Masses, Saturday Training at 9:00 AM',
     contact: '',
-    statusBadge: 'Roster Updating',
+    statusBadge: 'Active',
     isPublished: true,
     displayOrder: 1,
   },
   {
-    id: 'min-choir',
-    name: 'Parish Music & Choir Ministry',
-    category: 'Liturgical Music',
-    desc: 'Vocal and instrumental ministers uplifting congregational praise and solemnity in sacred liturgy.',
-    icon: 'Music',
-    coordinator: 'Parish Music Director',
-    schedule: 'Rehearsals: Saturdays at 4:00 PM',
+    id: 'min-ushers',
+    name: 'Ushering Ministry',
+    category: 'Hospitality & Service',
+    desc: 'Welcoming the faithful with Christian warmth, maintaining solemnity and order in the assembly, assisting during communion lines, and facilitating offertory collections.',
+    icon: 'HeartHandshake',
+    coordinator: 'Head Usher & Greeters Coordinator',
+    schedule: 'Assigned Sunday & Feast Day Masses',
     contact: '',
     statusBadge: 'Open for Volunteers',
     isPublished: true,
     displayOrder: 2,
   },
   {
-    id: 'min-youth',
-    name: 'Parish Youth Ministry (PYM)',
-    category: 'Youth Apostolate',
-    desc: 'Empowering Catholic youth in spiritual formation, fellowship, and zealous discipleship.',
-    icon: 'Sparkles',
-    coordinator: 'PYM Coordinator & Core Youth Leaders',
-    schedule: '2nd & 4th Sundays at 2:00 PM',
+    id: 'min-lectors',
+    name: 'Ministry of Lectors',
+    category: 'Ministry of the Word',
+    desc: 'Proclaimers of the Living Word of God who reverently read the Sacred Scriptures during the Liturgy of the Word and lead the community in the General Intercessions.',
+    icon: 'BookOpen',
+    coordinator: 'Lectors & Commentators Guild Coordinator',
+    schedule: 'Daily & Sunday Scheduled Masses',
     contact: '',
-    statusBadge: 'Open for Volunteers',
+    statusBadge: 'Active',
     isPublished: true,
     displayOrder: 3,
   },
   {
-    id: 'min-family',
-    name: 'Family & Life Apostolate',
-    category: 'Pastoral Care',
-    desc: 'Fostering Catholic marriage values, domestic church formation, and pastoral family counseling.',
-    icon: 'Heart',
-    coordinator: 'FLA Coordinators & Couple Mentors',
-    schedule: 'Monthly Family Assembly',
+    id: 'min-catechists',
+    name: 'Catechists',
+    category: 'Faith Formation & Catechesis',
+    desc: 'Teaching, catechizing, and guiding children, youth, and adult converts in the Catholic faith, sacramental preparations (Baptism, First Communion, Confirmation), and Christian doctrine.',
+    icon: 'Scroll',
+    coordinator: 'Parish Catechetical Ministry Head',
+    schedule: 'Weekend Catechetical Sessions & Formations',
     contact: '',
-    statusBadge: 'Active',
+    statusBadge: 'Open for Volunteers',
     isPublished: true,
     displayOrder: 4,
   },
   {
-    id: 'min-caritas',
-    name: 'Caritas & Social Action Ministry',
-    category: 'Charity & Outreach',
-    desc: 'Living the Gospel through outreach to the poor, medical missions, and parish community solidarity.',
-    icon: 'Users',
-    coordinator: 'Social Action Ministry Head',
-    schedule: 'Community Missions & Relief Drives',
+    id: 'min-gift-bearers',
+    name: 'Ministry of Gift Bearers',
+    category: 'Worship & Liturgy',
+    desc: 'Representing the parish family in presenting the offertory gifts of bread, wine, and offerings of the faithful to the priest at the altar for the Eucharistic sacrifice.',
+    icon: 'HandHeart',
+    coordinator: 'Gift Bearers Guild Coordinator',
+    schedule: 'Sunday Anticipated & Sunday Scheduled Masses',
+    contact: '',
+    statusBadge: 'Active',
+    isPublished: true,
+    displayOrder: 5,
+  },
+  {
+    id: 'min-music',
+    name: 'Music Ministry & Cantors',
+    category: 'Liturgical Music',
+    desc: 'Choirs, vocalists, cantors, and instrumentalists dedicated to leading congregational praise, psalms, and sacred liturgical music that elevates the soul in holy worship.',
+    icon: 'Music',
+    coordinator: 'Parish Music Director & Choirmasters',
+    schedule: 'Weekly Choir Rehearsals & Assigned Masses',
     contact: '',
     statusBadge: 'Open for Volunteers',
     isPublished: true,
-    displayOrder: 5,
+    displayOrder: 6,
+  },
+  {
+    id: 'min-emhc',
+    name: 'Extraordinary Minister of Holy Communion',
+    category: 'Sacramental Ministry',
+    desc: 'Commissioned lay ministers mandated by the Archdiocese to assist priests in distributing the Most Holy Eucharist during mass and carrying the Blessed Sacrament to the homebound sick.',
+    icon: 'Cross',
+    coordinator: 'EMHC President / Guild Coordinator',
+    schedule: 'Daily & Sunday Masses, Monthly Sick Calls',
+    contact: '',
+    statusBadge: 'Active',
+    isPublished: true,
+    displayOrder: 7,
   },
 ];
 
@@ -259,7 +300,16 @@ export default function MinistriesManager() {
               ? JSON.parse(data.ministries_list)
               : data.ministries_list;
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setMinistries(parsed);
+              const isLegacyDefault =
+                parsed.length === 6 &&
+                parsed.some((m) => m.id === 'min-liturgical' || m.id === 'min-caritas');
+              if (isLegacyDefault) {
+                setMinistries(CANONICAL_INITIAL_MINISTRIES);
+                // Auto-upgrade database with the 8 official parish ministries
+                adminApi.saveSettings({ ministries_list: JSON.stringify(CANONICAL_INITIAL_MINISTRIES) }).catch(() => {});
+              } else {
+                setMinistries(parsed);
+              }
             } else {
               setMinistries(CANONICAL_INITIAL_MINISTRIES);
             }
@@ -446,7 +496,7 @@ export default function MinistriesManager() {
 
   // Reset to default
   const handleResetToDefault = () => {
-    if (window.confirm('Reset all ministries to the default 6 parish apostolates? Custom additions will be overwritten.')) {
+    if (window.confirm('Reset all ministries to the official 8 parish ministries? Custom additions will be overwritten.')) {
       saveMinistriesToDb(CANONICAL_INITIAL_MINISTRIES);
     }
   };

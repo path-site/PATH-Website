@@ -425,11 +425,14 @@ ${r.responseText}`;
           const list = typeof contextData.settings.ministries_list === 'string'
             ? JSON.parse(contextData.settings.ministries_list)
             : contextData.settings.ministries_list;
-          if (Array.isArray(list)) {
-            ministriesText = list
-              .filter(m => m.isPublished !== false)
-              .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}${m.schedule ? ` — Schedule: ${m.schedule}` : ''}${m.desc ? `: ${m.desc}` : ''}`)
-              .join('\n');
+          if (Array.isArray(list) && list.length > 0) {
+            const isLegacy = list.length === 6 && list.some(m => m.id === 'min-liturgical' || m.id === 'min-caritas');
+            if (!isLegacy) {
+              ministriesText = list
+                .filter(m => m.isPublished !== false)
+                .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}${m.schedule ? ` — Schedule: ${m.schedule}` : ''}${m.desc ? `: ${m.desc}` : ''}`)
+                .join('\n');
+            }
           }
         } catch (e) {}
       }
@@ -486,7 +489,7 @@ ${CANONICAL_KNOWLEDGE.massIntentions}
 - ANOINTING OF THE SICK & VIATICUM:
 ${CANONICAL_KNOWLEDGE.anointing}
 - ACTIVE PARISH MINISTRIES & APOSTOLATES (FROM DATABASE):
-${ministriesText || '• Liturgical Commission & Altar Servers (Worship & Liturgy)\n• Lectors & Commentators Ministry (Ministry of the Word)\n• Parish Music & Choir Ministry (Liturgical Music)\n• Parish Youth Ministry (PYM) (Youth Apostolate)\n• Family & Life Apostolate (Pastoral Care)\n• Caritas & Social Action Ministry (Charity & Outreach)'}
+${ministriesText || '• Social Communications Ministry (Media & Communications)\n• Ministry of Altar Servers (Worship & Liturgy)\n• Ushering Ministry (Hospitality & Service)\n• Ministry of Lectors (Ministry of the Word)\n• Catechists (Faith Formation & Catechesis)\n• Ministry of Gift Bearers (Worship & Liturgy)\n• Music Ministry & Cantors (Liturgical Music)\n• Extraordinary Minister of Holy Communion (Sacramental Ministry)'}
 (For complete rosters, meeting times, and coordinators, invite visitors to check [Parish Ministries](/ministries)).
 
 9. RECENT ANNOUNCEMENTS (FROM DATABASE):
@@ -661,7 +664,7 @@ RULES:
     }
 
     // 13. Ministries & Apostolates
-    if (q.includes('ministr') || q.includes('choir') || q.includes('altar server') || q.includes('apostolate') || q.includes('volunteer') || q.includes('youth') || q.includes('caritas') || q.includes('lector') || q.includes('serve')) {
+    if (q.includes('ministr') || q.includes('choir') || q.includes('altar server') || q.includes('apostolate') || q.includes('volunteer') || q.includes('youth') || q.includes('caritas') || q.includes('lector') || q.includes('catech') || q.includes('usher') || q.includes('communion') || q.includes('gift bearer') || q.includes('soccom') || q.includes('serve')) {
       let minList = '';
       if (contextData.settings?.ministries_list) {
         try {
@@ -669,18 +672,20 @@ RULES:
             ? JSON.parse(contextData.settings.ministries_list)
             : contextData.settings.ministries_list;
           if (Array.isArray(list) && list.length > 0) {
-            minList = list
-              .filter(m => m.isPublished !== false)
-              .slice(0, 6)
-              .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}`)
-              .join('\n');
+            const isLegacy = list.length === 6 && list.some(m => m.id === 'min-liturgical' || m.id === 'min-caritas');
+            if (!isLegacy) {
+              minList = list
+                .filter(m => m.isPublished !== false)
+                .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}`)
+                .join('\n');
+            }
           }
         } catch (e) {}
       }
       if (!minList) {
-        minList = `• **Liturgical Commission & Altar Servers** [Worship & Liturgy]\n• **Lectors & Commentators Ministry** [Ministry of the Word]\n• **Parish Music & Choir Ministry** [Liturgical Music]\n• **Parish Youth Ministry (PYM)** [Youth Apostolate]\n• **Family & Life Apostolate** [Pastoral Care]\n• **Caritas & Social Action Ministry** [Charity & Outreach]`;
+        minList = `• **Social Communications Ministry** [Media & Communications]\n• **Ministry of Altar Servers** [Worship & Liturgy]\n• **Ushering Ministry** [Hospitality & Service]\n• **Ministry of Lectors** [Ministry of the Word]\n• **Catechists** [Faith Formation & Catechesis]\n• **Ministry of Gift Bearers** [Worship & Liturgy]\n• **Music Ministry & Cantors** [Liturgical Music]\n• **Extraordinary Minister of Holy Communion** [Sacramental Ministry]`;
       }
-      return `Our parish has various active ministries, pastoral apostolates, and volunteer opportunities:\n\n${minList}\n\nTo view complete schedules, coordinators, and volunteer inquiry information, please visit our [Parish Ministries](/ministries) page.`;
+      return `Our parish has 8 official ministries and pastoral apostolates:\n\n${minList}\n\nTo view complete schedules, coordinators, and volunteer inquiry information, please visit our [Parish Ministries](/ministries) page.`;
     }
 
     // 14. Greetings

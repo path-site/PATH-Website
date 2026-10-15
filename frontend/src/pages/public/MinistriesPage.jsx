@@ -23,9 +23,14 @@ export default function MinistriesPage() {
           ? JSON.parse(settings.ministries_list)
           : settings.ministries_list;
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
-            .filter((m) => m.isPublished !== false)
-            .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          const isLegacyDefault =
+            parsed.length === 6 &&
+            parsed.some((m) => m.id === 'min-liturgical' || m.id === 'min-caritas');
+          if (!isLegacyDefault) {
+            return parsed
+              .filter((m) => m.isPublished !== false)
+              .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          }
         }
       } catch (e) {
         console.error('Failed to parse dynamic ministries_list', e);
