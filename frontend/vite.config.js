@@ -5,15 +5,20 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load server-side environment variables (without leaking them to the client bundle)
+  // Load server-side environment variables
   const env = { 
     ...process.env, 
     ...loadEnv(mode, process.cwd(), ''), 
     ...loadEnv(mode, path.resolve(process.cwd(), '..'), '') 
   };
   const groqApiKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY || '';
+  const groqModel = env.GROQ_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
   return {
+    define: {
+      '__GROQ_API_KEY__': JSON.stringify(groqApiKey),
+      '__GROQ_MODEL__': JSON.stringify(groqModel),
+    },
     plugins: [
       react(), 
       tailwindcss(),

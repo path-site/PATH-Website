@@ -2,63 +2,83 @@ export const config = {
   runtime: 'edge',
 };
 
-export default async function handler(req) {
-  // Handle CORS preflight
+export default async function handler(req, res) {
+  const isNode = res && typeof res.status === 'function';
+
+  // Helper response sender
+  const send = (status, data, headers = {}) => {
+    if (isNode) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      for (const [k, v] of Object.entries(headers)) {
+        res.setHeader(k, v);
+      }
+      return res.status(status).json(data);
+    }
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        ...headers
+      }
+    });
+  };
+
+  // CORS preflight
   if (req.method === 'OPTIONS') {
+    if (isNode) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      return res.status(200).end();
+    }
     return new Response(null, {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+      }
     });
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed. Only POST is accepted.' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return send(405, { error: 'Method not allowed. Only POST is accepted.' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = (process.env.GROQ_API_KEY || '').trim();
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({
-        error: 'GROQ_API_KEY is not configured in Vercel Environment Variables. Please set GROQ_API_KEY in your Vercel Project Settings.'
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      }
-    );
+    return send(500, { error: 'GROQ_API_KEY is not configured in Vercel Environment Variables.' });
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const { 
-      messages, 
-      model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b', 
-      temperature = 0.5, 
-      max_tokens = 800 
+    let body;
+    if (isNode) {
+      body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    } else {
+      body = await req.json().catch(() => ({}));
+    }
+
+    const {
+      messages,
+      model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+      temperature = 0.5,
+      max_tokens = 800
     } = body;
 
     if (!messages || !Array.isArray(messages)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid payload: messages array is required.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return send(400, { error: 'Invalid payload: messages array is required.' });
     }
 
     const sendRequest = async (targetModel) => {
       return fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey.trim()}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -82,38 +102,14 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      return new Response(
-        JSON.stringify({ error: errData.error?.message || `Groq API returned error status ${response.status}` }),
-        {
-          status: response.status,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-          }
-        }
-      );
+      return send(response.status, { error: errData.error?.message || `Groq API returned error status ${response.status}` });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
 
-    return new Response(JSON.stringify({ content }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      }
-    });
+    return send(200, { content });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error while contacting AI Assistant.' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        }
-      }
-    );
+    return send(500, { error: error.message || 'Internal server error while contacting AI Assistant.' });
   }
 }

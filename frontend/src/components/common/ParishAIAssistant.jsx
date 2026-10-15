@@ -478,53 +478,105 @@ RULES:
     setInputMessage('');
     setIsTyping(true);
 
-    // Call secure server endpoint (/api/chat) which authenticates with secret GROQ_API_KEY
-    try {
-      const formattedHistory = newHistory.slice(-10).map(m => ({
-        role: m.sender === 'user' ? 'user' : 'assistant',
-        content: m.text
-      }));
+    // Format chat messages
+    const formattedHistory = newHistory.slice(-10).map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
 
+    const chatPayload = {
+      messages: [
+        { role: 'system', content: buildSystemPrompt() },
+        ...formattedHistory
+      ],
+      temperature: 0.5,
+      max_tokens: 800
+    };
+
+    let replyContent = null;
+
+    // Stage 1: Try secure serverless proxy endpoint (/api/chat)
+    try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: buildSystemPrompt() },
-            ...formattedHistory
-          ],
-          temperature: 0.5,
-          max_tokens: 800
-        })
+        body: JSON.stringify(chatPayload)
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         if (data.content) {
-          setMessages(prev => [
-            ...prev,
-            {
-              id: (Date.now() + 1).toString(),
-              sender: 'ai',
-              text: data.content,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              source: 'groq'
-            }
-          ]);
-          setIsTyping(false);
-          return;
+          replyContent = data.content;
         }
-      } else {
-        const errJson = await response.json().catch(() => ({}));
-        console.warn('AI endpoint error:', response.status, errJson);
       }
     } catch (err) {
-      console.warn('Backend /api/chat unavailable, using parish engine:', err.message);
+      // Backend endpoint unavailable or static Vercel host
     }
 
-    // Seamless Fallback to local high-fidelity parish engine
+    // Stage 2: Direct Groq API call using compile-time GROQ_API_KEY if /api/chat was not available
+    if (!replyContent) {
+      const directKey = (typeof __GROQ_API_KEY__ !== 'undefined' ? __GROQ_API_KEY__ : '').trim();
+      const directModel = (typeof __GROQ_MODEL__ !== 'undefined' && __GROQ_MODEL__ ? __GROQ_MODEL__ : 'openai/gpt-oss-120b').trim();
+
+      if (directKey) {
+        try {
+          const callGroq = async (targetModel) => {
+            return fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${directKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                messages: chatPayload.messages,
+                temperature: chatPayload.temperature,
+                max_tokens: chatPayload.max_tokens
+              })
+            });
+          };
+
+          let groqRes = await callGroq(directModel);
+
+          // Retry with default model if configured model is not available
+          if (!groqRes.ok && directModel !== 'openai/gpt-oss-120b') {
+            const errClone = await groqRes.clone().json().catch(() => ({}));
+            if (errClone.error?.message?.includes('does not exist') || errClone.error?.code === 'model_not_found') {
+              groqRes = await callGroq('openai/gpt-oss-120b');
+            }
+          }
+
+          if (groqRes.ok) {
+            const groqData = await groqRes.json();
+            if (groqData.choices?.[0]?.message?.content) {
+              replyContent = groqData.choices[0].message.content;
+            }
+          }
+        } catch (directErr) {
+          console.warn('Groq direct call error:', directErr);
+        }
+      }
+    }
+
+    // Stage 3: If live AI responded from either stage, render live reply
+    if (replyContent) {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          sender: 'ai',
+          text: replyContent,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          source: 'groq'
+        }
+      ]);
+      setIsTyping(false);
+      return;
+    }
+
+    // Stage 4: Seamless fallback to local high-fidelity parish engine if completely offline
     setTimeout(() => {
       const aiReplyText = generateLocalResponse(messageText);
       const aiMsg = {
@@ -536,7 +588,7 @@ RULES:
       };
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 450);
+    }, 300);
   };
 
   const handleKeyDown = (e) => {
