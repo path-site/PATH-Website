@@ -173,7 +173,7 @@ export default function PriestManager() {
             </span>
             {deceasedCount > 0 && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-900 text-amber-300 border border-stone-700">
-                <span>✝</span>
+                <span className="font-serif font-bold">†</span>
                 <span>{deceasedCount} In Memoriam</span>
               </span>
             )}
@@ -270,13 +270,13 @@ export default function PriestManager() {
           </button>
           <button
             onClick={() => setStatusFilter('DECEASED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               statusFilter === 'DECEASED'
                 ? 'bg-stone-900 text-amber-300 shadow-xs border border-amber-400/50'
                 : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
             }`}
           >
-            <span>✝</span>
+            <span className="font-serif font-bold text-sm leading-none">†</span>
             <span>Deceased ({deceasedCount})</span>
           </button>
         </div>
@@ -317,7 +317,7 @@ export default function PriestManager() {
                   <div className="flex items-center justify-between mb-4">
                     {isDeceased ? (
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider bg-stone-900 text-amber-300 border border-stone-700 flex items-center gap-1 shadow-xs">
-                        <span>✝</span>
+                        <span className="font-serif font-bold">†</span>
                         <span>DECEASED / IN MEMORIAM</span>
                       </span>
                     ) : (
@@ -349,8 +349,8 @@ export default function PriestManager() {
                         </div>
                       )}
                       {isDeceased && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-stone-900 text-amber-400 border border-amber-300/60 text-[10px] font-bold flex items-center justify-center shadow-xs" title="Deceased">
-                          ✝
+                        <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-stone-900 text-amber-400 border border-amber-300/60 text-xs font-serif font-bold flex items-center justify-center shadow-xs" title="Deceased">
+                          †
                         </span>
                       )}
                     </div>
@@ -370,7 +370,7 @@ export default function PriestManager() {
                       )}
                       <span className="text-xs text-stone-500 font-medium block mt-1">
                         {p.serviceStart} – {p.serviceEnd}
-                        {p.dateOfDeath && ` • ✝ ${p.dateOfDeath}`}
+                        {p.dateOfDeath && ` • † ${p.dateOfDeath}`}
                       </span>
                     </div>
                   </div>
@@ -505,7 +505,7 @@ export default function PriestManager() {
                   >
                     <option value="CURRENT">Current Set of Priests (Active)</option>
                     <option value="FORMER">Past Set / Former Parish Priest (Living)</option>
-                    <option value="DECEASED">Deceased / In Memoriam (✝)</option>
+                    <option value="DECEASED">Deceased / In Memoriam (†)</option>
                   </select>
                 </div>
               </div>
@@ -518,8 +518,8 @@ export default function PriestManager() {
               }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <span className={`text-base font-bold ${formData.isDeceased ? 'text-amber-400' : 'text-stone-400'}`}>
-                      ✝
+                    <span className={`text-base font-serif font-bold ${formData.isDeceased ? 'text-amber-400' : 'text-stone-400'}`}>
+                      †
                     </span>
                     <div>
                       <span className={`text-xs font-bold uppercase tracking-wider block ${formData.isDeceased ? 'text-white' : 'text-stone-800'}`}>

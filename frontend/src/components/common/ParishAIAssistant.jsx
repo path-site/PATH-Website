@@ -370,7 +370,7 @@ export default function ParishAIAssistant() {
         ? formerPriestsList
             .map(p => {
               const isDec = isPriestDeceased(p);
-              const decNote = isDec ? ` [✝ Deceased / In Memoriam${p.dateOfDeath ? ` - Called to eternal rest in ${p.dateOfDeath}` : ''}]` : '';
+              const decNote = isDec ? ` [† Deceased / In Memoriam${p.dateOfDeath ? ` - Called to eternal rest: ${p.dateOfDeath}` : ''}]` : '';
               return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${decNote}${p.biography ? ` [${p.biography}]` : ''}`;
             })
             .join('\n')
@@ -551,7 +551,7 @@ RULES:
       if (specificPriest) {
         const isDec = isPriestDeceased(specificPriest);
         const statusText = isDec
-          ? `Deceased / In Memoriam ✝${specificPriest.dateOfDeath ? ` (Called to eternal rest in ${specificPriest.dateOfDeath})` : ''}`
+          ? `Deceased / In Memoriam †${specificPriest.dateOfDeath ? ` (Called to eternal rest: ${specificPriest.dateOfDeath})` : ''}`
           : (specificPriest.priestStatus === 'CURRENT' ? 'Active Pastoral Team' : 'Former Clergy');
 
         return `**${isDec ? '† ' : ''}${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title}\n• **Status:** ${statusText}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${isDec ? '\n• **Memorial Prayer:** *Requiescat in pace* (May he rest in eternal peace)' : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
@@ -559,8 +559,8 @@ RULES:
 
       if (isAskingDeceased) {
         if (deceased.length > 0) {
-          const decList = deceased.map(p => `• **† ${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.dateOfDeath ? ` • Called to rest in ${p.dateOfDeath}` : ''}`).join('\n');
-          return `Here are our beloved clergy remembered in prayer (**In Memoriam ✝**):\n\n${decList}\n\n*Eternal rest grant unto them, O Lord, and let perpetual light shine upon them. May they rest in peace. Amen.*\n\nYou can view their profiles on our [About / Priests](/about/priests) page.`;
+          const decList = deceased.map(p => `• **† ${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.dateOfDeath ? ` • Called to rest: ${p.dateOfDeath}` : ''}`).join('\n');
+          return `Here are our beloved clergy remembered in prayer (**In Memoriam †**):\n\n${decList}\n\n*Eternal rest grant unto them, O Lord, and let perpetual light shine upon them. May they rest in peace. Amen.*\n\nYou can view their profiles on our [About / Priests](/about/priests) page.`;
         }
         return `We remember and pray for all deceased clergy who served the Lord and our community. You can view all clergy memorials on our [About / Priests](/about/priests) page.`;
       }
@@ -568,7 +568,7 @@ RULES:
       if (isAskingPast && !isAskingAll && former.length > 0) {
         const formerList = former.map(p => {
           const isDec = isPriestDeceased(p);
-          return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(✝ In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+          return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
         }).join('\n');
         return `Here are the reverend priests who previously served in our parish pastoral sets:\n\n${formerList}\n\nYou can view our complete clergy history on our [About / Priests](/about/priests) page.`;
       }
@@ -581,7 +581,7 @@ RULES:
         if (former.length > 0) {
           text += `**Former Clergy & Past Sets:**\n` + former.map(p => {
             const isDec = isPriestDeceased(p);
-            return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(✝ In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+            return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
           }).join('\n') + '\n\n';
         }
         text += `Within each ministry set, the **Team Moderator** is placed first. Full clergy profiles and anniversary dates are available on our [About / Priests](/about/priests) page.`;

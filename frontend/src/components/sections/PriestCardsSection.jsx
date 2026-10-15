@@ -86,7 +86,7 @@ export default function PriestCardsSection({ config = {} }) {
                     {isDeceased && (
                       <div className="absolute top-3 right-3 z-10">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 text-xs font-serif font-bold shadow-md backdrop-blur-xs">
-                          <span className="text-amber-400">✝</span> In Memoriam
+                          <span className="text-amber-400 font-serif font-bold text-sm leading-none select-none">†</span> In Memoriam
                         </span>
                       </div>
                     )}
@@ -103,7 +103,7 @@ export default function PriestCardsSection({ config = {} }) {
                       <div className="w-full h-full bg-gradient-to-br from-[#1C1814] via-[#2A231C] to-[#14110E] flex flex-col items-center justify-center p-6 text-white text-center">
                         <div className="w-20 h-20 rounded-full bg-[#C59B3F]/20 border-2 border-[#C59B3F]/40 flex items-center justify-center mb-3">
                           {isDeceased ? (
-                            <span className="text-3xl text-[#DFBE7B] font-serif font-bold">✝</span>
+                            <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
                           ) : (
                             <Church className="w-10 h-10 text-[#DFBE7B]" />
                           )}
@@ -134,9 +134,9 @@ export default function PriestCardsSection({ config = {} }) {
                       <span>Term: {p.serviceStart || ''} {p.serviceEnd ? `– ${p.serviceEnd}` : ''}</span>
                     </div>
                     {isDeceased && (
-                      <div className="flex items-center gap-1.5 text-xs text-stone-700 font-medium mb-3 bg-stone-100/90 px-2.5 py-1 rounded-lg border border-stone-200">
-                        <span className="text-amber-600 font-bold">✝</span>
-                        <span>Called to rest {p.dateOfDeath ? `in ${p.dateOfDeath}` : ''}</span>
+                      <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium mb-3">
+                        <span className="text-stone-400 font-serif font-bold text-sm shrink-0 leading-none select-none">†</span>
+                        <span>Called to rest {p.dateOfDeath ? `(${p.dateOfDeath})` : ''}</span>
                       </div>
                     )}
                     <p className="text-xs text-stone-600 leading-relaxed font-normal line-clamp-4">
