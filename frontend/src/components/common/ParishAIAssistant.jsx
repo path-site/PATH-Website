@@ -17,7 +17,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
-import { sortPriests } from '../../utils/priestSorter';
+import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
 
 // Inline rich formatting helper for AI messages
 function renderFormattedInline(text) {
@@ -358,7 +358,7 @@ export default function ParishAIAssistant() {
     try {
       const priestsList = Array.isArray(contextData.priests) ? contextData.priests : [];
       const currentPriestsList = priestsList.filter(p => p && p.priestStatus === 'CURRENT');
-      const formerPriestsList = priestsList.filter(p => p && p.priestStatus === 'FORMER');
+      const formerPriestsList = priestsList.filter(p => p && p.priestStatus !== 'CURRENT');
 
       const currentPriests = currentPriestsList.length > 0
         ? currentPriestsList
@@ -368,7 +368,11 @@ export default function ParishAIAssistant() {
 
       const formerPriests = formerPriestsList.length > 0
         ? formerPriestsList
-            .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` [${p.biography}]` : ''}`)
+            .map(p => {
+              const isDec = isPriestDeceased(p);
+              const decNote = isDec ? ` [✝ Deceased / In Memoriam${p.dateOfDeath ? ` - Called to eternal rest in ${p.dateOfDeath}` : ''}]` : '';
+              return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${decNote}${p.biography ? ` [${p.biography}]` : ''}`;
+            })
             .join('\n')
         : `• **Rev. Fr. Benjamin Miralles Trazo** — Former Team Moderator (2019 – 2025)\n• **Rev. Russell Emmanuel Montayre Sungcad** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Alex Jr. Kinanahan Cola** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Bertoldo Igloria** — Former Team Moderator (2016 – 2019)\n• **Fr. Socrates del Mundo Saldua** — Parish Priest (2016 – 2019)\n• **Rev. Fr. Wendell Jose Barrit Balbuena** — Former Team Moderator (2013 – 2016)`;
 
@@ -527,13 +531,15 @@ RULES:
       return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${schedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
     }
 
-    // 3. Priests & Clergy (Current, Former, History, Specific Names)
-    if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator') || q.includes('vicar')) {
+    // 3. Priests & Clergy (Current, Former, History, Deceased, Specific Names)
+    if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator') || q.includes('vicar') || q.includes('deceased') || q.includes('patay') || q.includes('memoriam') || q.includes('rip') || q.includes('passed away') || q.includes('rest in peace')) {
       const isAskingPast = q.includes('past') || q.includes('former') || q.includes('history') || q.includes('previous') || q.includes('before') || q.includes('all');
       const isAskingAll = q.includes('all') || q.includes('list') || q.includes('everyone') || q.includes('sets');
+      const isAskingDeceased = q.includes('deceased') || q.includes('memoriam') || q.includes('rip') || q.includes('passed away') || q.includes('patay') || q.includes('died') || q.includes('rest in peace');
 
       const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
-      const former = contextData.priests.filter(p => p.priestStatus === 'FORMER');
+      const former = contextData.priests.filter(p => p.priestStatus !== 'CURRENT');
+      const deceased = contextData.priests.filter(p => isPriestDeceased(p));
 
       // Check if user is asking about a specific priest by surname/name
       const specificPriest = contextData.priests.find(p => {
@@ -543,11 +549,27 @@ RULES:
       });
 
       if (specificPriest) {
-        return `**${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title}\n• **Status:** ${specificPriest.priestStatus === 'CURRENT' ? 'Active Pastoral Team' : 'Former Clergy'}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
+        const isDec = isPriestDeceased(specificPriest);
+        const statusText = isDec
+          ? `Deceased / In Memoriam ✝${specificPriest.dateOfDeath ? ` (Called to eternal rest in ${specificPriest.dateOfDeath})` : ''}`
+          : (specificPriest.priestStatus === 'CURRENT' ? 'Active Pastoral Team' : 'Former Clergy');
+
+        return `**${isDec ? '† ' : ''}${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title}\n• **Status:** ${statusText}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${isDec ? '\n• **Memorial Prayer:** *Requiescat in pace* (May he rest in eternal peace)' : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
+      }
+
+      if (isAskingDeceased) {
+        if (deceased.length > 0) {
+          const decList = deceased.map(p => `• **† ${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.dateOfDeath ? ` • Called to rest in ${p.dateOfDeath}` : ''}`).join('\n');
+          return `Here are our beloved clergy remembered in prayer (**In Memoriam ✝**):\n\n${decList}\n\n*Eternal rest grant unto them, O Lord, and let perpetual light shine upon them. May they rest in peace. Amen.*\n\nYou can view their profiles on our [About / Priests](/about/priests) page.`;
+        }
+        return `We remember and pray for all deceased clergy who served the Lord and our community. You can view all clergy memorials on our [About / Priests](/about/priests) page.`;
       }
 
       if (isAskingPast && !isAskingAll && former.length > 0) {
-        const formerList = former.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` — *${p.biography}*` : ''}`).join('\n');
+        const formerList = former.map(p => {
+          const isDec = isPriestDeceased(p);
+          return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(✝ In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+        }).join('\n');
         return `Here are the reverend priests who previously served in our parish pastoral sets:\n\n${formerList}\n\nYou can view our complete clergy history on our [About / Priests](/about/priests) page.`;
       }
 
@@ -557,7 +579,10 @@ RULES:
           text += `**Active Pastoral Clergy (Current Set):**\n` + current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n') + '\n\n';
         }
         if (former.length > 0) {
-          text += `**Former Clergy & Past Sets:**\n` + former.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.biography ? ` — *${p.biography}*` : ''}`).join('\n') + '\n\n';
+          text += `**Former Clergy & Past Sets:**\n` + former.map(p => {
+            const isDec = isPriestDeceased(p);
+            return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(✝ In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+          }).join('\n') + '\n\n';
         }
         text += `Within each ministry set, the **Team Moderator** is placed first. Full clergy profiles and anniversary dates are available on our [About / Priests](/about/priests) page.`;
         return text;

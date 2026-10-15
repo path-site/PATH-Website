@@ -48,6 +48,8 @@ public class AdminPriestController {
             p.setServiceStart(details.getServiceStart());
             p.setServiceEnd(details.getServiceEnd());
             p.setPriestStatus(details.getPriestStatus());
+            if (details.getIsDeceased() != null) p.setIsDeceased(details.getIsDeceased());
+            if (details.getDateOfDeath() != null) p.setDateOfDeath(details.getDateOfDeath());
             if (details.getDisplayOrder() != null) p.setDisplayOrder(details.getDisplayOrder());
             if (details.getIsPublished() != null) p.setIsPublished(details.getIsPublished());
             Priest saved = priestRepository.save(p);

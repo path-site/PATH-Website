@@ -1,4 +1,17 @@
 /**
+ * Helper to identify if a priest is marked deceased
+ */
+export const isPriestDeceased = (p) => {
+  if (!p) return false;
+  if (p.isDeceased === true || p.isDeceased === 'true') return true;
+  if (p.priestStatus === 'DECEASED' || p.priestStatus === 'FORMER_DECEASED') return true;
+  if (p.fullName && (p.fullName.includes('†') || p.fullName.includes('✝'))) return true;
+  if (p.title && p.title.toLowerCase().includes('deceased')) return true;
+  if (p.serviceEnd && p.serviceEnd.toLowerCase().includes('deceased')) return true;
+  return false;
+};
+
+/**
  * Utility to parse year numbers from terms like "2025", "Present", "2018-2025"
  */
 export const parseYear = (val) => {

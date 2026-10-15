@@ -1,10 +1,12 @@
 package com.path.parish.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "priests")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Priest {
 
     @Id
@@ -26,7 +28,11 @@ public class Priest {
     private String serviceEnd;   // e.g. "Present" or "2021"
 
     @Column(nullable = false)
-    private String priestStatus; // CURRENT, FORMER
+    private String priestStatus; // CURRENT, FORMER, DECEASED
+
+    private Boolean isDeceased = false;
+
+    private String dateOfDeath;
 
     @Column(nullable = false)
     private Integer displayOrder = 0;
@@ -73,6 +79,10 @@ public class Priest {
     public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
     public Boolean getIsPublished() { return isPublished; }
     public void setIsPublished(Boolean published) { isPublished = published; }
+    public Boolean getIsDeceased() { return isDeceased; }
+    public void setIsDeceased(Boolean deceased) { isDeceased = deceased; }
+    public String getDateOfDeath() { return dateOfDeath; }
+    public void setDateOfDeath(String dateOfDeath) { this.dateOfDeath = dateOfDeath; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
