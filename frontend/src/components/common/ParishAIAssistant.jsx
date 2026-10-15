@@ -222,8 +222,35 @@ const SUGGESTED_QUERIES = [
 
 export default function ParishAIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+
+  // Smooth open animation: mount first, then trigger scale/fade in next frame
+  const openAssistant = () => {
+    setIsMounted(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsOpen(true);
+      });
+    });
+  };
+
+  // Smooth close animation: trigger scale/fade out, then unmount after animation completes
+  const closeAssistant = () => {
+    setIsOpen(false);
+    setTimeout(() => {
+      setIsMounted(false);
+    }, 280);
+  };
+
+  const toggleAssistant = () => {
+    if (isOpen) {
+      closeAssistant();
+    } else {
+      openAssistant();
+    }
+  };
 
   const [contextData, setContextData] = useState({
     priests: [],
@@ -264,7 +291,7 @@ export default function ParishAIAssistant() {
           publicApi.getPriests(),
           publicApi.getAnnouncements({ page: 0, size: 5 }),
           publicApi.getEvents(),
-          publicApi.getContactSettings()
+          publicApi.getSettings ? publicApi.getSettings() : Promise.resolve({})
         ]);
 
         setContextData({
@@ -530,29 +557,61 @@ RULES:
   return (
     <>
       {/* =========================================================================
-          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST)
+          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST WITH COOL ANIMATION)
          ========================================================================= */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {/* Minimalist Floating Trigger Button */}
+        {/* Minimalist Floating Trigger Button with Hover Shimmer & 3D Morph Rotation */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleAssistant}
           aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
-          className="w-12 h-12 rounded-full bg-[#1C1814] text-white border border-stone-800 shadow-md hover:shadow-lg hover:border-[#C59B3F]/60 transition-all duration-200 flex items-center justify-center active:scale-95 group focus:outline-none"
+          className={`relative w-12 h-12 rounded-full bg-[#1C1814] text-white border transition-all duration-300 ease-out flex items-center justify-center active:scale-90 group focus:outline-none shadow-md hover:shadow-xl ${
+            isOpen
+              ? 'border-[#C59B3F] shadow-[0_0_20px_rgba(197,155,63,0.35)] bg-[#25201A]'
+              : 'border-stone-800 hover:border-[#DFBE7B]/80 hover:shadow-[0_4px_22px_rgba(197,155,63,0.35)] hover:scale-110'
+          }`}
         >
-          {isOpen ? (
-            <X className="w-5 h-5 text-stone-300 group-hover:text-white transition-colors" />
-          ) : (
-            <Sparkles className="w-5 h-5 text-[#DFBE7B] group-hover:scale-110 transition-transform" />
-          )}
+          {/* Subtle Ambient Halo on Hover */}
+          <span
+            className={`absolute -inset-1 rounded-full bg-gradient-to-r from-[#C59B3F]/40 via-amber-400/25 to-[#800020]/30 blur-xs transition-opacity duration-300 pointer-events-none ${
+              isOpen ? 'opacity-40' : 'opacity-0 group-hover:opacity-100'
+            }`}
+          />
+
+          {/* Shimmer Light Sweep on Hover */}
+          <span className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+            <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+          </span>
+
+          {/* Morphing Animated Icons (In & Out 3D-style rotational flip) */}
+          <div className="relative w-5 h-5 flex items-center justify-center pointer-events-none">
+            <Sparkles
+              className={`w-5 h-5 text-[#DFBE7B] absolute transition-all duration-300 ease-out transform ${
+                isOpen
+                  ? 'opacity-0 rotate-90 scale-50 pointer-events-none'
+                  : 'opacity-100 rotate-0 scale-100 group-hover:rotate-12 group-hover:scale-115'
+              }`}
+            />
+            <X
+              className={`w-5 h-5 text-stone-200 absolute transition-all duration-300 ease-out transform ${
+                isOpen
+                  ? 'opacity-100 rotate-0 scale-100 group-hover:rotate-90 text-white'
+                  : 'opacity-0 -rotate-90 scale-50 pointer-events-none'
+              }`}
+            />
+          </div>
         </button>
       </div>
 
       {/* =========================================================================
-          2. POP-UP AI AGENT CHAT WINDOW
+          2. POP-UP AI AGENT CHAT WINDOW (ANIMATES BOTH IN & OUT)
          ========================================================================= */}
-      {isOpen && (
+      {isMounted && (
         <div
-          className="fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-200"
+          className={`fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden origin-bottom-right transition-all duration-280 ease-out ${
+            isOpen
+              ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+              : 'opacity-0 scale-90 translate-y-6 pointer-events-none'
+          }`}
           style={{ boxShadow: '0 25px 60px -15px rgba(28, 24, 20, 0.4), 0 0 0 1px rgba(197, 155, 63, 0.25)' }}
         >
 
@@ -593,7 +652,7 @@ RULES:
                 <RotateCcw className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={closeAssistant}
                 title="Close assistant"
                 className="p-1.5 text-stone-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 aria-label="Close chat"

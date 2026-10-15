@@ -134,11 +134,11 @@ export default function Navbar() {
                       {/* Desktop Dropdown Menu with animation */}
                       {isDropdownOpen && (
                         <div
-                          className="absolute left-0 mt-1.5 w-68 rounded-2xl bg-[#FDFCF9] p-2 shadow-xl ring-1 ring-black/5 border-t-3 border-t-[#C59B3F] border border-[#C59B3F]/30 animate-in fade-in slide-in-from-top-2 duration-150 z-50"
+                          className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#FDFCF9] p-2.5 shadow-2xl ring-1 ring-black/5 border-t-4 border-t-[#C59B3F] border border-[#C59B3F]/30 animate-in fade-in slide-in-from-top-2 duration-150 z-50 origin-top-right"
                           onMouseEnter={() => handleMouseEnter(item.id)}
                           onMouseLeave={handleMouseLeave}
                         >
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             {item.children.map((subItem) => {
                               const SubIcon = iconMap[subItem.label] || Church;
                               const isSubActive = location.pathname === subItem.targetPath;
@@ -148,18 +148,18 @@ export default function Navbar() {
                                   to={subItem.targetPath}
                                   target={subItem.openInNewTab ? '_blank' : '_self'}
                                   rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
-                                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                                     isSubActive
-                                      ? 'bg-[#A81B2B] text-white shadow-xs font-semibold'
-                                      : 'text-[#1C1814] hover:bg-[#F5EEDC] hover:text-[#A81B2B]'
+                                      ? 'bg-[#800020] text-white shadow-xs font-semibold'
+                                      : 'text-[#1C1814] hover:bg-[#F5EEDC] hover:text-[#800020]'
                                   }`}
                                 >
-                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                     isSubActive ? 'bg-white/20 text-white' : 'bg-gradient-to-br from-[#DFBE7B] to-[#C59B3F] text-stone-900 shadow-xs'
                                   }`}>
-                                    <SubIcon className="w-3.5 h-3.5" />
+                                    <SubIcon className="w-4 h-4" />
                                   </div>
-                                  <span className="font-semibold">{subItem.label}</span>
+                                  <span className="font-semibold whitespace-nowrap">{subItem.label}</span>
                                 </Link>
                               );
                             })}
