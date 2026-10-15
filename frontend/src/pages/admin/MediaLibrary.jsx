@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { 
   Upload, Search, Trash2, Copy, Check, Eye, X, 
   Image as ImageIcon, Loader2, AlertTriangle, AlertCircle 
@@ -96,6 +97,9 @@ export default function MediaLibrary() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="media" />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>

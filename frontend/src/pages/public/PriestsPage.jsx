@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 import { Church, Calendar, BookOpen, Clock } from 'lucide-react';
 
 export default function PriestsPage() {
@@ -44,6 +45,9 @@ export default function PriestsPage() {
             By diocesan assignment, our parish is served by a team of three (3) priests headed by the Team Moderator. The clergy directory is arranged chronologically, with the current set on top, and the Team Moderator placed first within each year range.
           </p>
         </div>
+
+        {/* Public Maintenance Notice when activated by Admin */}
+        <PublicMaintenanceNotice sectionKey="priests" />
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

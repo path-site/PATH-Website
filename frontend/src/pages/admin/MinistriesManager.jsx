@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import {
   HeartHandshake,
   Plus,
@@ -545,6 +546,9 @@ export default function MinistriesManager() {
           <span className="text-sm font-semibold">{notice.text}</span>
         </div>
       )}
+
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="ministries" />
 
       {/* Header Banner */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">

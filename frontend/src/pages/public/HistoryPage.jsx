@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 import { Clock, Calendar, Church, ArrowDown } from 'lucide-react';
 
 export default function HistoryPage() {
@@ -39,6 +40,9 @@ export default function HistoryPage() {
             From modest pioneer gatherings to a flourishing diocesan parish dedicated to the Sacred Hearts of Jesus and Mary.
           </p>
         </div>
+
+        {/* Public Maintenance Notice when activated by Admin */}
+        <PublicMaintenanceNotice sectionKey="history" />
 
         {/* Timeline */}
         {loading ? (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Layers, Maximize2 } from 'lucide-react';
 
 export default function GalleryPage() {
@@ -78,6 +79,9 @@ export default function GalleryPage() {
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
             Photographs of church liturgical rites, parish fiesta celebrations, youth apostolates, and sacred architecture.
           </p>
+
+          {/* Public Maintenance Notice when activated by Admin */}
+          <PublicMaintenanceNotice sectionKey="gallery" />
 
           {/* Album Selector Tabs */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-2">

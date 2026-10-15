@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { publicApi } from '../../services/api';
 import SectionRenderer from '../../components/sections/SectionRenderer';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 
 export default function HomePage() {
   const [sections, setSections] = useState([]);
@@ -35,6 +36,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      <PublicMaintenanceNotice sectionKey="homepage" variant="banner" />
       {sections.map((section) => (
         <SectionRenderer key={section.id} section={section} />
       ))}

@@ -1,24 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
+  MAINTENANCE_SECTIONS, 
+  isSectionUnderMaintenance 
+} from '../../config/maintenanceConfig';
+import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
-  ArrowRight, Plus, ExternalLink, Church, Bot, HeartHandshake 
+  ArrowRight, Plus, ExternalLink, Church, Bot, HeartHandshake,
+  Wrench, ShieldCheck
 } from 'lucide-react';
 
 export default function DashboardOverview() {
+  const { settings, refreshSettings } = useTheme();
   const [stats, setStats] = useState({
     announcements: 0,
     events: 0,
     priests: 0,
-    ministries: 6,
+    ministries: 8,
     albums: 0,
     pages: 0,
   });
   const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [togglingSec, setTogglingSec] = useState(null);
+
+  const handleToggleSection = async (sec) => {
+    setTogglingSec(sec.id);
+    try {
+      const isCurrentlyMaint = isSectionUnderMaintenance(sec, settings);
+      const nextState = !isCurrentlyMaint;
+      const payload = {
+        [sec.settingKey]: nextState ? 'true' : 'false',
+      };
+      if (sec.id === 'ministries') {
+        payload.ministries_banner_enabled = nextState ? 'true' : 'false';
+      }
+      await adminApi.saveSettings(payload);
+      await refreshSettings();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTogglingSec(null);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -163,6 +191,87 @@ export default function DashboardOverview() {
           <span className="text-2xl font-black text-stone-900 block">{stats.pages}</span>
           <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">CMS Pages</span>
         </Link>
+      </div>
+
+      {/* Website Sections Maintenance Control Center */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-900 flex items-center justify-center">
+              <Wrench className="w-5 h-5 text-amber-700" />
+            </div>
+            <div>
+              <h2 className="font-serif-heading text-lg font-bold text-stone-900 leading-tight">
+                Section Maintenance Mode Control Center
+              </h2>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Enable Under Maintenance Mode on specific sections during major updates so visitors see an Under Maintenance notice instead of partial changes.
+              </p>
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-100 text-stone-700 text-xs font-semibold self-start sm:self-auto">
+            <span>
+              {MAINTENANCE_SECTIONS.filter((s) => isSectionUnderMaintenance(s, settings)).length} of {MAINTENANCE_SECTIONS.length} Sections in Maintenance
+            </span>
+          </div>
+        </div>
+
+        {/* Section Grid with switches */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
+          {MAINTENANCE_SECTIONS.map((sec) => {
+            const isMaint = isSectionUnderMaintenance(sec, settings);
+            const isToggling = togglingSec === sec.id;
+
+            return (
+              <div
+                key={sec.id}
+                className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                  isMaint
+                    ? 'bg-amber-50/70 border-amber-300 ring-1 ring-amber-300/40 shadow-xs'
+                    : 'bg-stone-50/70 border-stone-200/80 hover:bg-stone-50'
+                }`}
+              >
+                <Link
+                  to={sec.adminPath}
+                  className="min-w-0 flex-1 group"
+                  title={`Open ${sec.label} manager`}
+                >
+                  <span className="font-bold text-xs text-stone-800 block truncate group-hover:text-[#800020] transition-colors">
+                    {sec.label}
+                  </span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        isMaint ? 'bg-amber-600 animate-ping' : 'bg-emerald-500'
+                      }`}
+                    />
+                    <span
+                      className={`text-[10px] font-semibold ${
+                        isMaint ? 'text-amber-800' : 'text-stone-500'
+                      }`}
+                    >
+                      {isMaint ? 'Under Maintenance' : 'Live Mode'}
+                    </span>
+                  </div>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleSection(sec)}
+                  disabled={isToggling}
+                  title={isMaint ? 'Click to publish section live' : 'Click to enable maintenance mode'}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all shadow-2xs shrink-0 cursor-pointer ${
+                    isMaint
+                      ? 'bg-amber-400 hover:bg-amber-300 text-stone-950 ring-1 ring-amber-500/40'
+                      : 'bg-white hover:bg-stone-200 text-stone-700 border border-stone-200'
+                  }`}
+                >
+                  {isToggling ? '...' : isMaint ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Two Column Section */}

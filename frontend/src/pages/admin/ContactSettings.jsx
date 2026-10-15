@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { PhoneCall, Check, Save, RefreshCw } from 'lucide-react';
 
 export default function ContactSettings() {
@@ -37,6 +38,9 @@ export default function ContactSettings() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="contactSettings" />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>
           <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-1.5">

@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { adminApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
+import { 
+  MAINTENANCE_SECTIONS, 
+  getSectionByPath, 
+  isSectionUnderMaintenance 
+} from '../../config/maintenanceConfig';
 import { 
   LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
   Bell, Calendar, Users, History, Image as ImageIcon, 
   HardDrive, PhoneCall, UserCheck, Settings, 
-  LogOut, ExternalLink, ChevronRight, Church, X, Bot, HeartHandshake
+  LogOut, ExternalLink, ChevronRight, Church, X, Bot, HeartHandshake,
+  Wrench
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -30,10 +37,35 @@ const sidebarItems = [
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
-  const { settings } = useTheme();
+  const { settings, refreshSettings } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [headerSaving, setHeaderSaving] = useState(false);
+
+  // Determine current active section for topbar maintenance control
+  const activeSection = getSectionByPath(location.pathname);
+  const isCurrentSectionMaintenance = isSectionUnderMaintenance(activeSection, settings);
+
+  const handleHeaderMaintenanceToggle = async () => {
+    if (!activeSection || headerSaving) return;
+    setHeaderSaving(true);
+    try {
+      const nextState = !isCurrentSectionMaintenance;
+      const payload = {
+        [activeSection.settingKey]: nextState ? 'true' : 'false',
+      };
+      if (activeSection.id === 'ministries') {
+        payload.ministries_banner_enabled = nextState ? 'true' : 'false';
+      }
+      await adminApi.saveSettings(payload);
+      await refreshSettings();
+    } catch (err) {
+      console.error('Failed to toggle maintenance from topbar', err);
+    } finally {
+      setHeaderSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -92,6 +124,8 @@ export default function AdminLayout() {
               const isActive = item.path === ADMIN_ROUTES.base 
                 ? location.pathname === ADMIN_ROUTES.base
                 : location.pathname.startsWith(item.path);
+              const matchingSec = MAINTENANCE_SECTIONS.find(s => s.adminPath === item.path);
+              const isItemMaintenance = matchingSec ? isSectionUnderMaintenance(matchingSec, settings) : false;
 
               return (
                 <Link
@@ -105,7 +139,16 @@ export default function AdminLayout() {
                   }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-stone-400'}`} />
-                  <span>{item.label}</span>
+                  <span className="truncate">{item.label}</span>
+                  {isItemMaintenance && (
+                    <span 
+                      title={`${item.label} is currently in Under Maintenance Mode`}
+                      className="ml-auto inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-stone-950 text-[10px] font-bold tracking-wider uppercase shadow-xs shrink-0"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-stone-950 animate-ping shrink-0" />
+                      <span>Maint</span>
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -161,7 +204,33 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            {activeSection && (
+              <button
+                type="button"
+                onClick={handleHeaderMaintenanceToggle}
+                disabled={headerSaving}
+                title={
+                  isCurrentSectionMaintenance
+                    ? 'Under Maintenance Mode is ACTIVE for this section. Public visitors see an Under Maintenance notice. Click to switch to Live Mode.'
+                    : 'Section is Live. Click to turn ON Under Maintenance Mode so you can safely make major changes.'
+                }
+                className={`inline-flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all shadow-xs cursor-pointer border ${
+                  isCurrentSectionMaintenance
+                    ? 'bg-amber-100 text-amber-950 border-amber-400 ring-2 ring-amber-300/60 hover:bg-amber-200 animate-pulse'
+                    : 'bg-stone-50 text-stone-700 border-stone-300 hover:bg-stone-100'
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    isCurrentSectionMaintenance ? 'bg-amber-600 animate-ping' : 'bg-emerald-500'
+                  }`}
+                />
+                <span className="hidden md:inline">{activeSection.shortLabel}:</span>
+                <span>{isCurrentSectionMaintenance ? 'Maintenance ON' : 'Live Mode'}</span>
+              </button>
+            )}
+
             <Link
               to="/"
               target="_blank"

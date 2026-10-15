@@ -66,13 +66,16 @@ export default function MinistriesPage() {
   const title = settings?.ministries_title || 'Parish Ministries';
   const subtitle = settings?.ministries_subtitle || 'United in the Sacred Hearts of Jesus and Mary to serve the Lord, the Church, and our community.';
 
-  // Notice Banner Configuration
-  const isBannerEnabled = settings?.ministries_banner_enabled === undefined || String(settings.ministries_banner_enabled) === 'true';
-  const bannerBadge = settings?.ministries_banner_badge || 'Section Under Preparation';
-  const bannerTitle = settings?.ministries_banner_title || 'Ministries Directory is Currently in the Making';
-  const bannerDesc = settings?.ministries_banner_desc || 'We are currently compiling and updating the complete directory of parish ministries, apostolic movements, coordinators, and schedules. The finalized directory and online sign-up details will be published here soon.';
-  const showPhone = settings?.ministries_banner_show_phone === undefined || String(settings.ministries_banner_show_phone) === 'true';
-  const showFb = settings?.ministries_banner_show_fb === undefined || String(settings.ministries_banner_show_fb) === 'true';
+  // Notice Banner Configuration (synced with Maintenance Mode)
+  const isBannerEnabled =
+    settings?.maintenance_ministries !== undefined
+      ? String(settings.maintenance_ministries) === 'true'
+      : (settings?.ministries_banner_enabled === undefined || String(settings.ministries_banner_enabled) === 'true');
+  const bannerBadge = settings?.maintenance_ministries_badge || settings?.ministries_banner_badge || 'Section Under Preparation';
+  const bannerTitle = settings?.maintenance_ministries_title || settings?.ministries_banner_title || 'Ministries Directory is Currently in the Making';
+  const bannerDesc = settings?.maintenance_ministries_desc || settings?.ministries_banner_desc || 'We are currently compiling and updating the complete directory of parish ministries, apostolic movements, coordinators, and schedules. The finalized directory and online sign-up details will be published here soon.';
+  const showPhone = (settings?.maintenance_ministries_show_phone ?? settings?.ministries_banner_show_phone) !== 'false';
+  const showFb = (settings?.maintenance_ministries_show_fb ?? settings?.ministries_banner_show_fb) !== 'false';
 
   // Bottom CTA Configuration
   const ctaTitle = settings?.ministries_cta_title || 'Interested in joining a ministry or serving as a volunteer?';

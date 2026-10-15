@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi, publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { 
   ArrowUp, ArrowDown, Eye, EyeOff, Edit, Copy, Trash2, 
   Plus, Check, X, LayoutTemplate, ExternalLink, AlertCircle,
@@ -415,6 +416,9 @@ export default function HomepageBuilder() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="homepage" />
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import {
   Bot,
   Plus,
@@ -269,6 +270,9 @@ export default function AIResponsesManager() {
           <span>{notice.text}</span>
         </div>
       )}
+
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="aiResponses" />
 
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-[#1C1814] via-[#2A231C] to-[#14110E] p-8 rounded-3xl border border-[#C59B3F]/30 text-white shadow-lg relative overflow-hidden">

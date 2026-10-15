@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { Menu, Plus, Edit, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, X, Check } from 'lucide-react';
 
 export default function NavigationManager() {
@@ -131,6 +132,9 @@ export default function NavigationManager() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="navigation" />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>
           <h1 className="font-serif-heading text-2xl font-bold text-stone-900">

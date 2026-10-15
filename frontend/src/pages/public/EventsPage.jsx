@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 import { Calendar, Clock, MapPin, ArrowRight, Tag } from 'lucide-react';
 
 export default function EventsPage() {
@@ -51,6 +52,9 @@ export default function EventsPage() {
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
             Participate in our sacramental celebrations, parish recollections, novenas, and community apostolates.
           </p>
+
+          {/* Public Maintenance Notice when activated by Admin */}
+          <PublicMaintenanceNotice sectionKey="events" />
 
           {/* Tab Selector */}
           <div className="mt-8 inline-flex p-1.5 rounded-full bg-stone-200/80 border border-stone-300">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { 
   Bell, Plus, Edit, Trash2, Eye, EyeOff, Archive, Check, X, 
   Send, Clock, CheckCircle2, AlertCircle, Filter, Inbox, Search 
@@ -258,6 +259,9 @@ export default function AnnouncementManager() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="announcements" />
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-stone-200/90 shadow-xs">
         <div className="min-w-0">

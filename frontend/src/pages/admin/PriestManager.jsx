@@ -4,6 +4,7 @@ import { adminApi } from '../../services/api';
 import ImageUploadInput from '../../components/admin/ImageUploadInput';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
+import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { Users, Plus, Edit, Trash2, ArrowUp, ArrowDown, Check, X, Search, Filter } from 'lucide-react';
 
 export default function PriestManager() {
@@ -160,6 +161,9 @@ export default function PriestManager() {
   return (
     <div className="space-y-6">
       
+      {/* Section Maintenance Control Switch */}
+      <SectionMaintenanceBar sectionKey="priests" />
+
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>

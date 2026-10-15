@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { FacebookIcon } from '../../components/common/SocialIcons';
 import MassScheduleView from '../../components/common/MassScheduleView';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 
 export default function ContactPage() {
   const { settings } = useTheme();
@@ -71,6 +72,9 @@ export default function ContactPage() {
             Reach out to our parish office for mass intentions, sacramental certificates, wedding or baptism inquiries, or pastoral counseling appointments.
           </p>
         </div>
+
+        {/* Public Maintenance Notice when activated by Admin */}
+        <PublicMaintenanceNotice sectionKey="contactSettings" />
 
         {/* Official Parish Mass Schedules Display */}
         <section id="mass-schedule" className="mb-14 scroll-mt-28 scroll-reveal">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
+import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
 import { Search, Calendar, ArrowRight, BookOpen, Tag } from 'lucide-react';
 
 export default function AnnouncementsPage() {
@@ -60,6 +61,9 @@ export default function AnnouncementsPage() {
             Liturgical schedules, parish pastoral notices, and official news from the Parish of the Alliance of the Two Hearts.
           </p>
         </div>
+
+        {/* Public Maintenance Notice when activated by Admin */}
+        <PublicMaintenanceNotice sectionKey="announcements" />
 
         {/* Filter & Search Bar */}
         <div className="bg-white rounded-2xl p-4 sm:p-6 border border-stone-200/80 shadow-xs mb-10 space-y-4">
