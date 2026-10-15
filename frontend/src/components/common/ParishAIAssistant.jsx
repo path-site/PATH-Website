@@ -688,9 +688,9 @@ RULES:
                   )}
 
                   <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-stone-100/60">
-                    {msg.sender === 'ai' && msg.source === 'groq' ? (
+                    {msg.sender === 'ai' ? (
                       <span className="text-[9px] text-[#8F6B1E] font-medium flex items-center gap-0.5">
-                        <Sparkles className="w-2.5 h-2.5" /> Groq AI
+                        <Sparkles className="w-2.5 h-2.5" /> Parish Staff
                       </span>
                     ) : <span />}
                     <span className={`block text-[10px] font-mono ${msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'

@@ -76,6 +76,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ content });
   } catch (error) {
     console.error('Error proxying chat to Groq:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error while contacting Groq AI.' });
+    return res.status(500).json({ error: error.message || 'Internal server error while contacting AI Assistant.' });
   }
 }
