@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Church, ArrowRight, ShieldCheck, HeartHandshake } from 'lucide-react';
+import ParishChurchOutlineIcon from '../common/ParishChurchOutlineIcon';
 
 export default function AboutPreviewSection({ config = {} }) {
   const {
@@ -33,8 +34,8 @@ export default function AboutPreviewSection({ config = {} }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
             ) : (
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[#C59B3F]/30 aspect-4/3 flex flex-col items-center justify-center bg-gradient-to-br from-[#2D0A14] via-[#101E38] to-[#1C1814] p-8 text-center">
-                <Church className="w-16 h-16 text-[#DFBE7B] mb-4 opacity-80" />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-[#C59B3F]/30 aspect-4/3 flex flex-col items-center justify-center bg-gradient-to-br from-[#2D0A14] via-[#101E38] to-[#1C1814] p-8 text-center group">
+                <ParishChurchOutlineIcon className="w-32 sm:w-36 h-auto text-[#DFBE7B] mb-4 opacity-90 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100 drop-shadow-[0_4px_16px_rgba(223,190,123,0.25)]" />
                 <h3 className="font-serif-heading text-lg font-bold text-amber-200">Parish of the Alliance of the Two Hearts</h3>
                 <p className="text-xs text-stone-300 mt-2 max-w-xs">Archdiocese of Cebu • Banawa, Cebu City</p>
               </div>
