@@ -72,7 +72,7 @@ export default function AboutPreviewSection({ config = {} }) {
                 <span>Active Ministries</span>
               </div>
               <div className="flex items-center gap-2 text-stone-300">
-                <Church className="w-4 h-4 text-[#DFBE7B]" />
+                <ParishChurchOutlineIcon className="w-5 h-auto text-[#DFBE7B]" />
                 <span>Daily Sacraments</span>
               </div>
             </div>

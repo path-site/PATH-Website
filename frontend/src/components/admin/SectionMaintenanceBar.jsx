@@ -24,6 +24,13 @@ export default function SectionMaintenanceBar({
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState('');
+  const [noticeForm, setNoticeForm] = useState({
+    badge: '',
+    title: '',
+    desc: '',
+    showPhone: true,
+    showFb: true,
+  });
 
   if (!section) return null;
 
@@ -64,15 +71,6 @@ export default function SectionMaintenanceBar({
       setSaving(false);
     }
   };
-
-  // Custom Notice State for Modal
-  const [noticeForm, setNoticeForm] = useState({
-    badge: '',
-    title: '',
-    desc: '',
-    showPhone: true,
-    showFb: true,
-  });
 
   const openNoticeModal = () => {
     setNoticeForm({

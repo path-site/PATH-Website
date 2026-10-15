@@ -232,8 +232,6 @@ export default function ParishAIAssistant() {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  if (isMaintenance) return null;
-
   // Smooth open animation: mount first, then trigger scale/fade in next frame
   const openAssistant = () => {
     setIsMounted(true);
@@ -892,6 +890,8 @@ RULES:
       }
     ]);
   };
+
+  if (isMaintenance) return null;
 
   return (
     <>
