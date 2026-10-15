@@ -294,11 +294,26 @@ export default function ParishAIAssistant() {
           publicApi.getSettings ? publicApi.getSettings() : Promise.resolve({})
         ]);
 
+        const rawPriests = priestsRes.status === 'fulfilled' && priestsRes.value ? (priestsRes.value.data || priestsRes.value) : [];
+        const normalizedPriests = Array.isArray(rawPriests) ? sortPriests(rawPriests) : [];
+
+        const rawAnnouncements = announcementsRes.status === 'fulfilled' && announcementsRes.value ? (announcementsRes.value.data || announcementsRes.value) : [];
+        const normalizedAnnouncements = Array.isArray(rawAnnouncements)
+          ? rawAnnouncements
+          : (Array.isArray(rawAnnouncements?.content) ? rawAnnouncements.content : []);
+
+        const rawEvents = eventsRes.status === 'fulfilled' && eventsRes.value ? (eventsRes.value.data || eventsRes.value) : [];
+        const normalizedEvents = Array.isArray(rawEvents)
+          ? rawEvents
+          : (Array.isArray(rawEvents?.upcoming) ? rawEvents.upcoming : (Array.isArray(rawEvents?.content) ? rawEvents.content : []));
+
+        const rawSettings = settingsRes.status === 'fulfilled' && settingsRes.value ? (settingsRes.value.data || settingsRes.value) : {};
+
         setContextData({
-          priests: priestsRes.status === 'fulfilled' && priestsRes.value.data ? sortPriests(priestsRes.value.data) : [],
-          announcements: announcementsRes.status === 'fulfilled' && announcementsRes.value.data ? announcementsRes.value.data.content || announcementsRes.value.data : [],
-          events: eventsRes.status === 'fulfilled' && eventsRes.value.data ? eventsRes.value.data : [],
-          settings: settingsRes.status === 'fulfilled' && settingsRes.value.data ? settingsRes.value.data : {}
+          priests: normalizedPriests,
+          announcements: normalizedAnnouncements,
+          events: normalizedEvents,
+          settings: typeof rawSettings === 'object' && rawSettings !== null ? rawSettings : {}
         });
       } catch (err) {
         console.warn('Could not preload live context for AI Assistant', err);
@@ -309,26 +324,32 @@ export default function ParishAIAssistant() {
 
   // Build high-context system prompt for Groq LLM
   const buildSystemPrompt = () => {
-    const currentPriests = (contextData.priests || [])
-      .filter(p => p.priestStatus === 'CURRENT')
-      .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
-      .join('\n') || `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
+    try {
+      const priestsList = Array.isArray(contextData.priests) ? contextData.priests : [];
+      const currentPriests = priestsList
+        .filter(p => p && p.priestStatus === 'CURRENT')
+        .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
+        .join('\n') || `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
 
-    const recentAnnouncements = (contextData.announcements || [])
-      .slice(0, 3)
-      .map(a => `• **${a.title}**${a.summary ? `: ${a.summary}` : ''}`)
-      .join('\n');
+      const announcementsList = Array.isArray(contextData.announcements) ? contextData.announcements : [];
+      const recentAnnouncements = announcementsList
+        .slice(0, 3)
+        .filter(Boolean)
+        .map(a => `• **${a.title}**${a.summary ? `: ${a.summary}` : ''}`)
+        .join('\n');
 
-    const upcomingEvents = (contextData.events || [])
-      .slice(0, 3)
-      .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`)
-      .join('\n');
+      const eventsList = Array.isArray(contextData.events) ? contextData.events : [];
+      const upcomingEvents = eventsList
+        .slice(0, 3)
+        .filter(Boolean)
+        .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`)
+        .join('\n');
 
-    const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
-    const phone = contextData.settings?.phone || '(032) 255 3241';
-    const email = contextData.settings?.email || 'office@pathparish.org';
+      const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
+      const phone = contextData.settings?.phone || '(032) 255 3241';
+      const email = contextData.settings?.email || 'office@pathparish.org';
 
-    return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
+      return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
 Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
 Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with you").
 
@@ -385,6 +406,10 @@ RULES:
 - Be concise, friendly, and practical.
 - Never invent mass times or policies outside Catholic doctrine and the parish data above.
 - For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
+    } catch (err) {
+      console.warn('Fallback system prompt used due to error:', err);
+      return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu. Always welcome visitors warmly.`;
+    }
   };
 
 
