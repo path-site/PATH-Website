@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Sparkles, 
-  X, 
-  Send, 
-  RotateCcw, 
-  Church, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Phone, 
-  BookOpen, 
+import {
+  Sparkles,
+  X,
+  Send,
+  RotateCcw,
+  Church,
+  Calendar,
+  Clock,
+  MapPin,
+  Phone,
+  BookOpen,
   HelpCircle,
   ChevronRight,
   User,
-  HeartHandshake
+  HeartHandshake,
+  Key,
+  Check,
+  Cpu
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
 import { sortPriests } from '../../utils/priestSorter';
@@ -88,6 +91,13 @@ export default function ParishAIAssistant() {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
+
+  // Custom API key stored in localStorage for instant browser testing
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [savedKey, setSavedKey] = useState(() => localStorage.getItem('path_groq_api_key') || '');
+  const [keyNotice, setKeyNotice] = useState('');
+
   const [contextData, setContextData] = useState({
     priests: [],
     announcements: [],
@@ -99,7 +109,7 @@ export default function ParishAIAssistant() {
     {
       id: 'welcome',
       sender: 'ai',
-      text: "Pax Christi! Peace be with you. I am the PATH Parish Virtual Guide for the Parish of the Alliance of the Two Hearts.\n\nI can assist you with Mass schedules, sacramental requirements (Baptism, Weddings), our assigned clergy, parish office hours, and church announcements. How can I help you today?",
+      text: "Pax Christi! Peace be with you. I am the Parish Assistant for the Parish of the Alliance of the Two Hearts.\n\nI can assist you with Mass schedules, sacramental requirements (Baptism, Weddings), our assigned clergy, parish office hours, and church announcements. How can I help you today?",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -151,41 +161,148 @@ export default function ParishAIAssistant() {
     loadLiveContext();
   }, []);
 
-  // Generate intelligent response based on query
-  const generateResponse = (query) => {
+  // Build high-context system prompt for Groq LLM
+  const buildSystemPrompt = () => {
+    const currentPriests = (contextData.priests || [])
+      .filter(p => p.priestStatus === 'CURRENT')
+      .map(p => `• ${p.fullName} (${p.title}, Term: ${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`)
+      .join('\n') || `• Rev. Fr. Rizalino Raypan Jr. (Team Moderator, 2025 – Present)\n• Rev. Fr. Lucas Inoc (Parish Priest, 2025 – Present)\n• Rev. Fr. Miguelito Fortich (Parish Priest, 2025 – Present)`;
+
+    const recentAnnouncements = (contextData.announcements || [])
+      .slice(0, 3)
+      .map(a => `• ${a.title}${a.summary ? `: ${a.summary}` : ''}`)
+      .join('\n');
+
+    const upcomingEvents = (contextData.events || [])
+      .slice(0, 3)
+      .map(e => `• ${e.title} (${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'})`)
+      .join('\n');
+
+    const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
+    const phone = contextData.settings?.phone || '(032) 255 3241';
+    const email = contextData.settings?.email || 'office@pathparish.org';
+
+    return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
+Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
+Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with you").
+
+OFFICIAL PARISH DATA & KNOWLEDGE BASE:
+
+1. PARISH IDENTITY & PATRONS:
+- Name: Parish of the Alliance of the Two Hearts (PATH)
+- Patronage: Most Sacred Heart of Jesus and Immaculate Heart of Mary (Alliance of the Two Hearts)
+- Address: ${address}
+- Telephone: ${phone}
+- Email: ${email}
+- Office Hours:
+${CANONICAL_KNOWLEDGE.officeHours}
+
+2. HOLY MASS SCHEDULES:
+${CANONICAL_KNOWLEDGE.massSchedules}
+
+3. CONFESSION (SACRAMENT OF RECONCILIATION):
+${CANONICAL_KNOWLEDGE.confessions}
+
+4. ACTIVE CLERGY (2025 – PRESENT SET):
+${currentPriests}
+Note: Under our pastoral model, the parish is served by a team of three priests headed by the Team Moderator.
+
+5. PAST CLERGY (2018 – 2025 SET):
+• Rev. Fr. Benjamin Trazo (Former Team Moderator)
+• Rev. Sungcad, Russell Emmanuel Montayre (Former Parish Priest)
+• Rev. Fr. Alex Cola Jr. (Former Parish Priest)
+
+6. SACRAMENTS & MINISTRIES:
+- BAPTISM:
+${CANONICAL_KNOWLEDGE.baptism}
+- WEDDING (HOLY MATRIMONY):
+${CANONICAL_KNOWLEDGE.wedding}
+- MASS INTENTIONS:
+${CANONICAL_KNOWLEDGE.massIntentions}
+- ANOINTING OF THE SICK & VIATICUM:
+${CANONICAL_KNOWLEDGE.anointing}
+
+7. RECENT ANNOUNCEMENTS:
+${recentAnnouncements || 'Check official parish bulletin on site.'}
+
+8. UPCOMING EVENTS:
+${upcomingEvents || 'Liturgical calendar observed regularly.'}
+
+RULES:
+- Answer accurately based ONLY on official parish facts above.
+- Be concise, friendly, and practical.
+- Use clear bullet points when explaining schedules or requirements.
+- Never invent mass times or policies outside Catholic doctrine and the parish data above.
+- For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
+  };
+
+  // Call Groq API (OpenAI compatible)
+  const callGroqAPI = async (chatHistory, apiKey) => {
+    const model = import.meta.env.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile';
+
+    const systemMessage = {
+      role: 'system',
+      content: buildSystemPrompt()
+    };
+
+    // Keep the conversation history window concise (last 10 turns)
+    const formattedHistory = chatHistory.slice(-10).map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [systemMessage, ...formattedHistory],
+        temperature: 0.5,
+        max_tokens: 750
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Groq HTTP error ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  };
+
+  // Local fallback response generator if no key or offline
+  const generateLocalResponse = (query) => {
     const q = query.toLowerCase().trim();
 
-    // 1. Mass Schedules
     if (q.includes('mass') || q.includes('schedule') || q.includes('time') || q.includes('misa') || q.includes('sunday mass') || q.includes('live')) {
       return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${CANONICAL_KNOWLEDGE.massSchedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
     }
 
-    // 2. Priests / Clergy
     if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator')) {
       const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
       if (current.length > 0) {
-        const list = current.map((p, idx) => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
+        const list = current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
         return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nWithin our pastoral team structure, the **Team Moderator** leads pastoral ministry alongside our assigned priests. You can view all clergy bios on our [Priests Directory](/about/priests) page.`;
       }
       return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nWithin each ministry set, the Team Moderator is placed first. You can read their biographies under the [About / Priests](/about/priests) section.`;
     }
 
-    // 3. Confession / Reconciliation
     if (q.includes('confess') || q.includes('kumpisal') || q.includes('reconciliation') || q.includes('penance') || q.includes('forgive')) {
-      return `**Sacrament of Reconciliation (Confession):**\n\n${CANONICAL_KNOWLEDGE.confessions}\n\nIf you require a dedicated pastoral counseling or spiritual direction session, you may coordinate with the parish office.`;
+      return `**Sacrament of Reconciliation (Confession):**\n\n${CANONICAL_KNOWLEDGE.confessions}\n\nIf you require dedicated pastoral counseling, you may coordinate directly with the parish office.`;
     }
 
-    // 4. Baptism / Binyag
     if (q.includes('baptis') || q.includes('binyag') || q.includes('christening') || q.includes('godparent') || q.includes('ninong') || q.includes('ninang')) {
       return `${CANONICAL_KNOWLEDGE.baptism}\n\nPlease visit the Parish Office during office hours to submit documents and reserve your schedule.`;
     }
 
-    // 5. Wedding / Matrimony / Kasal
     if (q.includes('wed') || q.includes('marri') || q.includes('kasal') || q.includes('matrimon') || q.includes('bride') || q.includes('groom')) {
-      return `${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office early to secure their date and complete all canonical interviews.`;
+      return `${CANONICAL_KNOWLEDGE.wedding}\n\nCouples are advised to inquire at the Parish Office at least 3 to 6 months in advance.`;
     }
 
-    // 6. Office Hours / Schedule
     if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
       const addr = contextData.settings.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
       const phone = contextData.settings.phone || '(032) 255 3241';
@@ -193,17 +310,14 @@ export default function ParishAIAssistant() {
       return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone:** ${phone}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${CANONICAL_KNOWLEDGE.officeHours}`;
     }
 
-    // 7. Mass Intentions / Pamisa
     if (q.includes('intention') || q.includes('pamisa') || q.includes('thanksgiving') || q.includes('requiem') || q.includes('soul') || q.includes('petition')) {
       return `**Mass Intentions:**\n\n${CANONICAL_KNOWLEDGE.massIntentions}`;
     }
 
-    // 8. Anointing of the Sick / Viaticum / Hospital Visit
     if (q.includes('anoint') || q.includes('sick') || q.includes('viaticum') || q.includes('hospital') || q.includes('emergency') || q.includes('dying')) {
       return `**Anointing of the Sick:**\n\n${CANONICAL_KNOWLEDGE.anointing}`;
     }
 
-    // 9. Announcements / News
     if (q.includes('announcement') || q.includes('news') || q.includes('bulletin') || q.includes('update')) {
       if (contextData.announcements && contextData.announcements.length > 0) {
         const top = contextData.announcements.slice(0, 3);
@@ -213,7 +327,6 @@ export default function ParishAIAssistant() {
       return `You can view our latest parish bulletins and circulars on the [Announcements](/announcements) page.`;
     }
 
-    // 10. Events / Activities
     if (q.includes('event') || q.includes('activit') || q.includes('fiesta') || q.includes('feast') || q.includes('calendar')) {
       if (contextData.events && contextData.events.length > 0) {
         const top = contextData.events.slice(0, 3);
@@ -223,21 +336,18 @@ export default function ParishAIAssistant() {
       return `Our parish hosts various spiritual formation activities and apostolates throughout the year. You can view all upcoming parish dates on our [Events](/events) page.`;
     }
 
-    // 11. Patron Saint / Two Hearts / About
     if (q.includes('alliance') || q.includes('two hearts') || q.includes('patron') || q.includes('history') || q.includes('sacred heart') || q.includes('immaculate heart')) {
       return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more about our parish heritage and pastoral journey on the [Church History](/about/history) page.`;
     }
 
-    // 12. Friendly Greetings
     if (q.includes('hello') || q.includes('hi') || q.includes('good morning') || q.includes('good afternoon') || q.includes('good evening') || q.includes('kamusta') || q.includes('maayong')) {
       return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests, or parish office schedules.`;
     }
 
-    // Default polite ecclesiastical fallback
     return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Clergy)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone)\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** or visit us along J. Fortich St., Banawa, Cebu City.`;
   };
 
-  const handleSend = (textToSend) => {
+  const handleSend = async (textToSend) => {
     const messageText = textToSend || inputMessage;
     if (!messageText.trim() || isTyping) return;
 
@@ -248,22 +358,47 @@ export default function ParishAIAssistant() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    const newHistory = [...messages, userMsg];
+    setMessages(newHistory);
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate realistic thoughtful AI typing delay
+    const activeApiKey = savedKey || import.meta.env.VITE_GROQ_API_KEY || '';
+
+    // If Groq key is present, use Groq Llama 3.3
+    if (activeApiKey) {
+      try {
+        const groqAnswer = await callGroqAPI(newHistory, activeApiKey);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            sender: 'ai',
+            text: groqAnswer,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            source: 'groq'
+          }
+        ]);
+        setIsTyping(false);
+        return;
+      } catch (err) {
+        console.warn('Groq API error, falling back to local parish engine:', err.message);
+      }
+    }
+
+    // Seamless Fallback to local high-fidelity parish engine
     setTimeout(() => {
-      const aiReplyText = generateResponse(messageText);
+      const aiReplyText = generateLocalResponse(messageText);
       const aiMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
         text: aiReplyText,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: 'local'
       };
       setMessages(prev => [...prev, aiMsg]);
       setIsTyping(false);
-    }, 600);
+    }, 500);
   };
 
   const handleKeyDown = (e) => {
@@ -284,19 +419,38 @@ export default function ParishAIAssistant() {
     ]);
   };
 
+  const handleSaveApiKey = (e) => {
+    e.preventDefault();
+    if (apiKeyInput.trim()) {
+      localStorage.setItem('path_groq_api_key', apiKeyInput.trim());
+      setSavedKey(apiKeyInput.trim());
+      setKeyNotice('Groq API key saved successfully!');
+    } else {
+      localStorage.removeItem('path_groq_api_key');
+      setSavedKey('');
+      setKeyNotice('Using environment variable or default parish engine.');
+    }
+    setTimeout(() => {
+      setKeyNotice('');
+      setShowConfig(false);
+    }, 1500);
+  };
+
+  const isGroqActive = Boolean(savedKey || import.meta.env.VITE_GROQ_API_KEY);
+
   return (
     <>
       {/* =========================================================================
           1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT)
          ========================================================================= */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        
+
         {/* Gentle Onboarding Tooltip Bubble */}
         {showTooltip && !isOpen && (
           <div className="mb-3 animate-in fade-in slide-in-from-bottom-2 duration-300 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-[#C59B3F]/40 text-xs font-semibold text-stone-800">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span>Have questions? Ask PATH AI</span>
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); setShowTooltip(false); }}
               className="text-stone-400 hover:text-stone-700 ml-1 p-0.5"
               aria-label="Dismiss tooltip"
@@ -313,11 +467,10 @@ export default function ParishAIAssistant() {
             setShowTooltip(false);
           }}
           aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
-          className={`relative group flex items-center justify-center rounded-full shadow-2xl transition-all duration-300 transform active:scale-95 focus:outline-none ${
-            isOpen
-              ? 'w-13 h-13 bg-[#1C1814] text-white border-2 border-[#C59B3F]/60 rotate-90 hover:bg-[#800020]'
-              : 'w-14 h-14 bg-gradient-to-br from-[#800020] via-[#981226] to-[#600018] text-white border-2 border-[#C59B3F] hover:scale-105 hover:shadow-[0_0_25px_rgba(197,155,63,0.6)]'
-          }`}
+          className={`relative group flex items-center justify-center rounded-full shadow-2xl transition-all duration-300 transform active:scale-95 focus:outline-none ${isOpen
+            ? 'w-13 h-13 bg-[#1C1814] text-white border-2 border-[#C59B3F]/60 rotate-90 hover:bg-[#800020]'
+            : 'w-14 h-14 bg-gradient-to-br from-[#800020] via-[#981226] to-[#600018] text-white border-2 border-[#C59B3F] hover:scale-105 hover:shadow-[0_0_25px_rgba(197,155,63,0.6)]'
+            }`}
         >
           {/* Animated Gold Aura / Ring */}
           {!isOpen && (
@@ -343,11 +496,11 @@ export default function ParishAIAssistant() {
           2. POP-UP AI AGENT CHAT WINDOW
          ========================================================================= */}
       {isOpen && (
-        <div 
+        <div
           className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-bottom-6 duration-200"
           style={{ boxShadow: '0 25px 60px -15px rgba(28, 24, 20, 0.4), 0 0 0 1px rgba(197, 155, 63, 0.25)' }}
         >
-          
+
           {/* Header */}
           <div className="bg-gradient-to-r from-[#800020] via-[#5C0017] to-[#1C1814] p-4 sm:p-5 text-white flex items-center justify-between border-b border-[#C59B3F]/30 relative overflow-hidden shrink-0">
             {/* Subtle liturgical ornament watermark */}
@@ -363,19 +516,30 @@ export default function ParishAIAssistant() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-serif-heading text-base font-bold tracking-wide text-white leading-tight">
-                    PATH Parish AI
+                    PATH AI
                   </h3>
-                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40">
-                    Guide
+                  <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 ${isGroqActive
+                      ? 'bg-amber-400/20 text-amber-200 border border-amber-400/40'
+                      : 'bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40'
+                    }`}>
+                    {isGroqActive ? 'Groq AI' : 'Guide'}
                   </span>
                 </div>
                 <p className="text-[11px] text-stone-300 font-sans mt-0.5">
-                  Alliance of the Two Hearts Parish
+                  Parish Assistant
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-1 relative z-10">
+              <button
+                onClick={() => setShowConfig(!showConfig)}
+                title="Configure Groq API Key"
+                className={`p-1.5 rounded-lg transition-colors ${showConfig ? 'bg-white/20 text-amber-300' : 'text-stone-300 hover:text-white hover:bg-white/10'}`}
+                aria-label="Groq Settings"
+              >
+                <Key className="w-4 h-4" />
+              </button>
               <button
                 onClick={resetChat}
                 title="Restart conversation"
@@ -395,6 +559,62 @@ export default function ParishAIAssistant() {
             </div>
           </div>
 
+          {/* Configuration Drawer for Groq API Key (Quick testing without rebuild) */}
+          {showConfig && (
+            <div className="bg-[#FAF7F0] border-b border-[#C59B3F]/30 p-3.5 text-xs animate-in slide-in-from-top-2 duration-150 shrink-0">
+              <form onSubmit={handleSaveApiKey} className="space-y-2">
+                <div className="flex items-center justify-between font-bold text-stone-800 text-[11px]">
+                  <span className="flex items-center gap-1.5 text-[#800020]">
+                    <Cpu className="w-3.5 h-3.5 text-[#C59B3F]" /> Groq API Integration
+                  </span>
+                  <span className="text-[10px] text-stone-500 font-normal">
+                    Model: llama-3.3-70b-versatile
+                  </span>
+                </div>
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder={savedKey ? "•••••••••••• (Key Active in Browser)" : (import.meta.env.VITE_GROQ_API_KEY ? "Active via VITE_GROQ_API_KEY" : "Paste gsk_... key for instant testing")}
+                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-stone-300 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-[#800020]"
+                />
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] text-stone-500">
+                    Get key at <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-[#800020] underline font-semibold">console.groq.com</a>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {savedKey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          localStorage.removeItem('path_groq_api_key');
+                          setSavedKey('');
+                          setApiKeyInput('');
+                          setKeyNotice('Key cleared.');
+                          setTimeout(() => setKeyNotice(''), 1500);
+                        }}
+                        className="text-[10px] px-2 py-1 text-stone-500 hover:text-rose-600"
+                      >
+                        Clear
+                      </button>
+                    )}
+                    <button
+                      type="submit"
+                      className="px-3 py-1 bg-[#800020] text-white rounded-md text-[11px] font-bold shadow-2xs hover:bg-[#68001a]"
+                    >
+                      Save Key
+                    </button>
+                  </div>
+                </div>
+                {keyNotice && (
+                  <p className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <Check className="w-3 h-3" /> {keyNotice}
+                  </p>
+                )}
+              </form>
+            </div>
+          )}
+
           {/* Messages Container */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FDFCF9]">
             {messages.map((msg) => (
@@ -408,19 +628,24 @@ export default function ParishAIAssistant() {
                   </div>
                 )}
 
-                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs ${
-                  msg.sender === 'user'
-                    ? 'bg-[#800020] text-white rounded-tr-xs font-sans'
-                    : 'bg-white border border-[#C59B3F]/25 text-stone-800 rounded-tl-xs parchment-card'
-                }`}>
+                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs ${msg.sender === 'user'
+                  ? 'bg-[#800020] text-white rounded-tr-xs font-sans'
+                  : 'bg-white border border-[#C59B3F]/25 text-stone-800 rounded-tl-xs parchment-card'
+                  }`}>
                   <div className="whitespace-pre-line font-normal space-y-1">
                     {msg.text}
                   </div>
-                  <span className={`block text-[10px] mt-1.5 font-mono ${
-                    msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
-                  }`}>
-                    {msg.timestamp}
-                  </span>
+                  <div className="flex items-center justify-between gap-2 mt-1.5">
+                    {msg.sender === 'ai' && msg.source === 'groq' && (
+                      <span className="text-[9px] text-[#8F6B1E] font-medium flex items-center gap-0.5">
+                        <Sparkles className="w-2.5 h-2.5" /> Groq AI
+                      </span>
+                    )}
+                    <span className={`block text-[10px] font-mono ${msg.sender === 'user' ? 'text-rose-200/80 text-right ml-auto' : 'text-stone-400'
+                      }`}>
+                      {msg.timestamp}
+                    </span>
+                  </div>
                 </div>
 
                 {msg.sender === 'user' && (
@@ -431,7 +656,7 @@ export default function ParishAIAssistant() {
               </div>
             ))}
 
-            {/* Simulated Typing Indicator */}
+            {/* Simulated / Streaming Typing Indicator */}
             {isTyping && (
               <div className="flex gap-2.5 justify-start items-center">
                 <div className="w-7 h-7 rounded-full bg-[#FAF7F0] border border-[#C59B3F]/40 flex items-center justify-center shrink-0 text-[#8F6B1E] shadow-2xs">
@@ -441,7 +666,9 @@ export default function ParishAIAssistant() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '300ms' }} />
-                  <span className="text-[11px] text-stone-500 font-sans ml-1">PATH AI is writing...</span>
+                  <span className="text-[11px] text-stone-500 font-sans ml-1">
+                    {isGroqActive ? "Groq AI is thinking..." : "Parish Assistant is writing..."}
+                  </span>
                 </div>
               </div>
             )}
@@ -498,7 +725,7 @@ export default function ParishAIAssistant() {
             <div className="flex items-center justify-between text-[10px] text-stone-400 mt-2 px-1">
               <span>Parish of the Alliance of the Two Hearts</span>
               <span className="flex items-center gap-1 text-[#8F6B1E]">
-                <Sparkles className="w-2.5 h-2.5" /> AI Virtual Guide
+                <Sparkles className="w-2.5 h-2.5" /> {isGroqActive ? 'Groq Llama 3.3' : 'Parish Guide'}
               </span>
             </div>
           </div>
