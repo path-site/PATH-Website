@@ -9,6 +9,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Instant parallel pre-fetch for parish system settings to eliminate waterfall and glimpse
+      try {
+        window.__SETTINGS_PROMISE__ = fetch('/api/public/settings').then(function(r) { return r.json(); }).catch(function() { return null; });
+      } catch (e) {}
+    </script>
   </head>
   <body class="bg-[#FAF9F5] text-[#111827] antialiased selection:bg-[#0B3B95] selection:text-white">
     <div id="root"></div>

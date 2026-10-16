@@ -9,7 +9,7 @@ import { isOverallMaintenance } from '../../config/maintenanceConfig';
 import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
-  const { settings } = useTheme();
+  const { settings, loading } = useTheme();
   const isOverallMaint = isOverallMaintenance(settings);
   const { pathname } = useLocation();
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -145,9 +145,21 @@ export default function PublicLayout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Full-screen sacred maintenance mode view when overall portal is shielded
+  // 1. Full-screen sacred maintenance mode view when overall portal is shielded (Frame 0 if cached)
   if (isOverallMaint) {
     return <OverallMaintenanceScreen />;
+  }
+
+  // 2. Strict protection against any glimpse of the live homepage:
+  // If settings are still being verified over the network on initial load, do not mount the public page or photos
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FDFCF7] flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="w-20 h-20 rounded-full bg-white p-2 shadow-xl ring-4 ring-[#C59B3F]/40 flex items-center justify-center animate-pulse">
+          <img src="/logo.png" alt="PATH Parish Seal" className="w-full h-full object-contain" />
+        </div>
+      </div>
+    );
   }
 
   return (

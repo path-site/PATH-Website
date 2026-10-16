@@ -90,6 +90,11 @@ export default function GeneralSettings() {
       maintenance_overall_show_fb: settings.maintenance_overall_show_fb !== 'false' ? 'true' : 'false',
     };
     setSettings(updated);
+    try {
+      localStorage.setItem('path_site_settings_cache', JSON.stringify(updated));
+      localStorage.setItem('path_maintenance_overall', nextVal);
+      window.dispatchEvent(new CustomEvent('path_settings_updated', { detail: updated }));
+    } catch (e) {}
     setSaving(true);
     try {
       const payload = {};
@@ -99,6 +104,11 @@ export default function GeneralSettings() {
         }
       });
       await adminApi.saveSettings(payload);
+      try {
+        localStorage.setItem('path_site_settings_cache', JSON.stringify(payload));
+        localStorage.setItem('path_maintenance_overall', nextVal);
+        window.dispatchEvent(new CustomEvent('path_settings_updated', { detail: payload }));
+      } catch (e) {}
       if (refreshSettings) await refreshSettings();
       notify('success', nextState 
         ? 'System-Wide Maintenance Mode turned ON. Entire public website is now shielded.'
@@ -129,6 +139,13 @@ export default function GeneralSettings() {
       if (!payload.tagline && payload.site_tagline) payload.tagline = payload.site_tagline;
 
       await adminApi.saveSettings(payload);
+      try {
+        localStorage.setItem('path_site_settings_cache', JSON.stringify(payload));
+        if (payload.maintenance_overall !== undefined) {
+          localStorage.setItem('path_maintenance_overall', payload.maintenance_overall);
+        }
+        window.dispatchEvent(new CustomEvent('path_settings_updated', { detail: payload }));
+      } catch (e) {}
       if (refreshSettings) await refreshSettings();
       notify('success', 'General system settings saved successfully.');
     } catch (err) {
