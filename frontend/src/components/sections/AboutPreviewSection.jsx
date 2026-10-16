@@ -58,22 +58,22 @@ export default function AboutPreviewSection({ config = {} }) {
               About the Parish
             </span>
 
-            <h2 className="font-serif-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight animate-fade-in-up stagger-2">
+            <h2 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight animate-fade-in-up stagger-2">
               {heading}
             </h2>
 
-            <p className="text-stone-300 text-base sm:text-lg leading-relaxed font-light animate-fade-in-up stagger-3">
+            <p className="text-stone-300 text-xs sm:text-base lg:text-lg leading-relaxed font-light animate-fade-in-up stagger-3">
               {description}
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-stone-800 text-sm animate-fade-in-up stagger-4">
-              <div className="flex items-center gap-2 text-stone-300">
-                <HeartHandshake className="w-4 h-4 text-[#DFBE7B]" />
-                <span>Active Ministries</span>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 pt-3 border-t border-stone-800 text-xs sm:text-sm animate-fade-in-up stagger-4">
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10 text-stone-200">
+                <HeartHandshake className="w-4 h-4 text-[#DFBE7B] shrink-0" />
+                <span className="font-semibold">Active Ministries</span>
               </div>
-              <div className="flex items-center gap-2 text-stone-300">
-                <ParishChurchOutlineIcon className="w-5 h-auto text-[#DFBE7B]" />
-                <span>Daily Sacraments</span>
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-white/10 text-stone-200">
+                <ParishChurchOutlineIcon className="w-4 h-auto text-[#DFBE7B] shrink-0" />
+                <span className="font-semibold">Daily Sacraments</span>
               </div>
             </div>
 
@@ -81,7 +81,7 @@ export default function AboutPreviewSection({ config = {} }) {
               <div className="pt-4 animate-fade-in-up stagger-5">
                 <Link
                   to={buttonLink}
-                  className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 text-sm font-extrabold btn-gold-glow shimmer-sweep transition-all shadow-xl"
+                  className="inline-flex items-center justify-center sm:justify-start gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 text-xs sm:text-sm font-extrabold btn-gold-glow shimmer-sweep hover:scale-105 active:scale-95 transition-all shadow-xl w-full sm:w-auto"
                 >
                   <span>{buttonText}</span>
                   <ArrowRight className="w-4 h-4 text-stone-900 transition-transform group-hover:translate-x-1" />

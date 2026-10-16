@@ -59,11 +59,15 @@ export default function Footer() {
             </div>
             <div className="flex items-center gap-3 text-sm text-stone-300">
               <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>{settings.phone || '(032) 255 3241 | 0942 361 3174'}</span>
+              <a href={`tel:${(settings.phone || '(032) 255 3241').split('|')[0].trim()}`} className="hover:text-amber-300 transition-colors">
+                {settings.phone || '(032) 255 3241 | 0942 361 3174'}
+              </a>
             </div>
             <div className="flex items-center gap-3 text-sm text-stone-300">
               <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>{settings.email || 'pathbanawa1988@gmail.com'}</span>
+              <a href={`mailto:${settings.email || 'pathsoccomit@gmail.com'}`} className="hover:text-amber-300 transition-colors">
+                {settings.email || 'pathsoccomit@gmail.com'}
+              </a>
             </div>
             <div className="flex items-start gap-3 text-sm text-stone-300 pt-1">
               <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-1" />

@@ -4,7 +4,7 @@ import { publicApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   Menu, X, ChevronDown, Church, Heart, BookOpen, Clock, 
-  Users, Calendar, Image as ImageIcon, Mail
+  Users, Calendar, Image as ImageIcon, Mail, Phone, ArrowRight
 } from 'lucide-react';
 
 const iconMap = {
@@ -77,22 +77,22 @@ export default function Navbar() {
       {/* Main Navbar */}
       <div className="bg-[#FDFCF9]/95 backdrop-blur-md border-b-2 border-[#C59B3F]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-18 sm:h-20">
             
             {/* Left: Parish Official Logo and Name */}
-            <Link to="/" className="flex items-center gap-3.5 group text-left">
-              <div className="w-13 h-13 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#C59B3F] group-hover:ring-[#A81B2B] transition-all flex items-center justify-center overflow-hidden shrink-0">
+            <Link to="/" className="flex items-center gap-2.5 sm:gap-3.5 group text-left min-w-0 pr-2">
+              <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#C59B3F] group-hover:ring-[#A81B2B] transition-all flex items-center justify-center overflow-hidden shrink-0">
                 <img 
                   src="/logo.png" 
                   alt="PATH Parish Official Seal" 
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div className="flex flex-col">
-                <span className="font-serif-heading text-lg sm:text-xl font-bold tracking-tight text-[#1C1814] leading-tight group-hover:text-[#A81B2B] transition-colors">
+              <div className="flex flex-col min-w-0">
+                <span className="font-serif-heading text-xs sm:text-lg lg:text-xl font-bold tracking-tight text-[#1C1814] leading-tight group-hover:text-[#A81B2B] transition-colors truncate sm:whitespace-normal">
                   PARISH OF THE ALLIANCE OF THE TWO HEARTS
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-800/90 mt-0.5 flex items-center gap-1.5">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-800/90 mt-0.5 flex items-center gap-1.5 truncate">
                   <span>J. FORTICH ST., BANAWA, CEBU CITY</span>
                 </span>
               </div>
@@ -206,8 +206,8 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-stone-200 bg-white px-4 pt-3 pb-6 shadow-2xl animate-in slide-in-from-top-4 duration-200 max-h-[85vh] overflow-y-auto">
-          <div className="space-y-1">
+        <div className="lg:hidden border-t border-[#C59B3F]/30 bg-[#FDFCF9]/98 backdrop-blur-xl px-4 pt-4 pb-7 shadow-2xl animate-in slide-in-from-top-3 duration-200 max-h-[85vh] overflow-y-auto">
+          <div className="space-y-1.5">
             {navItems.map((item) => {
               const hasChildren = item.children && item.children.length > 0;
               const isExpanded = mobileExpanded[item.id];
@@ -215,22 +215,22 @@ export default function Navbar() {
 
               if (hasChildren || item.destinationType === 'DROPDOWN_PARENT') {
                 return (
-                  <div key={item.id} className="border-b border-stone-100 last:border-b-0 py-1">
+                  <div key={item.id} className="rounded-xl overflow-hidden border border-stone-200/60 bg-white/70 shadow-xs mb-1.5">
                     <button
                       type="button"
                       onClick={() => toggleMobileSubmenu(item.id)}
-                      className="w-full flex items-center justify-between py-2.5 px-3 rounded-lg text-base font-semibold text-stone-800 hover:bg-stone-50"
+                      className="w-full flex items-center justify-between py-3 px-3.5 text-sm font-bold text-stone-800 hover:bg-stone-50 transition-colors"
                     >
-                      <span>{item.label}</span>
+                      <span className="font-serif-heading">{item.label}</span>
                       <ChevronDown
-                        className={`w-5 h-5 transition-transform duration-200 text-stone-500 ${
-                          isExpanded ? 'rotate-180 text-[#0B3B95]' : ''
+                        className={`w-4 h-4 transition-transform duration-200 text-[#C59B3F] ${
+                          isExpanded ? 'rotate-180' : ''
                         }`}
                       />
                     </button>
 
                     {isExpanded && (
-                      <div className="pl-4 pr-2 py-1 space-y-1 border-l-2 border-[#D4AF37] ml-3 mt-1">
+                      <div className="p-2 space-y-1 bg-[#FAF7F0] border-t border-stone-100">
                         {item.children.map((subItem) => {
                           const SubIcon = iconMap[subItem.label] || Church;
                           const isSubActive = location.pathname === subItem.targetPath;
@@ -240,13 +240,13 @@ export default function Navbar() {
                               to={subItem.targetPath}
                               target={subItem.openInNewTab ? '_blank' : '_self'}
                               rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
-                              className={`flex items-center gap-3 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                              className={`flex items-center gap-2.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                                 isSubActive
-                                  ? 'bg-[#C41E3A] text-white font-semibold'
-                                  : 'text-stone-700 hover:text-[#0B3B95] hover:bg-stone-100'
+                                  ? 'bg-[#800020] text-white shadow-xs'
+                                  : 'text-stone-700 hover:text-[#800020] hover:bg-white'
                               }`}
                             >
-                              <SubIcon className="w-4 h-4" />
+                              <SubIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                               <span>{subItem.label}</span>
                             </Link>
                           );
@@ -263,23 +263,50 @@ export default function Navbar() {
                   to={item.destinationType === 'EXTERNAL' ? item.externalUrl : (item.targetPath || '/')}
                   target={item.openInNewTab ? '_blank' : '_self'}
                   rel={item.openInNewTab ? 'noopener noreferrer' : ''}
-                  className={`block py-2.5 px-3 rounded-lg text-base font-semibold transition-colors ${
+                  className={`block py-2.5 px-3.5 rounded-xl text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'bg-[#C41E3A]/10 text-[#C41E3A]'
-                      : 'text-stone-800 hover:bg-stone-50 hover:text-[#0B3B95]'
+                      ? 'bg-[#800020] text-white shadow-xs font-bold'
+                      : 'text-stone-800 hover:bg-stone-100 hover:text-[#800020]'
                   }`}
                 >
-                  {item.label}
+                  <span className="font-serif-heading">{item.label}</span>
                 </Link>
               );
             })}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-stone-200 flex flex-col gap-2">
-            <div className="text-xs text-stone-500">
-              <p className="font-semibold text-stone-700">Parish Office & Inquiries:</p>
-              <p>{settings.phone}</p>
-              <p>{settings.email}</p>
+          {/* Quick Action Button for Mobile Drawer */}
+          <div className="mt-4 pt-3 border-t border-stone-200/80">
+            <Link
+              to="/contact#mass-schedule"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 text-xs font-extrabold uppercase tracking-wider shadow-md hover:brightness-105 active:scale-98 transition-all"
+            >
+              <Calendar className="w-4 h-4 text-stone-900" />
+              <span>Mass Schedules & Confessions</span>
+            </Link>
+          </div>
+
+          {/* Direct Tap-to-Contact Bar */}
+          <div className="mt-4 pt-3 border-t border-stone-200/60 flex flex-col gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">Parish Office & Inquiries</span>
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              {settings.phone && (
+                <a
+                  href={`tel:${settings.phone.split('|')[0].trim()}`}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <span className="truncate">{settings.phone}</span>
+                </a>
+              )}
+              <a
+                href={`mailto:${settings.email || 'pathsoccomit@gmail.com'}`}
+                className="flex items-center gap-2 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span className="truncate">{settings.email || 'pathsoccomit@gmail.com'}</span>
+              </a>
             </div>
           </div>
         </div>

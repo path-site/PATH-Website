@@ -74,19 +74,23 @@ export default function HeroSlideshow({ config = {} }) {
         key={currentIndex} 
         className="relative z-20 max-w-5xl mx-auto h-full flex flex-col justify-center items-center text-center px-4 sm:px-6 lg:px-8"
       >
-        <h1 className="font-serif-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl drop-shadow-md animate-fade-in-up stagger-1">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-amber-300/40 text-amber-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 sm:mb-5 shadow-sm animate-fade-in-up">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <span>Archdiocese of Cebu • Banawa, Cebu City</span>
+        </div>
+        <h1 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-4xl drop-shadow-md animate-fade-in-up stagger-1">
           {currentSlide.title}
         </h1>
         {currentSlide.description && (
-          <p className="mt-4 sm:mt-6 text-base sm:text-lg lg:text-xl text-stone-100 max-w-2xl font-normal leading-relaxed drop-shadow-xs animate-fade-in-up stagger-2">
+          <p className="mt-3 sm:mt-5 text-xs sm:text-base lg:text-lg text-stone-100 max-w-2xl font-normal leading-relaxed drop-shadow-xs animate-fade-in-up stagger-2">
             {currentSlide.description}
           </p>
         )}
         {currentSlide.buttonText && currentSlide.buttonLink && (
-          <div className="mt-8 flex items-center justify-center animate-fade-in-up stagger-3">
+          <div className="mt-6 sm:mt-8 flex items-center justify-center animate-fade-in-up stagger-3">
             <Link
               to={currentSlide.buttonLink}
-              className="inline-flex items-center justify-center px-8 py-3.5 rounded-full text-sm sm:text-base font-extrabold bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 shadow-xl border border-amber-200/50 btn-gold-glow shimmer-sweep transition-all"
+              className="inline-flex items-center justify-center px-7 sm:px-9 py-3 sm:py-3.5 rounded-full text-xs sm:text-sm font-extrabold bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 shadow-xl border border-amber-200/50 btn-gold-glow shimmer-sweep hover:scale-105 active:scale-95 transition-all"
             >
               {currentSlide.buttonText}
             </Link>
@@ -101,17 +105,17 @@ export default function HeroSlideshow({ config = {} }) {
             type="button"
             onClick={prevSlide}
             aria-label="Previous slide"
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-black/35 hover:bg-black/60 text-white backdrop-blur-xs border border-white/20 transition-all hover:scale-105"
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-105 active:scale-95"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 sm:w-6 h-5 sm:h-6" />
           </button>
           <button
             type="button"
             onClick={nextSlide}
             aria-label="Next slide"
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-black/35 hover:bg-black/60 text-white backdrop-blur-xs border border-white/20 transition-all hover:scale-105"
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-2 sm:p-2.5 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 transition-all hover:scale-105 active:scale-95"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 sm:w-6 h-5 sm:h-6" />
           </button>
         </>
       )}

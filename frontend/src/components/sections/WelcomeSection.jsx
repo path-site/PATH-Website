@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Church, Calendar } from 'lucide-react';
 
 export default function WelcomeSection({ config = {} }) {
   const {
@@ -16,31 +16,50 @@ export default function WelcomeSection({ config = {} }) {
 
   if (layout === 'centered' || !imageUrl) {
     return (
-      <section className="py-20 bg-stone-50/60 border-b border-stone-200/60">
-        <div className="max-w-4xl mx-auto px-4 text-center scroll-reveal-scale">
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-3">
-            Welcome to PATH
-          </span>
-          <h2 className="font-serif-heading text-3xl sm:text-4xl font-bold text-stone-900 tracking-tight">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[#FCFBF9] border-b border-stone-200/60 relative overflow-hidden">
+        {/* Subtle liturgical background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center scroll-reveal-scale">
+          {/* Eyebrow Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#C59B3F]/15 border border-[#C59B3F]/30 text-amber-900 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-4 shadow-2xs">
+            <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
+            <span>Welcome to Our Parish Family</span>
+          </div>
+
+          <h2 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-bold text-stone-900 tracking-tight leading-tight">
             {heading}
           </h2>
-          <p className="mt-4 text-lg font-medium text-[#6B1D2F]">
-            {welcomeMessage}
-          </p>
-          <p className="mt-3 text-stone-600 leading-relaxed max-w-2xl mx-auto">
+
+          {/* Liturgical Quote Card */}
+          <div className="mt-6 mb-5 max-w-2xl mx-auto p-4 sm:p-6 rounded-2xl bg-[#FAF7F0] border-l-4 border-[#800020] text-stone-900 shadow-xs border border-stone-200/50">
+            <p className="font-serif-heading text-sm sm:text-lg lg:text-xl font-medium italic text-[#800020] leading-relaxed">
+              "{welcomeMessage}"
+            </p>
+          </div>
+
+          <p className="text-xs sm:text-sm lg:text-base text-stone-600 leading-relaxed max-w-2xl mx-auto font-normal">
             {supportingDescription}
           </p>
-          {buttonText && buttonLink && (
-            <div className="mt-8">
+
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {buttonText && buttonLink && (
               <Link
                 to={buttonLink}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#6B1D2F] hover:bg-[#541624] text-white text-sm font-semibold transition-all shadow-md hover:shadow-lg"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#800020] hover:bg-[#68001a] text-white text-xs sm:text-sm font-semibold transition-all shadow-md hover:shadow-lg active:scale-95"
               >
                 <span>{buttonText}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-amber-300" />
               </Link>
-            </div>
-          )}
+            )}
+            <Link
+              to="/contact#mass-schedule"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs sm:text-sm font-semibold transition-all border border-stone-300/80 shadow-xs active:scale-95"
+            >
+              <Calendar className="w-4 h-4 text-[#C59B3F]" />
+              <span>Mass Schedules</span>
+            </Link>
+          </div>
         </div>
       </section>
     );
