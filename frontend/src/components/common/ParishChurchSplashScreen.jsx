@@ -235,31 +235,15 @@ export default function ParishChurchSplashScreen({
           </svg>
         </div>
 
-        {/* Liturgical Identification Typography Below Church */}
-        <div className="mt-8 sm:mt-10 space-y-2 max-w-2xl mx-auto">
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-amber-300 block font-serif animate-fade-in-up stagger-3">
-            The Roman Catholic Archdiocese of Cebu
-          </span>
-
-          <h1 className="font-serif-heading text-lg sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#DFBE7B] via-amber-100 to-[#DFBE7B] animate-fade-in-up stagger-4 leading-tight sm:leading-snug">
-            <span className="block">Parish of the Alliance</span>
-            <span className="block">of the Two Hearts</span>
-          </h1>
-
-          <p className="text-[11px] sm:text-xs tracking-widest uppercase text-stone-300 font-medium animate-fade-in-up stagger-5">
-            Banawa, Cebu City • Founded 1988
-          </p>
-
-          {/* Golden Shimmering Loading Beam */}
-          <div className="pt-4 flex flex-col items-center justify-center animate-fade-in-up stagger-6">
-            <div className="w-48 sm:w-64 h-[2px] bg-white/10 rounded-full overflow-hidden relative">
-              <div
-                className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-[#DFBE7B] to-transparent"
-                style={{
-                  animation: 'splashShimmerSweep 1.5s infinite ease-in-out'
-                }}
-              />
-            </div>
+        {/* Golden Shimmering Loading Line Beam Underneath Church */}
+        <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center animate-fade-in-up stagger-3">
+          <div className="w-48 sm:w-64 h-[2px] bg-white/10 rounded-full overflow-hidden relative">
+            <div
+              className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-[#DFBE7B] to-transparent"
+              style={{
+                animation: 'splashShimmerSweep 1.5s infinite ease-in-out'
+              }}
+            />
           </div>
         </div>
       </div>
