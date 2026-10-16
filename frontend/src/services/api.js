@@ -152,6 +152,12 @@ export const adminApi = {
   getUsers: () => api.get('/admin/users'),
   createUser: (user) => api.post('/admin/users', user),
   updateUser: (id, user) => api.put(`/admin/users/${id}`, user),
+
+  // Inquiries / Contact Messages
+  getContactMessages: () => api.get('/admin/contact-messages'),
+  markContactMessageRead: (id) => api.put(`/admin/contact-messages/${id}/read`),
+  resendContactMessageEmail: (id) => api.post(`/admin/contact-messages/${id}/resend`),
+  deleteContactMessage: (id) => api.delete(`/admin/contact-messages/${id}`),
 };
 
 export default api;

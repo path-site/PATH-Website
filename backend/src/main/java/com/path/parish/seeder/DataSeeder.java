@@ -470,8 +470,12 @@ public class DataSeeder implements CommandLineRunner {
         saveSettingIfAbsent("font_heading", "Cinzel");
         saveSettingIfAbsent("font_body", "Plus Jakarta Sans");
         saveSettingIfAbsent("address", "J. Fortich St., Banawa, Cebu City, Philippines");
-        saveSettingIfAbsent("phone", "(032) 255 3241");
-        saveSettingIfAbsent("email", "office@pathparish.org");
+        siteSettingRepository.findBySettingKey("email").ifPresentOrElse(s -> {
+            if ("office@pathparish.org".equals(s.getSettingValue())) {
+                s.setSettingValue("pathbanawa1988@gmail.com");
+                siteSettingRepository.save(s);
+            }
+        }, () -> siteSettingRepository.save(new SiteSetting("email", "pathbanawa1988@gmail.com")));
         saveSettingIfAbsent("office_hours", "Tuesday – Saturday: 8:00 AM – 12:00 PM, 1:30 PM – 5:00 PM\nSunday: 8:00 AM – 12:00 PM\nMonday: Closed");
         saveSettingIfAbsent("mass_schedules", "Monday – Friday:\n6:00 AM [Cebuano]\n6:30 AM [English]\n12:15 PM [English]\n5:00 PM [Cebuano] (Every Monday at the Columbary)\n6:00 PM [English] 🔴 LIVE\n\nSaturday:\n6:00 AM [Cebuano]\n6:30 AM [English]\n5:30 PM [English] 🔴 LIVE (Anticipated Mass)\n\nSunday:\n5:30 AM [Cebuano]\n7:00 AM [English]\n9:00 AM [English] 🔴 LIVE\n11:00 AM [English]\n4:00 PM [English]\n5:30 PM [Cebuano] 🔴 LIVE\n7:00 PM [English]");
         saveSettingIfAbsent("confession_schedule", "Approach the Parish Priest at the sacristy after the mass or inform any mass servers immediately");

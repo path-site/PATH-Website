@@ -86,11 +86,11 @@ export default function ContactSection({ config = {} }) {
                 </a>
               )}
               <a 
-                href={`mailto:${settings.email || 'pathsoccomit@gmail.com'}`}
+                href={`mailto:${settings.email || 'pathbanawa1988@gmail.com'}`}
                 className="flex items-center gap-2 text-xs text-stone-700 hover:text-[#800020] font-medium transition-colors"
               >
                 <Mail className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span className="truncate">{settings.email || 'pathsoccomit@gmail.com'}</span>
+                <span className="truncate">{settings.email || 'pathbanawa1988@gmail.com'}</span>
               </a>
             </div>
           </div>

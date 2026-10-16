@@ -9,6 +9,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.path.parish.repository.ContactMessageRepository;
+import com.path.parish.service.EmailService;
+
 import java.util.List;
 import java.util.Map;
 
@@ -19,10 +22,17 @@ public class PublicApiController {
 
     private final PublicContentService publicContentService;
     private final MediaFileRepository mediaFileRepository;
+    private final ContactMessageRepository contactMessageRepository;
+    private final EmailService emailService;
 
-    public PublicApiController(PublicContentService publicContentService, MediaFileRepository mediaFileRepository) {
+    public PublicApiController(PublicContentService publicContentService,
+                               MediaFileRepository mediaFileRepository,
+                               ContactMessageRepository contactMessageRepository,
+                               EmailService emailService) {
         this.publicContentService = publicContentService;
         this.mediaFileRepository = mediaFileRepository;
+        this.contactMessageRepository = contactMessageRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/navigation")
@@ -97,11 +107,29 @@ public class PublicApiController {
     public ResponseEntity<ApiResponse<String>> submitContact(@RequestBody Map<String, String> payload) {
         String name = payload.get("name");
         String email = payload.get("email");
+        String subject = payload.get("subject");
         String message = payload.get("message");
+
         if (name == null || email == null || message == null ||
                 name.isBlank() || email.isBlank() || message.isBlank()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Please fill in all required fields."));
         }
+
+        ContactMessage contactMessage = new ContactMessage(
+                name.trim(),
+                email.trim(),
+                subject != null ? subject.trim() : "",
+                message.trim()
+        );
+
+        contactMessage = contactMessageRepository.save(contactMessage);
+
+        try {
+            emailService.sendContactInquiry(contactMessage);
+        } catch (Exception e) {
+            // Logged in emailService, don't fail client request
+        }
+
         return ResponseEntity.ok(ApiResponse.ok("Thank you! Your message has been sent to the parish office.", "SENT"));
     }
 

@@ -122,7 +122,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-stone-400 uppercase tracking-wider block">Email Address</span>
-                  <p className="text-sm font-medium text-stone-800 leading-snug mt-0.5">{settings.email}</p>
+                  <p className="text-sm font-medium text-stone-800 leading-snug mt-0.5">{settings.email || 'pathbanawa1988@gmail.com'}</p>
                 </div>
               </div>
 
