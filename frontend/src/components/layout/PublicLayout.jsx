@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import ParishAIAssistant from '../common/ParishAIAssistant';
 import OverallMaintenanceScreen from '../common/OverallMaintenanceScreen';
+import ParishChurchSplashScreen from '../common/ParishChurchSplashScreen';
 import { useTheme } from '../../context/ThemeContext';
 import { isOverallMaintenance } from '../../config/maintenanceConfig';
 import { ChevronUp } from 'lucide-react';
@@ -14,6 +15,7 @@ export default function PublicLayout() {
   const { pathname } = useLocation();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
   const observerRef = useRef(null);
 
   useEffect(() => {
@@ -145,61 +147,65 @@ export default function PublicLayout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 1. Full-screen sacred maintenance mode view when overall portal is shielded (Frame 0 if cached)
-  if (isOverallMaint) {
-    return <OverallMaintenanceScreen />;
-  }
+  // Content to display based on maintenance & loading status
+  const renderContent = () => {
+    if (isOverallMaint) {
+      return <OverallMaintenanceScreen />;
+    }
 
-  // 2. Strict protection against any glimpse of the live homepage:
-  // If settings are still being verified over the network on initial load, do not mount the public page or photos
-  if (loading) {
+    if (loading) {
+      return <div className="min-h-screen bg-[#020914]" />;
+    }
+
     return (
-      <div className="min-h-screen bg-[#FDFCF7] flex flex-col items-center justify-center relative overflow-hidden">
-        <div className="w-20 h-20 rounded-full bg-white p-2 shadow-xl ring-4 ring-[#C59B3F]/40 flex items-center justify-center animate-pulse">
-          <img src="/logo.png" alt="PATH Parish Seal" className="w-full h-full object-contain" />
-        </div>
+      <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">
+        {/* Liturgical Reading Progress Indicator (Fixed at Top) */}
+        <div 
+          className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-[#A81B2B] via-[#C59B3F] to-[#0B3B95] z-[60] transition-all duration-150 ease-out shadow-[0_0_10px_rgba(197,155,63,0.7)] pointer-events-none"
+          style={{ width: `${scrollProgress}%` }}
+          role="progressbar"
+          aria-valuenow={Math.round(scrollProgress)}
+          aria-valuemin="0"
+          aria-valuemax="100"
+        />
+
+        <Navbar />
+
+        {/* Main page wrapper with smooth entrance animation on navigation */}
+        <main key={pathname} className="flex-1 animate-page-enter">
+          <Outlet />
+        </main>
+
+        <Footer />
+
+        {/* Smooth Floating Scroll to Top Button (Positioned above AI Assistant) */}
+        <button
+          onClick={scrollToTop}
+          aria-label="Scroll back to top"
+          className={`fixed bottom-20 right-7 z-40 w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-stone-700 border border-stone-200 shadow-md backdrop-blur-md transition-all duration-300 hover:bg-[#800020] hover:text-white hover:border-[#800020] hover:scale-105 active:scale-95 group ${
+            showScrollTop 
+              ? 'opacity-100 translate-y-0 pointer-events-auto' 
+              : 'opacity-0 translate-y-4 pointer-events-none'
+          }`}
+        >
+          <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" />
+        </button>
+
+        {/* Floating Parish AI Agent at bottom right */}
+        <ParishAIAssistant />
       </div>
     );
-  }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">
-      
-      {/* Liturgical Reading Progress Indicator (Fixed at Top) */}
-      <div 
-        className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-[#A81B2B] via-[#C59B3F] to-[#0B3B95] z-[60] transition-all duration-150 ease-out shadow-[0_0_10px_rgba(197,155,63,0.7)] pointer-events-none"
-        style={{ width: `${scrollProgress}%` }}
-        role="progressbar"
-        aria-valuenow={Math.round(scrollProgress)}
-        aria-valuemin="0"
-        aria-valuemax="100"
-      />
-
-      <Navbar />
-
-      {/* Main page wrapper with smooth entrance animation on navigation */}
-      <main key={pathname} className="flex-1 animate-page-enter">
-        <Outlet />
-      </main>
-
-      <Footer />
-
-      {/* Smooth Floating Scroll to Top Button (Positioned above AI Assistant) */}
-      <button
-        onClick={scrollToTop}
-        aria-label="Scroll back to top"
-        className={`fixed bottom-20 right-7 z-40 w-10 h-10 flex items-center justify-center rounded-full bg-white/95 text-stone-700 border border-stone-200 shadow-md backdrop-blur-md transition-all duration-300 hover:bg-[#800020] hover:text-white hover:border-[#800020] hover:scale-105 active:scale-95 group ${
-          showScrollTop 
-            ? 'opacity-100 translate-y-0 pointer-events-auto' 
-            : 'opacity-0 translate-y-4 pointer-events-none'
-        }`}
-      >
-        <ChevronUp className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" />
-      </button>
-
-      {/* Floating Parish AI Agent at bottom right */}
-      <ParishAIAssistant />
-
-    </div>
+    <>
+      {renderContent()}
+      {!splashDone && (
+        <ParishChurchSplashScreen
+          isReady={!loading}
+          onComplete={() => setSplashDone(true)}
+        />
+      )}
+    </>
   );
 }
