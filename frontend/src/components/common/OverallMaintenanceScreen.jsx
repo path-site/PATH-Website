@@ -59,8 +59,9 @@ export default function OverallMaintenanceScreen() {
           <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-amber-400 block font-serif">
             The Roman Catholic Archdiocese of Cebu
           </span>
-          <h1 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            {settings?.site_name || 'Parish of the Alliance of the Two Hearts'}
+          <h1 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight sm:leading-snug">
+            <span className="block">Parish of the Alliance</span>
+            <span className="block">of the Two Hearts</span>
           </h1>
           <p className="text-xs sm:text-sm text-stone-300 font-medium tracking-wide">
             J. Fortich St., Banawa, Cebu City • Founded 1988
