@@ -11,7 +11,7 @@ import {
 import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
   ArrowRight, Plus, ExternalLink, Church, Bot, HeartHandshake,
-  Wrench, ShieldCheck
+  Wrench, ShieldCheck, Sparkles
 } from 'lucide-react';
 
 export default function DashboardOverview() {
@@ -96,50 +96,75 @@ export default function DashboardOverview() {
     <div className="space-y-8">
       
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#800020] to-[#541624] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-300 block mb-2">
-            Welcome to Parish Administration
-          </span>
-          <h1 className="font-serif-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Parish Content Management System
-          </h1>
-          <p className="mt-1 text-sm text-stone-200 max-w-xl">
-            Update announcements, curate photo albums, modify homepage sections, and manage mass schedules directly without redeploying code.
-          </p>
-        </div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#720B23] via-[#800020] to-[#450011] p-6 sm:p-8 text-white shadow-xl border border-white/10">
+        {/* Ambient background glows & ecclesiastical watermark */}
+        <div className="absolute -right-10 -top-10 w-72 h-72 bg-[#D4AF37]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+        <Church className="absolute right-6 -bottom-8 w-56 h-56 text-white/[0.04] pointer-events-none select-none" />
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to={ADMIN_ROUTES.homepageBuilder}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 text-xs font-bold uppercase tracking-wider shadow-md transition-all"
-          >
-            <LayoutTemplate className="w-4 h-4" />
-            <span>Homepage Builder</span>
-          </Link>
-          <Link
-            to={ADMIN_ROUTES.ministries}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
-          >
-            <HeartHandshake className="w-4 h-4 text-amber-300" />
-            <span>Ministries</span>
-          </Link>
-          <Link
-            to={ADMIN_ROUTES.aiResponses}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
-          >
-            <Bot className="w-4 h-4 text-amber-300" />
-            <span>AI Responses</span>
-          </Link>
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold uppercase tracking-wider border border-white/20 transition-all"
-          >
-            <span>Live Site</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-amber-300 text-[11px] font-bold uppercase tracking-widest mb-3 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Parish Administration Portal</span>
+            </div>
+            <h1 className="font-serif-heading text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
+              Parish Content Management System
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-rose-100/85 leading-relaxed">
+              Update announcements, curate photo albums, modify homepage sections, and manage mass schedules directly without redeploying code.
+            </p>
+          </div>
+
+          <div className="w-full lg:w-auto shrink-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-amber-200/80 mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              <span>Quick Shortcuts</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full sm:w-[410px]">
+              <Link
+                to={ADMIN_ROUTES.homepageBuilder}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-amber-300/40 text-white text-xs font-semibold tracking-wide backdrop-blur-sm transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-amber-400/20 border border-amber-300/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <LayoutTemplate className="w-3.5 h-3.5 text-amber-300" />
+                </div>
+                <span className="whitespace-nowrap">Homepage Builder</span>
+              </Link>
+
+              <Link
+                to={ADMIN_ROUTES.ministries}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-rose-300/40 text-white text-xs font-semibold tracking-wide backdrop-blur-sm transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-rose-400/20 border border-rose-300/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <HeartHandshake className="w-3.5 h-3.5 text-rose-300" />
+                </div>
+                <span className="whitespace-nowrap">Ministries</span>
+              </Link>
+
+              <Link
+                to={ADMIN_ROUTES.aiResponses}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-sky-300/40 text-white text-xs font-semibold tracking-wide backdrop-blur-sm transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-sky-400/20 border border-sky-300/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <Bot className="w-3.5 h-3.5 text-sky-300" />
+                </div>
+                <span className="whitespace-nowrap">AI Responses</span>
+              </Link>
+
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-emerald-300/40 text-white text-xs font-semibold tracking-wide backdrop-blur-sm transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5 group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-emerald-400/20 border border-emerald-300/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-300" />
+                </div>
+                <span className="whitespace-nowrap">Live Website</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
