@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { adminApi } from '../services/api';
+import { lockAdminGateway } from '../config/adminConfig';
 
 const AuthContext = createContext(null);
 
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('path_admin_token');
     localStorage.removeItem('path_admin_user');
+    lockAdminGateway();
   };
 
   return (

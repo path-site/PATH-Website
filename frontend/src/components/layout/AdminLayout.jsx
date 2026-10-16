@@ -73,7 +73,7 @@ export default function AdminLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate(ADMIN_ROUTES.login);
+    navigate('/', { replace: true });
   };
 
   return (

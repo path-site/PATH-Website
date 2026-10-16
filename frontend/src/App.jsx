@@ -3,7 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { ADMIN_ROUTES } from './config/adminConfig';
+import { 
+  ADMIN_ROUTES, 
+  ADMIN_GATEWAY_SECRET, 
+  isAdminGatewayUnlocked, 
+  unlockAdminGateway 
+} from './config/adminConfig';
 
 // Public Layout & Pages
 import PublicLayout from './components/layout/PublicLayout';
@@ -39,6 +44,45 @@ import UserManager from './pages/admin/UserManager';
 import GeneralSettings from './pages/admin/GeneralSettings';
 import AIResponsesManager from './pages/admin/AIResponsesManager';
 
+// Secret Gateway Access Handler:
+// When the secret link is accessed, unlock portal access and immediately redirect/replace URL with /admin/login
+function SecretGatewayHandler() {
+  const { isAuthenticated } = useAuth();
+  const token = localStorage.getItem('path_admin_token');
+
+  unlockAdminGateway();
+  const target = (isAuthenticated || token) ? ADMIN_ROUTES.base : ADMIN_ROUTES.login;
+  return <Navigate to={target} replace />;
+}
+
+// Protected Login Route:
+// Direct access to /admin/login is forbidden unless unlocked via the secret link
+function AdminLoginRoute() {
+  const { isAuthenticated, loading } = useAuth();
+  const token = localStorage.getItem('path_admin_token');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-100">
+        <div className="w-10 h-10 border-4 border-[#800020] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If already authenticated, redirect straight to the admin dashboard
+  if (isAuthenticated || token) {
+    return <Navigate to={ADMIN_ROUTES.base} replace />;
+  }
+
+  // Only permit access if session is unlocked via the secret gateway link
+  if (!isAdminGatewayUnlocked()) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <AdminLogin />;
+}
+
+// Protected Admin Suite Route Guard
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 
@@ -52,7 +96,8 @@ function ProtectedRoute({ children }) {
 
   const token = localStorage.getItem('path_admin_token');
   if (!isAuthenticated && !token) {
-    return <Navigate to={ADMIN_ROUTES.login} replace />;
+    // If unlocked via gateway, route to login; otherwise block and redirect to home
+    return <Navigate to={isAdminGatewayUnlocked() ? ADMIN_ROUTES.login : '/'} replace />;
   }
 
   return children;
@@ -85,10 +130,14 @@ export default function App() {
               <Route path="pages/:slug" element={<CustomPageView />} />
             </Route>
 
-            {/* Secret Admin Authentication Gateway */}
-            <Route path={ADMIN_ROUTES.login} element={<AdminLogin />} />
+            {/* Secret Gateway Entry Point: Unlocks portal and immediately replaces URL with /admin/login */}
+            <Route path={ADMIN_GATEWAY_SECRET} element={<SecretGatewayHandler />} />
+            <Route path={`${ADMIN_GATEWAY_SECRET}/*`} element={<SecretGatewayHandler />} />
 
-            {/* Secret Protected Admin Suite */}
+            {/* Admin Login: Only accessible if unlocked via the secret link */}
+            <Route path={ADMIN_ROUTES.login} element={<AdminLoginRoute />} />
+
+            {/* Protected Admin Management Suite */}
             <Route
               path={ADMIN_ROUTES.base}
               element={
@@ -114,10 +163,6 @@ export default function App() {
               <Route path="ai-responses" element={<AIResponsesManager />} />
               <Route path="settings" element={<GeneralSettings />} />
             </Route>
-
-            {/* Disallow old /admin path: quietly redirect curious visitors to Home */}
-            <Route path="/admin/*" element={<Navigate to="/" replace />} />
-            <Route path="/admin" element={<Navigate to="/" replace />} />
 
             {/* Catch-all redirect to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
