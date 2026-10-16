@@ -33,10 +33,10 @@ public class EmailService {
     @Value("${app.mail.to:pathbanawa1988@gmail.com}")
     private String configuredRecipientEmail;
 
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.username:${MAIL_USERNAME:}}")
     private String mailUsername;
 
-    @Value("${spring.mail.password:}")
+    @Value("${spring.mail.password:${MAIL_PASSWORD:}}")
     private String mailPassword;
 
     @Value("${app.mail.resend-api-key:}")
