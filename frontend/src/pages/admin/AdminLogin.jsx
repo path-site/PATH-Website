@@ -5,8 +5,8 @@ import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@path.org');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -47,12 +47,6 @@ export default function AdminLogin() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-stone-200">
-          
-          {/* Quick Notice about default seed */}
-          <div className="mb-6 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
-            <span className="font-bold block mb-0.5">Authorized Personnel Only</span>
-            Default seed credentials have been pre-filled for instant administrative access: <span className="font-mono font-bold">admin@path.org</span> / <span className="font-mono font-bold">admin123</span>
-          </div>
 
           {error && (
             <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center gap-2">
@@ -72,7 +66,7 @@ export default function AdminLogin() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@path.org"
+                  placeholder="Enter admin email"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B3B95]"
                 />
                 <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />

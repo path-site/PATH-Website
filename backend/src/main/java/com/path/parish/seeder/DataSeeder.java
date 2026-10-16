@@ -118,10 +118,19 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdminUser() {
-        if (!adminUserRepository.existsByEmail("admin@path.org")) {
+        String adminEmail = "pathsoccomit@gmail.com";
+        // Migrate legacy admin@path.org account in persistent database if present
+        adminUserRepository.findByEmail("admin@path.org").ifPresent(legacy -> {
+            legacy.setEmail(adminEmail);
+            legacy.setFullName("Parish Administrator");
+            adminUserRepository.save(legacy);
+        });
+
+        // Ensure primary admin account exists in persistent database
+        if (!adminUserRepository.existsByEmail(adminEmail)) {
             AdminUser admin = new AdminUser();
             admin.setFullName("Parish Administrator");
-            admin.setEmail("admin@path.org");
+            admin.setEmail(adminEmail);
             admin.setPasswordHash(passwordEncoder.encode("admin123"));
             admin.setRole("ROLE_ADMIN");
             admin.setStatus("ACTIVE");

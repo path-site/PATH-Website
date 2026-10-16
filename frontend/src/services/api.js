@@ -67,6 +67,7 @@ export const publicApi = {
 export const adminApi = {
   login: (credentials) => api.post('/admin/auth/login', credentials),
   getMe: () => api.get('/admin/auth/me'),
+  changePassword: (data) => api.post('/admin/auth/change-password', data),
 
   // Pages & Homepage Builder
   getPages: () => api.get('/admin/pages'),

@@ -4,15 +4,30 @@ import { useTheme } from '../../context/ThemeContext';
 import { OVERALL_MAINTENANCE_DEFAULTS, isOverallMaintenance } from '../../config/maintenanceConfig';
 import { 
   Settings, CheckCircle2, AlertCircle, Save, 
-  ShieldCheck, Power, ExternalLink, Wrench, ShieldAlert 
+  ShieldCheck, Power, ExternalLink, Wrench, ShieldAlert,
+  KeyRound, Lock, Eye, EyeOff
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function GeneralSettings() {
   const { refreshSettings } = useTheme();
+  const { user } = useAuth();
   const [settings, setSettings] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // Change Password State
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwStatus, setPwStatus] = useState(null);
 
   const notify = (type, message) => {
     setNotification({ type, message });
@@ -153,6 +168,42 @@ export default function GeneralSettings() {
       notify('error', 'Failed to save settings.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPwStatus(null);
+
+    if (!passwordForm.currentPassword) {
+      setPwStatus({ type: 'error', message: 'Please enter your current password.' });
+      return;
+    }
+    if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
+      setPwStatus({ type: 'error', message: 'New password must be at least 6 characters.' });
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPwStatus({ type: 'error', message: 'New passwords do not match. Please verify.' });
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      await adminApi.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPwStatus({ 
+        type: 'success', 
+        message: 'Password updated successfully! The change has been committed to the database.' 
+      });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      notify('success', 'Admin password changed successfully.');
+    } catch (err) {
+      setPwStatus({ type: 'error', message: err.message || 'Failed to update password.' });
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -446,6 +497,146 @@ export default function GeneralSettings() {
           </button>
         </div>
       </form>
+
+      {/* Admin Security & Password Change */}
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-xs p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
+          <div className="w-10 h-10 rounded-xl bg-[#800020]/10 flex items-center justify-center text-[#800020]">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="font-serif-heading font-bold text-lg text-stone-900">
+              Admin Account & Password Security
+            </h2>
+            <p className="text-xs text-stone-500">
+              Update your administrator credentials. All changes are encrypted with BCrypt and committed directly to the database.
+            </p>
+          </div>
+        </div>
+
+        {/* Current Account Info Banner */}
+        <div className="mb-6 p-4 rounded-xl bg-stone-50 border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">Authenticated Administrator</div>
+            <div className="text-sm font-semibold text-stone-800 font-mono mt-0.5">
+              {user?.email || 'pathsoccomit@gmail.com'}
+            </div>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-auto">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Database-Managed Account
+          </div>
+        </div>
+
+        {pwStatus && (
+          <div
+            className={`mb-6 p-4 rounded-xl text-xs font-medium flex items-center gap-2.5 ${
+              pwStatus.type === 'success'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}
+          >
+            {pwStatus.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{pwStatus.message}</span>
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordChange} className="space-y-5 max-w-xl">
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-1.5">
+              Current Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showCurrentPw ? 'text' : 'password'}
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                placeholder="Enter current password"
+                required
+                className="w-full px-3.5 py-2.5 pr-10 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020] transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPw(!showCurrentPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                tabIndex={-1}
+              >
+                {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                New Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showNewPw ? 'text' : 'password'}
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
+                  placeholder="Min. 6 characters"
+                  required
+                  minLength={6}
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020] transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                  tabIndex={-1}
+                >
+                  {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-1.5">
+                Confirm New Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPw ? 'text' : 'password'}
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                  placeholder="Re-type new password"
+                  required
+                  minLength={6}
+                  className="w-full px-3.5 py-2.5 pr-10 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020] transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                  tabIndex={-1}
+                >
+                  {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2 flex items-center justify-between">
+            <span className="text-[11px] text-stone-400">
+              Minimum 6 characters. Use letters, numbers, and symbols for high security.
+            </span>
+            <button
+              type="submit"
+              disabled={pwLoading}
+              className="px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold shadow-xs disabled:opacity-50 flex items-center gap-2"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              {pwLoading ? 'Updating Password...' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

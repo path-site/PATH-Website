@@ -176,7 +176,7 @@ export default function AdminLayout() {
                 {user?.fullName || 'Administrator'}
               </p>
               <p className="text-xs text-stone-400 truncate">
-                {user?.email || 'admin@path.org'}
+                {user?.email || 'pathsoccomit@gmail.com'}
               </p>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-400/20 text-amber-300">

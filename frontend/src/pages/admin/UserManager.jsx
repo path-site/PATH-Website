@@ -236,7 +236,7 @@ export default function UserManager() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full pl-9 pr-3 py-2 text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020] disabled:bg-stone-100 disabled:text-stone-500"
-                    placeholder="admin@path.org"
+                    placeholder="pathsoccomit@gmail.com"
                   />
                 </div>
               </div>
