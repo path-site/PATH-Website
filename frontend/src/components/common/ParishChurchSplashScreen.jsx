@@ -17,17 +17,6 @@ export default function ParishChurchSplashScreen({
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
-    // Allow keyboard skip (Escape, Space, Enter)
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
-        setMinTimeElapsed(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  useEffect(() => {
     // Ensure the majestic line drawing has time to play its full animation
     const timer = setTimeout(() => {
       setMinTimeElapsed(true);
@@ -50,10 +39,15 @@ export default function ParishChurchSplashScreen({
   return (
     <div
       aria-label="Loading Parish of the Alliance of the Two Hearts"
-      onClick={() => setMinTimeElapsed(true)}
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-[#020914] via-[#051329] to-[#0A2250] text-white selection:bg-[#D4AF37] selection:text-stone-900 overflow-hidden cursor-pointer ${isFadingOut
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-gradient-to-br from-[#020914] via-[#051329] to-[#0A2250] text-white selection:bg-[#D4AF37] selection:text-stone-900 overflow-hidden cursor-default select-none ${isFadingOut
         ? 'opacity-0 scale-[1.03] pointer-events-none transition-all duration-800 ease-in-out'
-        : 'opacity-100 scale-100'
+        : 'opacity-100 scale-100 pointer-events-auto'
         }`}
     >
       {/* Decorative Golden & Marian Ambient Atmospheric Radial Glows */}
@@ -247,8 +241,9 @@ export default function ParishChurchSplashScreen({
             The Roman Catholic Archdiocese of Cebu
           </span>
 
-          <h1 className="font-serif-heading text-lg sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#DFBE7B] via-amber-100 to-[#DFBE7B] animate-fade-in-up stagger-4 leading-tight">
-            Parish of the Alliance of the Two Hearts
+          <h1 className="font-serif-heading text-lg sm:text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#DFBE7B] via-amber-100 to-[#DFBE7B] animate-fade-in-up stagger-4 leading-tight sm:leading-snug">
+            <span className="block">Parish of the Alliance</span>
+            <span className="block">of the Two Hearts</span>
           </h1>
 
           <p className="text-[11px] sm:text-xs tracking-widest uppercase text-stone-300 font-medium animate-fade-in-up stagger-5">
