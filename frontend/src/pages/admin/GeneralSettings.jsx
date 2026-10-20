@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { adminApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { OVERALL_MAINTENANCE_DEFAULTS, isOverallMaintenance } from '../../config/maintenanceConfig';
 import { 
   Settings, CheckCircle2, AlertCircle, Save, 
@@ -287,12 +289,21 @@ export default function GeneralSettings() {
                 href="/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-stone-300 text-stone-700 hover:text-stone-950 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
+                title="Preview the visitor maintenance notice"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 text-stone-700 hover:text-stone-950 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>Preview Notice</span>
+                <span>Public Notice</span>
               </a>
             )}
+            <Link
+              to={ADMIN_ROUTES.preview}
+              title="Admin Live Preview (bypasses maintenance mode so you can view the real site as administrator)"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#112d66] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
+              <span>Admin Live Preview</span>
+            </Link>
             <button
               type="button"
               onClick={handleInstantOverallToggle}

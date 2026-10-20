@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ParishAIAssistant from '../common/ParishAIAssistant';
 import OverallMaintenanceScreen from '../common/OverallMaintenanceScreen';
 import ParishChurchSplashScreen from '../common/ParishChurchSplashScreen';
 import { useTheme } from '../../context/ThemeContext';
-import { isOverallMaintenance } from '../../config/maintenanceConfig';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
+import { isOverallMaintenance, isAdminPreviewMode, disableAdminPreviewMode } from '../../config/maintenanceConfig';
 import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
@@ -157,11 +158,57 @@ export default function PublicLayout() {
       return <div className="min-h-screen bg-[#020914]" />;
     }
 
+    const isAdminPreview = isAdminPreviewMode();
+    const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+
     return (
       <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">
+        {/* Floating Standalone Admin Preview Top Bar (Visible when browsing site directly in preview mode) */}
+        {isAdminPreview && !isInIframe && (
+          <aside aria-label="Admin Preview Mode" className="sticky top-0 z-[100] bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] text-white border-b border-amber-400/50 px-4 py-2 shadow-lg">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                <span className="font-bold text-amber-300 font-serif-heading text-sm">
+                  ADMIN LIVE PREVIEW MODE
+                </span>
+                <span className="text-stone-300 hidden md:inline">
+                  • Viewing live site as Administrator. Public visitors see maintenance shield.
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={ADMIN_ROUTES.preview}
+                  className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold transition-colors"
+                >
+                  Open Studio
+                </Link>
+                <Link
+                  to={ADMIN_ROUTES.base}
+                  className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold transition-colors"
+                >
+                  CMS Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    disableAdminPreviewMode();
+                    window.location.href = '/';
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-semibold border border-rose-800/60 transition-colors cursor-pointer"
+                >
+                  Exit Preview
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
+
         {/* Liturgical Reading Progress Indicator (Fixed at Top) */}
         <div 
-          className="fixed top-0 left-0 h-[3px] bg-gradient-to-r from-[#A81B2B] via-[#C59B3F] to-[#0B3B95] z-[60] transition-all duration-150 ease-out shadow-[0_0_10px_rgba(197,155,63,0.7)] pointer-events-none"
+          className={`fixed left-0 h-[3px] bg-gradient-to-r from-[#A81B2B] via-[#C59B3F] to-[#0B3B95] z-[60] transition-all duration-150 ease-out shadow-[0_0_10px_rgba(197,155,63,0.7)] pointer-events-none ${
+            isAdminPreview && !isInIframe ? 'top-[41px]' : 'top-0'
+          }`}
           style={{ width: `${scrollProgress}%` }}
           role="progressbar"
           aria-valuenow={Math.round(scrollProgress)}

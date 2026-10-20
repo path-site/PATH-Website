@@ -43,6 +43,7 @@ import ContactSettings from './pages/admin/ContactSettings';
 import UserManager from './pages/admin/UserManager';
 import GeneralSettings from './pages/admin/GeneralSettings';
 import AIResponsesManager from './pages/admin/AIResponsesManager';
+import AdminLivePreview from './pages/admin/AdminLivePreview';
 
 // Secret Gateway Access Handler:
 // When the secret link is accessed, unlock portal access and immediately redirect/replace URL with /admin/login
@@ -162,7 +163,18 @@ export default function App() {
               <Route path="users" element={<UserManager />} />
               <Route path="ai-responses" element={<AIResponsesManager />} />
               <Route path="settings" element={<GeneralSettings />} />
+              <Route path="preview" element={<Navigate to={ADMIN_ROUTES.preview} replace />} />
             </Route>
+
+            {/* Dedicated Protected Live Admin Preview Studio */}
+            <Route
+              path={ADMIN_ROUTES.preview}
+              element={
+                <ProtectedRoute>
+                  <AdminLivePreview />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Catch-all redirect to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />

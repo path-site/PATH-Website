@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { adminApi, publicApi } from '../../services/api';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { 
@@ -434,15 +436,14 @@ export default function HomepageBuilder() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-50 text-xs font-bold transition-all shadow-xs"
+          <Link
+            to={ADMIN_ROUTES.preview}
+            title="Preview the live homepage as an Administrator (bypasses maintenance mode)"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#12316e] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md"
           >
-            <span>Live Preview</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+            <Eye className="w-3.5 h-3.5 text-amber-400" />
+            <span>Admin Live Preview</span>
+          </Link>
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all"

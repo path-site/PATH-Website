@@ -5,13 +5,13 @@ import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   MAINTENANCE_SECTIONS, 
-  isSectionUnderMaintenance,
-  isOverallMaintenance 
+  getRawSectionMaintenance,
+  getRawOverallMaintenance 
 } from '../../config/maintenanceConfig';
 import { 
   Bell, Calendar, Users, Image as ImageIcon, LayoutTemplate, 
   ArrowRight, Plus, ExternalLink, Church, Bot, HeartHandshake,
-  Wrench, ShieldCheck, Sparkles
+  Wrench, ShieldCheck, Sparkles, Eye
 } from 'lucide-react';
 
 export default function DashboardOverview() {
@@ -32,7 +32,7 @@ export default function DashboardOverview() {
   const handleToggleSection = async (sec) => {
     setTogglingSec(sec.id);
     try {
-      const isCurrentlyMaint = isSectionUnderMaintenance(sec, settings);
+      const isCurrentlyMaint = getRawSectionMaintenance(sec, settings);
       const nextState = !isCurrentlyMaint;
       const payload = {
         [sec.settingKey]: nextState ? 'true' : 'false',
@@ -237,43 +237,53 @@ export default function DashboardOverview() {
           </div>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-100 text-stone-700 text-xs font-semibold self-start sm:self-auto">
             <span>
-              {MAINTENANCE_SECTIONS.filter((s) => isSectionUnderMaintenance(s, settings)).length} of {MAINTENANCE_SECTIONS.length} Sections in Maintenance
+              {MAINTENANCE_SECTIONS.filter((s) => getRawSectionMaintenance(s, settings)).length} of {MAINTENANCE_SECTIONS.length} Sections in Maintenance
             </span>
           </div>
         </div>
 
         {/* Master Overall Maintenance Status Banner */}
         <div className={`p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border ${
-          isOverallMaintenance(settings)
+          getRawOverallMaintenance(settings)
             ? 'bg-amber-500/15 border-amber-400 text-amber-950 ring-2 ring-amber-400/40'
             : 'bg-stone-50 border-stone-200 text-stone-700'
         }`}>
           <div className="flex items-center gap-3">
-            <span className={`w-3 h-3 rounded-full ${isOverallMaintenance(settings) ? 'bg-amber-600 animate-ping' : 'bg-emerald-500'}`} />
+            <span className={`w-3 h-3 rounded-full ${getRawOverallMaintenance(settings) ? 'bg-amber-600 animate-ping' : 'bg-emerald-500'}`} />
             <div>
               <span className="text-xs font-bold uppercase tracking-wider block">
-                {isOverallMaintenance(settings) ? 'Master System-Wide Maintenance Mode is ACTIVE' : 'System-Wide Status: Public Portal is LIVE'}
+                {getRawOverallMaintenance(settings) ? 'Master System-Wide Maintenance Mode is ACTIVE' : 'System-Wide Status: Public Portal is LIVE'}
               </span>
               <p className="text-xs text-stone-600 mt-0.5">
-                {isOverallMaintenance(settings)
+                {getRawOverallMaintenance(settings)
                   ? 'All public pages and modules are currently shielded. Configure or disengage in General Settings.'
                   : 'Sections are individually controlled below. To put the entire website into maintenance at once, use General Settings.'}
               </p>
             </div>
           </div>
-          <Link
-            to={ADMIN_ROUTES.settings}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-all shadow-xs shrink-0"
-          >
-            <span>Manage Master Switch</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={ADMIN_ROUTES.preview}
+              title="Preview the live website as an Administrator"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#071838] hover:bg-[#0d2556] text-amber-300 text-xs font-bold transition-all shadow-xs shrink-0 border border-amber-400/40"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
+              <span>Admin Preview</span>
+            </Link>
+            <Link
+              to={ADMIN_ROUTES.settings}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-all shadow-xs shrink-0"
+            >
+              <span>Manage Master Switch</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
         {/* Section Grid with switches */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
           {MAINTENANCE_SECTIONS.map((sec) => {
-            const isMaint = isSectionUnderMaintenance(sec, settings);
+            const isMaint = getRawSectionMaintenance(sec, settings);
             const isToggling = togglingSec === sec.id;
 
             return (

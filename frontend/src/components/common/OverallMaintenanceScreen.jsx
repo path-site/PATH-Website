@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { OVERALL_MAINTENANCE_DEFAULTS } from '../../config/maintenanceConfig';
+import { OVERALL_MAINTENANCE_DEFAULTS, isAdminPreviewAllowed } from '../../config/maintenanceConfig';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import {
   Wrench, Phone, MapPin, Clock, Calendar,
-  ShieldCheck, Lock, ExternalLink
+  ShieldCheck, Lock, ExternalLink, Eye
 } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
 import ParishChurchOutlineIcon from './ParishChurchOutlineIcon';
@@ -36,6 +36,31 @@ export default function OverallMaintenanceScreen() {
 
       {/* Liturgical Top Gold Ribbon */}
       <div className="h-1.5 w-full bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A81B2B]" />
+
+      {/* Administrator Session Detected Ribbon */}
+      {isAdminPreviewAllowed() && (
+        <aside aria-label="Administrator banner" className="w-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 font-bold px-4 py-2.5 text-xs flex flex-col sm:flex-row items-center justify-between gap-2.5 shadow-lg relative z-50">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-950 animate-ping shrink-0" />
+            <span>Administrator Session Detected — Public Maintenance Shield is currently active for ordinary visitors.</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to={ADMIN_ROUTES.preview}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-950 hover:bg-stone-800 text-amber-300 font-bold text-xs transition-colors shadow-sm"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
+              <span>Open Admin Live Preview</span>
+            </Link>
+            <Link
+              to={ADMIN_ROUTES.base}
+              className="px-3 py-1.5 rounded-lg bg-white/90 hover:bg-white text-stone-900 font-bold text-xs transition-colors shadow-sm"
+            >
+              CMS Portal
+            </Link>
+          </div>
+        </aside>
+      )}
 
       {/* Main Content Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 flex-1 flex flex-col items-center justify-center text-center relative z-10">

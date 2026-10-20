@@ -1,7 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { getSectionById, isSectionUnderMaintenance } from '../../config/maintenanceConfig';
-import { Phone, Wrench, AlertCircle, ExternalLink, ShieldAlert } from 'lucide-react';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
+import { getSectionById, isSectionUnderMaintenance, isBypassMaintenance, isAdminPreviewAllowed } from '../../config/maintenanceConfig';
+import { Phone, Wrench, AlertCircle, ExternalLink, ShieldAlert, Eye } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
 
 export function useSectionMaintenance(sectionKey) {
@@ -19,6 +21,10 @@ export default function PublicMaintenanceNotice({
   forceShow = false,
 }) {
   const { settings } = useTheme();
+
+  // If viewing in Admin Preview mode with bypass active, strictly do not render public maintenance notices
+  if (isBypassMaintenance()) return null;
+
   const section = getSectionById(sectionKey);
   const isMaintenance = forceShow || isSectionUnderMaintenance(sectionKey, settings);
 
@@ -132,6 +138,19 @@ export default function PublicMaintenanceNotice({
             </a>
           )}
         </div>
+
+        {/* Administrator Quick Preview Access Shortcut */}
+        {isAdminPreviewAllowed() && (
+          <div className="pt-4 border-t border-amber-400/20 text-center">
+            <Link
+              to={`${ADMIN_ROUTES.preview}?page=${encodeURIComponent(section?.publicPath || window.location.pathname)}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 hover:text-white border border-amber-400/40 text-xs font-bold transition-colors cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
+              <span>Administrator: Preview Live Section in Admin Live Studio →</span>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -7,15 +7,15 @@ import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { 
   MAINTENANCE_SECTIONS, 
   getSectionByPath, 
-  isSectionUnderMaintenance,
-  isOverallMaintenance
+  getRawSectionMaintenance,
+  getRawOverallMaintenance
 } from '../../config/maintenanceConfig';
 import { 
   LayoutDashboard, LayoutTemplate, FileText, Menu as MenuIcon, 
   Bell, Calendar, Users, History, Image as ImageIcon, 
   HardDrive, PhoneCall, UserCheck, Settings, 
   LogOut, ExternalLink, ChevronRight, Church, X, Bot, HeartHandshake,
-  Wrench
+  Wrench, Eye
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -44,12 +44,12 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [headerSaving, setHeaderSaving] = useState(false);
 
-  // Overall system-wide maintenance mode
-  const isOverallMaint = isOverallMaintenance(settings);
+  // Overall system-wide maintenance mode (raw CMS database state)
+  const isOverallMaint = getRawOverallMaintenance(settings);
 
-  // Determine current active section for topbar maintenance control
+  // Determine current active section for topbar maintenance control (raw state)
   const activeSection = getSectionByPath(location.pathname);
-  const isCurrentSectionMaintenance = isSectionUnderMaintenance(activeSection, settings);
+  const isCurrentSectionMaintenance = getRawSectionMaintenance(activeSection, settings);
 
   const handleHeaderMaintenanceToggle = async () => {
     if (!activeSection || headerSaving) return;
@@ -129,7 +129,7 @@ export default function AdminLayout() {
                 ? location.pathname === ADMIN_ROUTES.base
                 : location.pathname.startsWith(item.path);
               const matchingSec = MAINTENANCE_SECTIONS.find(s => s.adminPath === item.path);
-              const isItemMaintenance = matchingSec ? isSectionUnderMaintenance(matchingSec, settings) : false;
+              const isItemMaintenance = matchingSec ? getRawSectionMaintenance(matchingSec, settings) : false;
 
               return (
                 <Link
@@ -257,9 +257,23 @@ export default function AdminLayout() {
             )}
 
             <Link
+              to={ADMIN_ROUTES.preview}
+              title="Preview the live website as an Administrator (bypasses maintenance mode so you can view the real site safely)"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] text-amber-300 hover:text-white border border-amber-400/50 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 whitespace-nowrap hover:shadow-md hover:scale-102"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Admin Live Preview</span>
+              <span className="sm:hidden">Preview</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[9px] uppercase font-extrabold tracking-wider border border-amber-400/30">
+                Bypass
+              </span>
+            </Link>
+
+            <Link
               to="/"
               target="_blank"
               rel="noopener noreferrer"
+              title="View public website as external visitors see it"
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border border-stone-300 text-stone-700 hover:bg-stone-50 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 whitespace-nowrap"
             >
               <span className="hidden sm:inline">View Public Website</span>

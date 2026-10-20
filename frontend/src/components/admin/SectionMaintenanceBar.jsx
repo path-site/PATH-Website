@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { adminApi } from '../../services/api';
-import { getSectionById, getSectionByPath, isSectionUnderMaintenance } from '../../config/maintenanceConfig';
+import { ADMIN_ROUTES } from '../../config/adminConfig';
+import { getSectionById, getSectionByPath, getRawSectionMaintenance } from '../../config/maintenanceConfig';
 import { 
   Wrench, ShieldCheck, Settings2, ExternalLink, X, Save, 
   CheckCircle2, AlertTriangle, Phone, Eye
@@ -34,7 +35,7 @@ export default function SectionMaintenanceBar({
 
   if (!section) return null;
 
-  const isMaintenanceActive = isSectionUnderMaintenance(section, settings);
+  const isMaintenanceActive = getRawSectionMaintenance(section, settings);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -220,17 +221,28 @@ export default function SectionMaintenanceBar({
             <span className="hidden sm:inline">Notice Settings</span>
           </button>
 
+          {/* Admin Live Preview Link (Bypasses Maintenance) */}
+          {section.publicPath && (
+            <Link
+              to={`${ADMIN_ROUTES.preview}?page=${encodeURIComponent(section.publicPath)}`}
+              title={`Preview live ${section.label} page (bypasses maintenance mode so you can preview changes safely)`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-950 bg-amber-200/80 hover:bg-amber-300 border border-amber-400/80 transition-all shadow-xs cursor-pointer"
+            >
+              <Eye className="w-3.5 h-3.5 text-amber-800" />
+              <span>Admin Preview</span>
+            </Link>
+          )}
+
           {/* View Public Page Link */}
           {section.publicPath && (
             <a
               href={section.publicPath}
               target="_blank"
               rel="noopener noreferrer"
-              title="Open public page in new tab"
+              title="Open public page in new tab (shows public notice if in maintenance)"
               className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">View Public</span>
+              <span className="hidden lg:inline">Public View</span>
               <ExternalLink className="w-3 h-3 text-stone-400" />
             </a>
           )}

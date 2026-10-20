@@ -28,6 +28,7 @@ export const ADMIN_ROUTES = {
   users: `${ADMIN_BASE_PATH}/users`,
   aiResponses: `${ADMIN_BASE_PATH}/ai-responses`,
   settings: `${ADMIN_BASE_PATH}/settings`,
+  preview: `${ADMIN_BASE_PATH}/preview`,
 };
 
 export const GATEWAY_STORAGE_KEY = 'path_portal_unlocked';

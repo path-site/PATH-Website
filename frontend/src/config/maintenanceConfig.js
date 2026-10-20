@@ -177,31 +177,106 @@ export const OVERALL_MAINTENANCE_DEFAULTS = {
   defaultAdvisory: 'Mass celebrations, Sacraments, and Parish Office operations proceed as scheduled.',
 };
 
-export const isOverallMaintenance = (settings) => {
+export const ADMIN_PREVIEW_MODE_KEY = 'path_admin_preview_active';
+export const ADMIN_PREVIEW_SIMULATE_KEY = 'path_admin_preview_simulate_public';
+
+export const isAdminPreviewAllowed = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    const hasToken = !!localStorage.getItem('path_admin_token');
+    const isGateway = sessionStorage.getItem('path_portal_unlocked') === 'true';
+    return hasToken || isGateway;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const isAdminPreviewMode = () => {
+  if (typeof window === 'undefined') return false;
+  if (!isAdminPreviewAllowed()) return false;
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (
+      searchParams.get('admin_preview') === '1' ||
+      searchParams.get('admin_preview') === 'true' ||
+      searchParams.get('preview') === 'admin'
+    ) {
+      return true;
+    }
+    if (sessionStorage.getItem(ADMIN_PREVIEW_MODE_KEY) === 'true') {
+      return true;
+    }
+    if (window.location.pathname.startsWith('/admin/preview')) {
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const isBypassMaintenance = () => {
+  if (!isAdminPreviewMode()) return false;
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('simulate_public') === 'true' || searchParams.get('simulate_public') === '1') {
+      return false;
+    }
+    const isSimulating = sessionStorage.getItem(ADMIN_PREVIEW_SIMULATE_KEY) === 'true';
+    return !isSimulating;
+  } catch (e) {
+    return true;
+  }
+};
+
+export const enableAdminPreviewMode = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(ADMIN_PREVIEW_MODE_KEY, 'true');
+    sessionStorage.removeItem(ADMIN_PREVIEW_SIMULATE_KEY);
+  } catch (e) {}
+};
+
+export const disableAdminPreviewMode = () => {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(ADMIN_PREVIEW_MODE_KEY);
+    sessionStorage.removeItem(ADMIN_PREVIEW_SIMULATE_KEY);
+  } catch (e) {}
+};
+
+export const setAdminPreviewSimulatePublic = (simulate) => {
+  if (typeof window === 'undefined') return;
+  try {
+    if (simulate) {
+      sessionStorage.setItem(ADMIN_PREVIEW_SIMULATE_KEY, 'true');
+    } else {
+      sessionStorage.removeItem(ADMIN_PREVIEW_SIMULATE_KEY);
+    }
+  } catch (e) {}
+};
+
+// Raw check without admin preview bypass (used by Admin CMS dashboards, toggle bars, and settings)
+export const getRawOverallMaintenance = (settings) => {
   if (!settings) return false;
   const val = settings.maintenance_overall;
   return val !== undefined && (String(val) === 'true' || val === true || val === '1');
 };
 
-export const isSectionUnderMaintenance = (section, settings) => {
+export const getRawSectionMaintenance = (section, settings) => {
   if (!settings) return false;
-
-  // If System-Wide Overall Maintenance is ON, every section is under maintenance
-  if (isOverallMaintenance(settings)) {
+  if (getRawOverallMaintenance(settings)) {
     return true;
   }
-
   if (!section) return false;
   const sec = typeof section === 'string' ? getSectionById(section) : section;
   if (!sec) return false;
 
-  // Check main settingKey
   const val = settings[sec.settingKey];
   if (val !== undefined && (String(val) === 'true' || val === true || val === '1')) {
     return true;
   }
 
-  // Check legacy fallback (e.g. ministries_banner_enabled)
   if (sec.legacyKey) {
     const legacyVal = settings[sec.legacyKey];
     if (legacyVal !== undefined && (String(legacyVal) === 'true' || legacyVal === true || legacyVal === '1')) {
@@ -211,3 +286,42 @@ export const isSectionUnderMaintenance = (section, settings) => {
 
   return false;
 };
+
+// Public & Runtime Maintenance Checks: Bypassed automatically when viewing as an authenticated admin in Preview Mode
+export const isOverallMaintenance = (settings, options = {}) => {
+  const checkBypass = options?.checkBypass !== false;
+  if (checkBypass && isBypassMaintenance()) {
+    return false;
+  }
+  return getRawOverallMaintenance(settings);
+};
+
+export const isSectionUnderMaintenance = (section, settings, options = {}) => {
+  const checkBypass = options?.checkBypass !== false;
+  if (checkBypass && isBypassMaintenance()) {
+    return false;
+  }
+
+  if (isOverallMaintenance(settings, options)) {
+    return true;
+  }
+
+  if (!section) return false;
+  const sec = typeof section === 'string' ? getSectionById(section) : section;
+  if (!sec) return false;
+
+  const val = settings[sec.settingKey];
+  if (val !== undefined && (String(val) === 'true' || val === true || val === '1')) {
+    return true;
+  }
+
+  if (sec.legacyKey) {
+    const legacyVal = settings[sec.legacyKey];
+    if (legacyVal !== undefined && (String(legacyVal) === 'true' || legacyVal === true || legacyVal === '1')) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
