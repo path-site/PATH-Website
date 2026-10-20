@@ -257,7 +257,7 @@ export default function AdminLayout() {
             )}
 
             <a
-              href="/preview"
+              href="/admin/preview"
               target="_blank"
               rel="noopener noreferrer"
               title="Preview the whole live website as an Administrator in a new window (bypasses maintenance mode)"

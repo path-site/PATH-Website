@@ -261,6 +261,33 @@ export const setAdminPreviewSimulatePublic = (simulate) => {
   } catch (e) {}
 };
 
+/**
+ * Resolves any public site path to its corresponding protected Admin Preview URL.
+ * e.g. '/' -> '/admin/preview'
+ *      '/ministries' -> '/admin/preview/ministries'
+ *      '/events' -> '/admin/preview/events'
+ */
+export const resolvePreviewPath = (path) => {
+  if (!path) return '/admin/preview';
+  if (
+    path.startsWith('http://') ||
+    path.startsWith('https://') ||
+    path.startsWith('mailto:') ||
+    path.startsWith('tel:') ||
+    path.startsWith('#')
+  ) {
+    return path;
+  }
+  if (path.startsWith('/admin/preview')) {
+    return path;
+  }
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  if (clean === '/') {
+    return '/admin/preview';
+  }
+  return `/admin/preview${clean}`;
+};
+
 // Raw check without admin preview bypass (used by Admin CMS dashboards, toggle bars, and settings)
 export const getRawOverallMaintenance = (settings) => {
   if (!settings) return false;

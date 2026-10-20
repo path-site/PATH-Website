@@ -263,7 +263,7 @@ export default function DashboardOverview() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="/preview"
+              href="/admin/preview"
               target="_blank"
               rel="noopener noreferrer"
               title="Preview the whole live website in a new window as an Administrator"

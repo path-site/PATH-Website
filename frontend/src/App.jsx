@@ -137,12 +137,13 @@ export default function App() {
             {/* Admin Login: Only accessible if unlocked via the secret link */}
             <Route path={ADMIN_ROUTES.login} element={<AdminLoginRoute />} />
 
-            {/* Redirect /admin/preview to /preview so it never opens inside AdminLayout */}
-            <Route path="/admin/preview" element={<Navigate to="/preview" replace />} />
+            {/* Legacy /preview routes redirect to /admin/preview */}
+            <Route path="/preview" element={<Navigate to="/admin/preview" replace />} />
+            <Route path="/preview/*" element={<Navigate to="/admin/preview" replace />} />
 
-            {/* Protected Whole-Page Admin Live Preview Routes */}
+            {/* Protected Whole-Page Admin Live Preview Routes (Strictly restricted to Authenticated Admins) */}
             <Route
-              path="/preview"
+              path="/admin/preview"
               element={
                 <ProtectedRoute>
                   <PublicLayout />
@@ -161,6 +162,8 @@ export default function App() {
               <Route path="gallery" element={<GalleryPage />} />
               <Route path="ministries" element={<MinistriesPage />} />
               <Route path="contact" element={<ContactPage />} />
+              <Route path="mass-schedules" element={<Navigate to="/admin/preview/contact#mass-schedule" replace />} />
+              <Route path="schedules" element={<Navigate to="/admin/preview/contact#mass-schedule" replace />} />
               <Route path="pages/:slug" element={<CustomPageView />} />
             </Route>
 

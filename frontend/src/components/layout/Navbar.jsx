@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { publicApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import { isAdminPreviewMode, resolvePreviewPath } from '../../config/maintenanceConfig';
 import { 
   Menu, X, ChevronDown, Church, Heart, BookOpen, Clock, 
   Users, Calendar, Image as ImageIcon, Mail, Phone, ArrowRight
@@ -67,9 +68,35 @@ export default function Navbar() {
     }));
   };
 
+  const isPreview = isAdminPreviewMode() || location.pathname.startsWith('/admin/preview');
+
+  const getNavUrl = (targetPath) => {
+    if (!targetPath) return isPreview ? '/admin/preview' : '/';
+    if (
+      targetPath.startsWith('http://') ||
+      targetPath.startsWith('https://') ||
+      targetPath.startsWith('mailto:') ||
+      targetPath.startsWith('tel:') ||
+      targetPath.startsWith('#')
+    ) {
+      return targetPath;
+    }
+    if (!isPreview) return targetPath;
+    return resolvePreviewPath(targetPath);
+  };
+
   const isCurrentActive = (path) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
+    if (!path) return false;
+    const resolved = isPreview ? resolvePreviewPath(path) : path;
+    if (path === '/' || resolved === '/admin/preview') {
+      return isPreview ? location.pathname === '/admin/preview' : location.pathname === '/';
+    }
+    return (
+      location.pathname === resolved ||
+      location.pathname.startsWith(resolved) ||
+      location.pathname === path ||
+      location.pathname.startsWith(path)
+    );
   };
 
   return (
@@ -80,7 +107,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-18 sm:h-20">
             
             {/* Left: Parish Official Logo and Name */}
-            <Link to="/" className="flex items-center gap-2.5 sm:gap-3.5 group text-left min-w-0 pr-2">
+            <Link to={isPreview ? "/admin/preview" : "/"} className="flex items-center gap-2.5 sm:gap-3.5 group text-left min-w-0 pr-2">
               <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#C59B3F] group-hover:ring-[#A81B2B] transition-all flex items-center justify-center overflow-hidden shrink-0">
                 <img 
                   src="/logo.png" 
@@ -141,11 +168,12 @@ export default function Navbar() {
                           <div className="space-y-1.5">
                             {item.children.map((subItem) => {
                               const SubIcon = iconMap[subItem.label] || Church;
-                              const isSubActive = location.pathname === subItem.targetPath;
+                              const subTarget = getNavUrl(subItem.targetPath);
+                              const isSubActive = location.pathname === subTarget || location.pathname === subItem.targetPath;
                               return (
                                 <Link
                                   key={subItem.id}
-                                  to={subItem.targetPath}
+                                  to={subTarget}
                                   target={subItem.openInNewTab ? '_blank' : '_self'}
                                   rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
                                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
@@ -174,7 +202,7 @@ export default function Navbar() {
                 return (
                   <Link
                     key={item.id}
-                    to={item.destinationType === 'EXTERNAL' ? item.externalUrl : (item.targetPath || '/')}
+                    to={item.destinationType === 'EXTERNAL' ? item.externalUrl : getNavUrl(item.targetPath || '/')}
                     target={item.openInNewTab ? '_blank' : '_self'}
                     rel={item.openInNewTab ? 'noopener noreferrer' : ''}
                     className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
@@ -233,11 +261,12 @@ export default function Navbar() {
                       <div className="p-2 space-y-1 bg-[#FAF7F0] border-t border-stone-100">
                         {item.children.map((subItem) => {
                           const SubIcon = iconMap[subItem.label] || Church;
-                          const isSubActive = location.pathname === subItem.targetPath;
+                          const subTarget = getNavUrl(subItem.targetPath);
+                          const isSubActive = location.pathname === subTarget || location.pathname === subItem.targetPath;
                           return (
                             <Link
                               key={subItem.id}
-                              to={subItem.targetPath}
+                              to={subTarget}
                               target={subItem.openInNewTab ? '_blank' : '_self'}
                               rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
                               className={`flex items-center gap-2.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
@@ -260,7 +289,7 @@ export default function Navbar() {
               return (
                 <Link
                   key={item.id}
-                  to={item.destinationType === 'EXTERNAL' ? item.externalUrl : (item.targetPath || '/')}
+                  to={item.destinationType === 'EXTERNAL' ? item.externalUrl : getNavUrl(item.targetPath || '/')}
                   target={item.openInNewTab ? '_blank' : '_self'}
                   rel={item.openInNewTab ? 'noopener noreferrer' : ''}
                   className={`block py-2.5 px-3.5 rounded-xl text-sm font-semibold transition-colors ${
@@ -278,7 +307,7 @@ export default function Navbar() {
           {/* Quick Action Button for Mobile Drawer */}
           <div className="mt-4 pt-3 border-t border-stone-200/80">
             <Link
-              to="/contact#mass-schedule"
+              to={isPreview ? "/admin/preview/contact#mass-schedule" : "/contact#mass-schedule"}
               onClick={() => setMobileMenuOpen(false)}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#DFBE7B] via-[#C59B3F] to-[#A27B27] text-stone-900 text-xs font-extrabold uppercase tracking-wider shadow-md hover:brightness-105 active:scale-98 transition-all"
             >

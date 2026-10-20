@@ -224,7 +224,7 @@ export default function SectionMaintenanceBar({
           {/* Admin Live Preview Link (Bypasses Maintenance and previews the whole page) */}
           {section.publicPath && (
             <a
-              href={section.publicPath === '/' ? '/preview' : `/preview${section.publicPath}`}
+              href={`/admin/preview${section.publicPath === '/' ? '' : section.publicPath}`}
               target="_blank"
               rel="noopener noreferrer"
               title={`Preview live ${section.label} page in a new window (bypasses maintenance mode)`}

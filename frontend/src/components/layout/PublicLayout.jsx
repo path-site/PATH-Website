@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import ParishAIAssistant from '../common/ParishAIAssistant';
@@ -7,13 +7,20 @@ import OverallMaintenanceScreen from '../common/OverallMaintenanceScreen';
 import ParishChurchSplashScreen from '../common/ParishChurchSplashScreen';
 import { useTheme } from '../../context/ThemeContext';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
-import { isOverallMaintenance, isAdminPreviewMode, disableAdminPreviewMode } from '../../config/maintenanceConfig';
+import { 
+  isOverallMaintenance, 
+  isAdminPreviewMode, 
+  enableAdminPreviewMode,
+  disableAdminPreviewMode,
+  resolvePreviewPath
+} from '../../config/maintenanceConfig';
 import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
   const { settings, loading } = useTheme();
+  const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isPreview = isAdminPreviewMode() || pathname.startsWith('/preview');
+  const isPreview = isAdminPreviewMode() || pathname.startsWith('/admin/preview') || pathname.startsWith('/preview');
   const isOverallMaint = isPreview ? false : isOverallMaintenance(settings);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -22,7 +29,61 @@ export default function PublicLayout() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (pathname.startsWith('/admin/preview')) {
+      enableAdminPreviewMode();
+    }
   }, [pathname]);
+
+  // When browsing in Preview Mode, automatically intercept public site links (e.g., hero buttons, cards, notices)
+  // so the administrator seamlessly watches other pages while remaining in protected /admin/preview mode.
+  useEffect(() => {
+    if (!isPreview) return;
+
+    const handlePreviewLinkClick = (e) => {
+      // Allow new tab/window clicks or non-primary clicks
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+
+      const anchor = e.target.closest('a');
+      if (!anchor) return;
+      if (anchor.target === '_blank') return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // Ignore external protocols and local anchor fragments
+      if (
+        href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('tel:') ||
+        href.startsWith('#')
+      ) {
+        return;
+      }
+
+      // Allow admin suite dashboard routes (e.g. /admin, /admin/login)
+      if (href.startsWith('/admin') && !href.startsWith('/admin/preview')) {
+        return;
+      }
+
+      // If already an /admin/preview path, allow default router behavior
+      if (href.startsWith('/admin/preview')) {
+        return;
+      }
+
+      // Rewrite public path (e.g. /ministries, /events) to /admin/preview equivalent
+      e.preventDefault();
+      e.stopPropagation();
+
+      const previewTarget = resolvePreviewPath(href);
+      navigate(previewTarget);
+    };
+
+    document.addEventListener('click', handlePreviewLinkClick, true);
+    return () => {
+      document.removeEventListener('click', handlePreviewLinkClick, true);
+    };
+  }, [isPreview, navigate]);
 
   // Track scroll depth and toggle floating scroll-to-top button
   useEffect(() => {
@@ -159,7 +220,7 @@ export default function PublicLayout() {
       return <div className="min-h-screen bg-[#020914]" />;
     }
 
-    const isAdminPreview = isAdminPreviewMode() || pathname.startsWith('/preview');
+    const isAdminPreview = isAdminPreviewMode() || pathname.startsWith('/admin/preview') || pathname.startsWith('/preview');
 
     return (
       <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">

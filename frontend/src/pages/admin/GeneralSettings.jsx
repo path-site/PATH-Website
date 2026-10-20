@@ -297,7 +297,7 @@ export default function GeneralSettings() {
               </a>
             )}
             <a
-              href="/preview"
+              href="/admin/preview"
               target="_blank"
               rel="noopener noreferrer"
               title="Preview the whole live website in a new window as administrator (bypasses maintenance mode)"
