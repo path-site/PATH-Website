@@ -896,22 +896,21 @@ RULES:
   return (
     <>
       {/* =========================================================================
-          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST WITH COOL ANIMATION)
+          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST WITH AMBIENT GLOW)
          ========================================================================= */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        {/* Minimalist Floating Trigger Button with Hover Shimmer & 3D Morph Rotation */}
         <button
           onClick={toggleAssistant}
           aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
-          className={`relative w-12 h-12 rounded-full bg-[#1C1814] text-white border transition-all duration-300 ease-out flex items-center justify-center active:scale-90 group focus:outline-none shadow-md hover:shadow-xl ${
+          className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-[#071838] via-[#0D2556] to-[#071838] text-white border transition-all duration-300 ease-out flex items-center justify-center active:scale-95 group focus:outline-none ${
             isOpen
-              ? 'border-[#C59B3F] shadow-[0_0_20px_rgba(197,155,63,0.35)] bg-[#25201A]'
-              : 'border-stone-800 hover:border-[#DFBE7B]/80 hover:shadow-[0_4px_22px_rgba(197,155,63,0.35)] hover:scale-110'
+              ? 'border-[#DFBE7B] shadow-[0_0_24px_rgba(197,155,63,0.45)]'
+              : 'border-[#DFBE7B]/50 hover:border-[#DFBE7B] shadow-[0_8px_25px_rgba(7,24,56,0.35)] hover:shadow-[0_10px_30px_rgba(197,155,63,0.35)] hover:scale-105'
           }`}
         >
           {/* Subtle Ambient Halo on Hover */}
           <span
-            className={`absolute -inset-1 rounded-full bg-gradient-to-r from-[#C59B3F]/40 via-amber-400/25 to-[#800020]/30 blur-xs transition-opacity duration-300 pointer-events-none ${
+            className={`absolute -inset-1 rounded-full bg-gradient-to-r from-[#DFBE7B]/40 via-amber-400/25 to-[#800020]/25 blur-xs transition-opacity duration-300 pointer-events-none ${
               isOpen ? 'opacity-40' : 'opacity-0 group-hover:opacity-100'
             }`}
           />
@@ -921,13 +920,13 @@ RULES:
             <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
           </span>
 
-          {/* Morphing Animated Icons (In & Out 3D-style rotational flip) */}
+          {/* Morphing Animated Icons (Sparkles to Close) */}
           <div className="relative w-5 h-5 flex items-center justify-center pointer-events-none">
             <Sparkles
               className={`w-5 h-5 text-[#DFBE7B] absolute transition-all duration-300 ease-out transform ${
                 isOpen
                   ? 'opacity-0 rotate-90 scale-50 pointer-events-none'
-                  : 'opacity-100 rotate-0 scale-100 group-hover:rotate-12 group-hover:scale-115'
+                  : 'opacity-100 rotate-0 scale-100 group-hover:rotate-12 group-hover:scale-110'
               }`}
             />
             <X
@@ -942,58 +941,60 @@ RULES:
       </div>
 
       {/* =========================================================================
-          2. POP-UP AI AGENT CHAT WINDOW (ANIMATES BOTH IN & OUT)
+          2. POP-UP AI AGENT CHAT WINDOW
          ========================================================================= */}
       {isMounted && (
         <div
-          className={`fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden origin-bottom-right transition-all duration-280 ease-out ${
+          className={`fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-[0_24px_60px_-12px_rgba(7,24,56,0.35),0_0_0_1px_rgba(197,155,63,0.25)] border border-[#DFBE7B]/30 flex flex-col overflow-hidden origin-bottom-right transition-all duration-280 ease-out ${
             isOpen
               ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-              : 'opacity-0 scale-90 translate-y-6 pointer-events-none'
+              : 'opacity-0 scale-95 translate-y-6 pointer-events-none'
           }`}
-          style={{ boxShadow: '0 25px 60px -15px rgba(28, 24, 20, 0.4), 0 0 0 1px rgba(197, 155, 63, 0.25)' }}
         >
 
-          {/* Header */}
-          <div className="bg-gradient-to-r from-[#800020] via-[#5C0017] to-[#1C1814] p-4 sm:p-5 text-white flex items-center justify-between border-b border-[#C59B3F]/30 relative overflow-hidden shrink-0">
-            {/* Subtle liturgical ornament watermark */}
-            <div className="absolute right-0 top-0 translate-x-6 -translate-y-6 opacity-10 pointer-events-none">
-              <Church className="w-36 h-36" />
-            </div>
+          {/* Minimalist Ecclesiastical Header */}
+          <div className="bg-gradient-to-r from-[#071838] via-[#0B2046] to-[#071838] px-4 py-3.5 sm:px-5 sm:py-4 text-white flex items-center justify-between border-b border-[#C59B3F]/30 relative overflow-hidden shrink-0">
+            {/* Subtle luminous ambient highlight */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[#DFBE7B]/15 via-transparent to-transparent pointer-events-none" />
 
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-[#C59B3F]/30 to-[#800020]/40 border border-[#DFBE7B]/50 flex items-center justify-center shadow-inner">
-                <Sparkles className="w-5 h-5 text-[#DFBE7B]" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#5C0017]" />
+            {/* Left: Avatar & Title */}
+            <div className="flex items-center gap-3 relative z-10 min-w-0">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[1.5px] bg-gradient-to-br from-[#DFBE7B] via-[#C59B3F] to-[#9E7722] shadow-sm shrink-0">
+                <div className="w-full h-full rounded-full bg-[#071838] flex items-center justify-center">
+                  <Church className="w-4.5 h-4.5 text-[#DFBE7B]" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#071838]" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif-heading text-base font-bold tracking-wide text-white leading-tight">
-                    Parish Staff
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-serif-heading text-[14px] sm:text-[15px] font-bold tracking-wide text-white leading-none truncate">
+                    Parish Assistant
                   </h3>
-                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1 bg-[#C59B3F]/25 text-[#DFBE7B] border border-[#C59B3F]/40">
-                    <Sparkles className="w-2.5 h-2.5" /> AI Assistant
+                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 bg-[#DFBE7B]/20 text-[#DFBE7B] border border-[#DFBE7B]/35 leading-none shrink-0">
+                    <Sparkles className="w-2 h-2 text-[#DFBE7B]" /> AI
                   </span>
                 </div>
-                <p className="text-[11px] text-stone-300 font-sans mt-0.5">
-                  Parish Assistant
+                <p className="text-[11px] text-stone-300 font-sans mt-1 flex items-center gap-1.5 leading-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <span className="truncate">Alliance of the Two Hearts</span>
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 relative z-10">
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-1 relative z-10 shrink-0">
               <button
                 onClick={resetChat}
                 title="Restart conversation"
-                className="p-1.5 text-stone-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                 aria-label="Restart chat"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={closeAssistant}
                 title="Close assistant"
-                className="p-1.5 text-stone-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                 aria-label="Close chat"
               >
                 <X className="w-4 h-4" />
@@ -1001,23 +1002,24 @@ RULES:
             </div>
           </div>
 
-          {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FDFCF9]">
+          {/* Messages Container (Warm Ecclesiastical Parchment) */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-[#FAF8F5]">
             {messages.map((msg) => (
               <div
                 key={msg.id}
                 className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'ai' && (
-                  <div className="w-7 h-7 rounded-full bg-[#FAF7F0] border border-[#C59B3F]/40 flex items-center justify-center shrink-0 text-[#8F6B1E] shadow-2xs mt-1">
-                    <Church className="w-3.5 h-3.5" />
+                  <div className="w-7 h-7 rounded-full bg-white border border-[#DFBE7B]/50 flex items-center justify-center shrink-0 text-[#9E7722] shadow-2xs mt-0.5">
+                    <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
                   </div>
                 )}
 
-                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs ${msg.sender === 'user'
-                  ? 'bg-[#800020] text-white rounded-tr-xs font-sans'
-                  : 'bg-white border border-[#C59B3F]/25 text-stone-800 rounded-tl-xs parchment-card'
-                  }`}>
+                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs transition-colors ${
+                  msg.sender === 'user'
+                    ? 'bg-gradient-to-r from-[#800020] to-[#6E001B] text-white rounded-tr-xs font-sans'
+                    : 'bg-white border border-stone-200/80 hover:border-[#DFBE7B]/50 text-stone-800 rounded-tl-xs shadow-[0_2px_8px_rgba(0,0,0,0.03)]'
+                }`}>
                   {msg.sender === 'ai' ? (
                     <FormattedMessage text={msg.text} />
                   ) : (
@@ -1026,21 +1028,24 @@ RULES:
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between gap-2 mt-2 pt-1 border-t border-stone-100/60">
+                  <div className={`flex items-center justify-between gap-2 mt-2 pt-1.5 ${
+                    msg.sender === 'user' ? 'border-t border-white/15' : 'border-t border-stone-100'
+                  }`}>
                     {msg.sender === 'ai' ? (
-                      <span className="text-[9px] text-[#8F6B1E] font-medium flex items-center gap-0.5">
-                        <Sparkles className="w-2.5 h-2.5" /> Parish Staff
+                      <span className="text-[10px] text-[#9E7722] font-medium flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5 text-[#C59B3F]" /> Parish Assistant
                       </span>
                     ) : <span />}
-                    <span className={`block text-[10px] font-mono ${msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
-                      }`}>
+                    <span className={`block text-[10px] font-mono ${
+                      msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
+                    }`}>
                       {msg.timestamp}
                     </span>
                   </div>
                 </div>
 
                 {msg.sender === 'user' && (
-                  <div className="w-7 h-7 rounded-full bg-[#800020]/15 border border-[#800020]/30 flex items-center justify-center shrink-0 text-[#800020] shadow-2xs mt-1">
+                  <div className="w-7 h-7 rounded-full bg-[#800020]/10 border border-[#800020]/25 flex items-center justify-center shrink-0 text-[#800020] shadow-2xs mt-0.5">
                     <User className="w-3.5 h-3.5" />
                   </div>
                 )}
@@ -1050,14 +1055,16 @@ RULES:
             {/* Simulated / Streaming Typing Indicator */}
             {isTyping && (
               <div className="flex gap-2.5 justify-start items-center">
-                <div className="w-7 h-7 rounded-full bg-[#FAF7F0] border border-[#C59B3F]/40 flex items-center justify-center shrink-0 text-[#8F6B1E] shadow-2xs">
-                  <Church className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-full bg-white border border-[#DFBE7B]/50 flex items-center justify-center shrink-0 text-[#9E7722] shadow-2xs">
+                  <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
                 </div>
-                <div className="bg-white border border-[#C59B3F]/25 px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-xs flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '300ms' }} />
-                  <span className="text-[11px] text-stone-500 font-sans ml-1">
+                <div className="bg-white border border-stone-200/80 px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#071838] animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-[11px] text-stone-500 font-sans italic">
                     Parish Assistant is thinking...
                   </span>
                 </div>
@@ -1067,8 +1074,8 @@ RULES:
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Preset Action Chips */}
-          <div className="px-3.5 py-2 bg-[#F9F7F2] border-t border-stone-200/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+          {/* Quick Preset Action Chips (Scrollbar-free pill buttons) */}
+          <div className="px-3.5 py-2.5 bg-[#FAF8F5] border-t border-stone-200/60 flex items-center gap-1.5 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
             {SUGGESTED_QUERIES.map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -1076,7 +1083,7 @@ RULES:
                   key={idx}
                   onClick={() => handleSend(item.prompt)}
                   disabled={isTyping}
-                  className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white hover:bg-[#C59B3F]/15 border border-[#C59B3F]/30 hover:border-[#C59B3F] text-[11px] font-medium text-stone-700 hover:text-[#800020] transition-colors flex items-center gap-1 shadow-2xs shrink-0 disabled:opacity-50"
+                  className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white hover:bg-[#F5EEDC]/60 active:scale-95 border border-stone-200/90 hover:border-[#DFBE7B] text-[11px] font-medium text-stone-700 hover:text-[#800020] transition-all flex items-center gap-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0 disabled:opacity-50 cursor-pointer"
                 >
                   <Icon className="w-3 h-3 text-[#C59B3F]" />
                   <span>{item.label}</span>
@@ -1085,14 +1092,14 @@ RULES:
             })}
           </div>
 
-          {/* Input Form Bar */}
-          <div className="p-3 sm:p-3.5 bg-white border-t border-stone-200/80 shrink-0">
+          {/* Input Form Bar (Unified Capsule with subtle gold focus halo) */}
+          <div className="p-3 sm:p-3.5 bg-white border-t border-stone-200/60 shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSend();
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-[#F7F5F0] hover:bg-[#F3EFE6] focus-within:bg-white rounded-2xl border border-stone-200/90 focus-within:border-[#C59B3F] focus-within:ring-2 focus-within:ring-[#C59B3F]/25 p-1 pl-3.5 transition-all duration-200 shadow-2xs"
             >
               <input
                 ref={inputRef}
@@ -1102,21 +1109,25 @@ RULES:
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about mass, sacraments, clergy..."
                 disabled={isTyping}
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-stone-100/80 border border-stone-200 text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#800020] focus:bg-white transition-all disabled:opacity-60"
+                className="flex-1 bg-transparent text-xs sm:text-[13px] text-stone-800 placeholder-stone-400 focus:outline-none border-none py-1.5 pr-2 disabled:opacity-60"
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
                 aria-label="Send query"
-                className="p-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all transform active:scale-95 shrink-0"
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 shrink-0 ${
+                  inputMessage.trim() && !isTyping
+                    ? 'bg-[#800020] hover:bg-[#68001A] text-[#DFBE7B] hover:text-white shadow-xs active:scale-95 cursor-pointer'
+                    : 'bg-stone-200/80 text-stone-400 cursor-not-allowed'
+                }`}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 ml-0.5" />
               </button>
             </form>
             <div className="flex items-center justify-between text-[10px] text-stone-400 mt-2 px-1">
-              <span>Parish of the Alliance of the Two Hearts</span>
-              <span className="flex items-center gap-1 text-[#8F6B1E]">
-                <Sparkles className="w-2.5 h-2.5" /> AI Assistant
+              <span className="font-sans">Parish of the Alliance of the Two Hearts</span>
+              <span className="flex items-center gap-1 text-[#9E7722] font-medium">
+                <Sparkles className="w-2.5 h-2.5 text-[#C59B3F]" /> AI Assistant
               </span>
             </div>
           </div>
