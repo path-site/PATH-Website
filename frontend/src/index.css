@@ -347,6 +347,61 @@
   border-color: rgba(197, 155, 63, 0.65);
 }
 
+/* Ultra-smooth Ministry Card Interactive Hover */
+.ministry-card-interactive {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              border-color 0.35s ease,
+              background-color 0.35s ease;
+  will-change: transform, box-shadow;
+}
+
+.ministry-card-interactive:hover {
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 22px 42px -10px rgba(7, 24, 56, 0.12), 
+              0 12px 24px -6px rgba(212, 175, 55, 0.22),
+              0 0 0 1px rgba(212, 175, 55, 0.5);
+  border-color: rgba(212, 175, 55, 0.8);
+}
+
+.ministry-card-interactive:active {
+  transform: translateY(-2px) scale(0.995);
+  transition-duration: 0.12s;
+}
+
+/* Very Smooth Modal & Lightbox Lifecycle Transitions */
+.modal-overlay-base {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1), 
+              backdrop-filter 0.28s ease;
+}
+
+.modal-overlay-enter {
+  opacity: 1 !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: opacity 0.34s cubic-bezier(0.16, 1, 0.3, 1), 
+              backdrop-filter 0.34s ease !important;
+}
+
+.modal-content-base {
+  opacity: 0;
+  transform: scale(0.93) translateY(18px);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.modal-content-enter {
+  opacity: 1 !important;
+  transform: scale(1) translateY(0) !important;
+  transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform, opacity;
+}
+
 .card-lift-sm {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
               box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
