@@ -262,14 +262,16 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              to={ADMIN_ROUTES.preview}
-              title="Preview the live website as an Administrator"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#071838] hover:bg-[#0d2556] text-amber-300 text-xs font-bold transition-all shadow-xs shrink-0 border border-amber-400/40"
+            <a
+              href="/preview"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Preview the whole live website in a new window as an Administrator"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#071838] hover:bg-[#0d2556] text-amber-300 text-xs font-bold transition-all shadow-xs shrink-0 border border-amber-400/40 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span>Admin Preview</span>
-            </Link>
+              <span>Preview Whole Site</span>
+            </a>
             <Link
               to={ADMIN_ROUTES.settings}
               className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-all shadow-xs shrink-0"

@@ -436,14 +436,16 @@ export default function HomepageBuilder() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            to={ADMIN_ROUTES.preview}
-            title="Preview the live homepage as an Administrator (bypasses maintenance mode)"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#12316e] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md"
+          <a
+            href="/preview"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Preview the whole live homepage in a new window (bypasses maintenance mode)"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#12316e] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-amber-400" />
-            <span>Admin Live Preview</span>
-          </Link>
+            <span>Preview Whole Homepage</span>
+          </a>
           <button
             onClick={() => setIsAddModalOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all"

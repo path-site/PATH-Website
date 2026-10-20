@@ -142,13 +142,15 @@ export default function PublicMaintenanceNotice({
         {/* Administrator Quick Preview Access Shortcut */}
         {isAdminPreviewAllowed() && (
           <div className="pt-4 border-t border-amber-400/20 text-center">
-            <Link
-              to={`${ADMIN_ROUTES.preview}?page=${encodeURIComponent(section?.publicPath || window.location.pathname)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 hover:text-white border border-amber-400/40 text-xs font-bold transition-colors cursor-pointer"
+            <a
+              href={section?.publicPath ? `/preview${section.publicPath === '/' ? '' : section.publicPath}` : '/preview'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 hover:text-white border border-amber-400/40 text-xs font-bold transition-colors cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span>Administrator: Preview Live Section in Admin Live Studio →</span>
-            </Link>
+              <span>Administrator: Preview Whole Page Live in New Window →</span>
+            </a>
           </div>
         )}
       </div>

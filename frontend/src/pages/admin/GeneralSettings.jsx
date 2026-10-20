@@ -296,14 +296,16 @@ export default function GeneralSettings() {
                 <span>Public Notice</span>
               </a>
             )}
-            <Link
-              to={ADMIN_ROUTES.preview}
-              title="Admin Live Preview (bypasses maintenance mode so you can view the real site as administrator)"
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#112d66] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md"
+            <a
+              href="/preview"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Preview the whole live website in a new window as administrator (bypasses maintenance mode)"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#112d66] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span>Admin Live Preview</span>
-            </Link>
+              <span>Preview Whole Site</span>
+            </a>
             <button
               type="button"
               onClick={handleInstantOverallToggle}

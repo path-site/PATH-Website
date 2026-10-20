@@ -199,14 +199,19 @@ export const isAdminPreviewMode = () => {
     if (
       searchParams.get('admin_preview') === '1' ||
       searchParams.get('admin_preview') === 'true' ||
-      searchParams.get('preview') === 'admin'
+      searchParams.get('preview') === 'admin' ||
+      searchParams.get('preview') === 'true'
     ) {
       return true;
     }
     if (sessionStorage.getItem(ADMIN_PREVIEW_MODE_KEY) === 'true') {
       return true;
     }
-    if (window.location.pathname.startsWith('/admin/preview')) {
+    if (
+      window.location.pathname === '/preview' ||
+      window.location.pathname.startsWith('/preview/') ||
+      window.location.pathname.startsWith('/admin/preview')
+    ) {
       return true;
     }
     return false;

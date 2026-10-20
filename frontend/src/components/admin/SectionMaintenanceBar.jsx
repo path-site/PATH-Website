@@ -221,16 +221,18 @@ export default function SectionMaintenanceBar({
             <span className="hidden sm:inline">Notice Settings</span>
           </button>
 
-          {/* Admin Live Preview Link (Bypasses Maintenance) */}
+          {/* Admin Live Preview Link (Bypasses Maintenance and previews the whole page) */}
           {section.publicPath && (
-            <Link
-              to={`${ADMIN_ROUTES.preview}?page=${encodeURIComponent(section.publicPath)}`}
-              title={`Preview live ${section.label} page (bypasses maintenance mode so you can preview changes safely)`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-950 bg-amber-200/80 hover:bg-amber-300 border border-amber-400/80 transition-all shadow-xs cursor-pointer"
+            <a
+              href={section.publicPath === '/' ? '/preview' : `/preview${section.publicPath}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`Preview live ${section.label} page in a new window (bypasses maintenance mode)`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-950 bg-amber-200/90 hover:bg-amber-300 border border-amber-400/80 transition-all shadow-xs cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-amber-800" />
-              <span>Admin Preview</span>
-            </Link>
+              <span>Preview Page</span>
+            </a>
           )}
 
           {/* View Public Page Link */}

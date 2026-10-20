@@ -256,18 +256,20 @@ export default function AdminLayout() {
               </Link>
             )}
 
-            <Link
-              to={ADMIN_ROUTES.preview}
-              title="Preview the live website as an Administrator (bypasses maintenance mode so you can view the real site safely)"
+            <a
+              href="/preview"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Preview the whole live website as an Administrator in a new window (bypasses maintenance mode)"
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] text-amber-300 hover:text-white border border-amber-400/50 text-[11px] sm:text-xs font-bold transition-all shadow-xs shrink-0 whitespace-nowrap hover:shadow-md hover:scale-102"
             >
               <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden sm:inline">Admin Live Preview</span>
+              <span className="hidden sm:inline">Preview Whole Site</span>
               <span className="sm:hidden">Preview</span>
               <span className="px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 text-[9px] uppercase font-extrabold tracking-wider border border-amber-400/30">
-                Bypass
+                Live
               </span>
-            </Link>
+            </a>
 
             <Link
               to="/"

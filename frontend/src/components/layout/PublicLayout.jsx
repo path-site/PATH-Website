@@ -12,8 +12,9 @@ import { ChevronUp } from 'lucide-react';
 
 export default function PublicLayout() {
   const { settings, loading } = useTheme();
-  const isOverallMaint = isOverallMaintenance(settings);
   const { pathname } = useLocation();
+  const isPreview = isAdminPreviewMode() || pathname.startsWith('/preview');
+  const isOverallMaint = isPreview ? false : isOverallMaintenance(settings);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
@@ -158,36 +159,29 @@ export default function PublicLayout() {
       return <div className="min-h-screen bg-[#020914]" />;
     }
 
-    const isAdminPreview = isAdminPreviewMode();
-    const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+    const isAdminPreview = isAdminPreviewMode() || pathname.startsWith('/preview');
 
     return (
       <div className="min-h-screen flex flex-col bg-[#FDFCF7] text-stone-900 font-sans selection:bg-[#800020] selection:text-white relative">
-        {/* Floating Standalone Admin Preview Top Bar (Visible when browsing site directly in preview mode) */}
-        {isAdminPreview && !isInIframe && (
-          <aside aria-label="Admin Preview Mode" className="sticky top-0 z-[100] bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] text-white border-b border-amber-400/50 px-4 py-2 shadow-lg">
-            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2.5">
+        {/* Floating Admin Preview Top Bar (Visible when previewing whole page as Administrator) */}
+        {isAdminPreview && (
+          <aside aria-label="Admin Preview Mode" className="sticky top-0 z-[100] bg-gradient-to-r from-[#071838] via-[#0D2556] to-[#071838] text-white border-b border-amber-400/50 px-4 py-2.5 shadow-lg">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
                 <span className="font-bold text-amber-300 font-serif-heading text-sm">
                   ADMIN LIVE PREVIEW MODE
                 </span>
                 <span className="text-stone-300 hidden md:inline">
-                  • Viewing live site as Administrator. Public visitors see maintenance shield.
+                  • You are previewing the whole live website as an Administrator while maintenance is active for ordinary visitors.
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  to={ADMIN_ROUTES.preview}
-                  className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold transition-colors"
-                >
-                  Open Studio
-                </Link>
+              <div className="flex items-center gap-2 shrink-0">
                 <Link
                   to={ADMIN_ROUTES.base}
-                  className="px-2.5 py-1 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold transition-colors"
+                  className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold transition-all shadow-xs cursor-pointer"
                 >
-                  CMS Dashboard
+                  ← Back to CMS Admin
                 </Link>
                 <button
                   type="button"
@@ -195,7 +189,7 @@ export default function PublicLayout() {
                     disableAdminPreviewMode();
                     window.location.href = '/';
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 font-semibold border border-rose-800/60 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white font-semibold transition-colors cursor-pointer border border-stone-700"
                 >
                   Exit Preview
                 </button>
@@ -207,7 +201,7 @@ export default function PublicLayout() {
         {/* Liturgical Reading Progress Indicator (Fixed at Top) */}
         <div 
           className={`fixed left-0 h-[3px] bg-gradient-to-r from-[#A81B2B] via-[#C59B3F] to-[#0B3B95] z-[60] transition-all duration-150 ease-out shadow-[0_0_10px_rgba(197,155,63,0.7)] pointer-events-none ${
-            isAdminPreview && !isInIframe ? 'top-[41px]' : 'top-0'
+            isAdminPreview ? 'top-[44px]' : 'top-0'
           }`}
           style={{ width: `${scrollProgress}%` }}
           role="progressbar"

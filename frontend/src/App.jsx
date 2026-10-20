@@ -43,7 +43,6 @@ import ContactSettings from './pages/admin/ContactSettings';
 import UserManager from './pages/admin/UserManager';
 import GeneralSettings from './pages/admin/GeneralSettings';
 import AIResponsesManager from './pages/admin/AIResponsesManager';
-import AdminLivePreview from './pages/admin/AdminLivePreview';
 
 // Secret Gateway Access Handler:
 // When the secret link is accessed, unlock portal access and immediately redirect/replace URL with /admin/login
@@ -138,6 +137,33 @@ export default function App() {
             {/* Admin Login: Only accessible if unlocked via the secret link */}
             <Route path={ADMIN_ROUTES.login} element={<AdminLoginRoute />} />
 
+            {/* Redirect /admin/preview to /preview so it never opens inside AdminLayout */}
+            <Route path="/admin/preview" element={<Navigate to="/preview" replace />} />
+
+            {/* Protected Whole-Page Admin Live Preview Routes */}
+            <Route
+              path="/preview"
+              element={
+                <ProtectedRoute>
+                  <PublicLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<HomePage />} />
+              <Route path="home" element={<HomePage />} />
+              <Route path="announcements" element={<AnnouncementsPage />} />
+              <Route path="announcements/:slug" element={<AnnouncementDetailPage />} />
+              <Route path="about/mission-vision" element={<MissionVisionPage />} />
+              <Route path="about/history" element={<HistoryPage />} />
+              <Route path="about/priests" element={<PriestsPage />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="events/:slug" element={<EventDetailPage />} />
+              <Route path="gallery" element={<GalleryPage />} />
+              <Route path="ministries" element={<MinistriesPage />} />
+              <Route path="contact" element={<ContactPage />} />
+              <Route path="pages/:slug" element={<CustomPageView />} />
+            </Route>
+
             {/* Protected Admin Management Suite */}
             <Route
               path={ADMIN_ROUTES.base}
@@ -163,18 +189,7 @@ export default function App() {
               <Route path="users" element={<UserManager />} />
               <Route path="ai-responses" element={<AIResponsesManager />} />
               <Route path="settings" element={<GeneralSettings />} />
-              <Route path="preview" element={<Navigate to={ADMIN_ROUTES.preview} replace />} />
             </Route>
-
-            {/* Dedicated Protected Live Admin Preview Studio */}
-            <Route
-              path={ADMIN_ROUTES.preview}
-              element={
-                <ProtectedRoute>
-                  <AdminLivePreview />
-                </ProtectedRoute>
-              }
-            />
 
             {/* Catch-all redirect to Home */}
             <Route path="*" element={<Navigate to="/" replace />} />
