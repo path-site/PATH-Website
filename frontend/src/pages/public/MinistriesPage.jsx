@@ -505,16 +505,25 @@ export default function MinistriesPage() {
                 ) : (
                   <div className="space-y-3">
                     {/* Main Featured Photo Display */}
-                    <div className="relative aspect-video sm:aspect-[16/10] w-full bg-stone-900 rounded-2xl overflow-hidden shadow-md flex items-center justify-center group">
+                    <div className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[460px] w-full bg-stone-900 rounded-2xl overflow-hidden shadow-md flex items-center justify-center group">
+                      {/* Ambient Soft Blurred Backdrop (blends photo colors into any excess space) */}
+                      <div
+                        className="absolute inset-0 bg-cover bg-center blur-2xl scale-125 opacity-50 pointer-events-none"
+                        style={{
+                          backgroundImage: `url(${resolveMediaUrl(modalPhotos[activePhotoIdx]?.url)})`,
+                        }}
+                      />
+
+                      {/* Main Photo (fills frame seamlessly edge-to-edge without black spots) */}
                       <img
                         src={resolveMediaUrl(modalPhotos[activePhotoIdx]?.url)}
                         alt={modalPhotos[activePhotoIdx]?.caption || selectedMinistry.name}
-                        className="w-full h-full object-contain cursor-pointer transition-transform duration-500 group-hover:scale-102"
+                        className="relative z-10 w-full h-full object-cover object-center cursor-pointer transition-transform duration-500 group-hover:scale-102"
                         onClick={openLightbox}
                       />
 
                       {/* Counter Tag */}
-                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold">
+                      <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold shadow-xs">
                         {activePhotoIdx + 1} / {modalPhotos.length}
                       </div>
 
@@ -522,7 +531,7 @@ export default function MinistriesPage() {
                       <button
                         type="button"
                         onClick={openLightbox}
-                        className="absolute top-3 left-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer"
+                        className="absolute top-3 left-3 z-20 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer backdrop-blur-xs shadow-xs"
                         title="Expand full screen"
                       >
                         <Maximize2 className="w-4 h-4" />
@@ -537,7 +546,7 @@ export default function MinistriesPage() {
                               e.stopPropagation();
                               setActivePhotoIdx((prev) => (prev === 0 ? modalPhotos.length - 1 : prev - 1));
                             }}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110 shadow-xs"
                             title="Previous photo"
                           >
                             <ChevronLeft className="w-5 h-5" />
@@ -548,7 +557,7 @@ export default function MinistriesPage() {
                               e.stopPropagation();
                               setActivePhotoIdx((prev) => (prev + 1) % modalPhotos.length);
                             }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer hover:scale-110 shadow-xs"
                             title="Next photo"
                           >
                             <ChevronRight className="w-5 h-5" />
@@ -558,7 +567,7 @@ export default function MinistriesPage() {
 
                       {/* Caption Bar Overlay */}
                       {modalPhotos[activePhotoIdx]?.caption && (
-                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 text-white text-xs sm:text-sm font-medium">
+                        <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 text-white text-xs sm:text-sm font-medium">
                           {modalPhotos[activePhotoIdx].caption}
                         </div>
                       )}
