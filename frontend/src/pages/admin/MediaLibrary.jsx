@@ -25,9 +25,16 @@ export default function MediaLibrary() {
   const fetchMedia = async (query = '') => {
     try {
       const res = await adminApi.getMedia(query);
-      if (res.data) setMedia(res.data);
+      const list = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : [];
+      setMedia(list);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load media files:', err);
     } finally {
       setLoading(false);
     }

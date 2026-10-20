@@ -1,6 +1,7 @@
 package com.path.parish.controller;
 
 import com.path.parish.dto.ApiResponse;
+import com.path.parish.dto.MediaFileDto;
 import com.path.parish.model.MediaFile;
 import com.path.parish.repository.MediaFileRepository;
 import org.springframework.http.ResponseEntity;
@@ -23,17 +24,17 @@ public class AdminMediaController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<MediaFile>>> getMediaFiles(
+    public ResponseEntity<ApiResponse<List<MediaFileDto>>> getMediaFiles(
             @RequestParam(required = false) String search) {
         if (search != null && !search.trim().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.ok(
-                    mediaFileRepository.findByFileNameContainingIgnoreCaseOrderByCreatedAtDesc(search.trim())));
+                    mediaFileRepository.findSummariesByFileNameContainingIgnoreCase(search.trim())));
         }
-        return ResponseEntity.ok(ApiResponse.ok(mediaFileRepository.findAllByOrderByCreatedAtDesc()));
+        return ResponseEntity.ok(ApiResponse.ok(mediaFileRepository.findAllSummaries()));
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<ApiResponse<MediaFile>> uploadMedia(
+    public ResponseEntity<ApiResponse<MediaFileDto>> uploadMedia(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "altText", required = false) String altText,
             @RequestParam(value = "caption", required = false) String caption) {
@@ -59,7 +60,14 @@ public class AdminMediaController {
             saved.setFileUrl("/api/public/media/" + saved.getId());
             saved = mediaFileRepository.save(saved);
 
-            return ResponseEntity.ok(ApiResponse.ok("File uploaded to database successfully", saved));
+            MediaFileDto dto = new MediaFileDto(
+                    saved.getId(), saved.getFileName(), saved.getFileUrl(),
+                    saved.getStorageProvider(), saved.getMimeType(), saved.getFileSize(),
+                    saved.getAltText(), saved.getCaption(), saved.getUploadedBy(),
+                    saved.getCreatedAt(), saved.getUpdatedAt()
+            );
+
+            return ResponseEntity.ok(ApiResponse.ok("File uploaded to database successfully", dto));
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(ApiResponse.error("Upload failed: " + e.getMessage()));

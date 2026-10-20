@@ -32,6 +32,8 @@ public class MediaFile {
 
     private String uploadedBy;
 
+    @JsonIgnore
+    @Basic(fetch = FetchType.LAZY)
     @JdbcTypeCode(SqlTypes.VARBINARY)
     @Column(name = "file_data")
     private byte[] fileData;
