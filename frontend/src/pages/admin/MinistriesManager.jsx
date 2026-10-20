@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { adminApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import {
   HeartHandshake,
   Plus,
@@ -49,6 +50,12 @@ import {
   Gift,
   GraduationCap,
   Mic,
+  Upload,
+  Loader2,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
 } from 'lucide-react';
 
 // Registry of supported church & apostolate icons
@@ -124,6 +131,33 @@ export const STATUS_PRESETS = [
   { value: 'Special Apostolate', label: 'Special Apostolate', color: 'bg-rose-100 text-rose-800 border-rose-200' },
 ];
 
+// Normalize photos array from any legacy format (null, strings, objects)
+export const normalizeMinistryPhotos = (photos) => {
+  if (!photos) return [];
+  if (Array.isArray(photos)) {
+    return photos
+      .map((p, idx) => {
+        if (!p) return null;
+        if (typeof p === 'string') {
+          return { id: `p-${idx}-${Date.now()}`, url: p, caption: '' };
+        }
+        if (typeof p === 'object' && p.url) {
+          return {
+            id: p.id || `p-${idx}-${Date.now()}`,
+            url: p.url,
+            caption: p.caption || '',
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+  if (typeof photos === 'string') {
+    return [{ id: `p-0-${Date.now()}`, url: photos, caption: '' }];
+  }
+  return [];
+};
+
 export const CANONICAL_INITIAL_MINISTRIES = [
   {
     id: 'min-soccom',
@@ -131,12 +165,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Media & Communications',
     desc: 'Proclaiming the Gospel in the digital continent through live streaming of Eucharistic celebrations, multimedia documentation, social media apostolate, and parish announcements.',
     icon: 'Camera',
-    coordinator: 'Social Communications Coordinator',
-    schedule: 'Sunday Masses, Parish Events & Solemnities',
+    coordinator: 'Eliza Reinne Estomata',
+    schedule: '-',
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
     displayOrder: 0,
+    photos: [],
   },
   {
     id: 'min-altar-servers',
@@ -144,12 +179,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Worship & Liturgy',
     desc: 'Dedicated young servants of the sanctuary assisting the sacred ministers at the altar with reverent devotion during the Holy Sacrifice of the Mass and liturgical rites.',
     icon: 'Shield',
-    coordinator: 'President, Knights of the Altar',
-    schedule: 'Daily & Sunday Masses, Saturday Training at 9:00 AM',
+    coordinator: 'Cyril Nathanael Orbeta',
+    schedule: '-',
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
     displayOrder: 1,
+    photos: [],
   },
   {
     id: 'min-ushers',
@@ -157,12 +193,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Hospitality & Service',
     desc: 'Welcoming the faithful with Christian warmth, maintaining solemnity and order in the assembly, assisting during communion lines, and facilitating offertory collections.',
     icon: 'HeartHandshake',
-    coordinator: 'Head Usher & Greeters Coordinator',
+    coordinator: 'Cherry Ann Alburo',
     schedule: 'Assigned Sunday & Feast Day Masses',
     contact: '',
-    statusBadge: 'Open for Volunteers',
+    statusBadge: 'Active',
     isPublished: true,
     displayOrder: 2,
+    photos: [],
   },
   {
     id: 'min-lectors',
@@ -170,12 +207,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Ministry of the Word',
     desc: 'Proclaimers of the Living Word of God who reverently read the Sacred Scriptures during the Liturgy of the Word and lead the community in the General Intercessions.',
     icon: 'BookOpen',
-    coordinator: 'Lectors & Commentators Guild Coordinator',
-    schedule: 'Daily & Sunday Scheduled Masses',
+    coordinator: 'Esperanza Estomata',
+    schedule: 'Every 3rd Friday of the Month',
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
     displayOrder: 3,
+    photos: [],
   },
   {
     id: 'min-catechists',
@@ -183,12 +221,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Faith Formation & Catechesis',
     desc: 'Teaching, catechizing, and guiding children, youth, and adult converts in the Catholic faith, sacramental preparations (Baptism, First Communion, Confirmation), and Christian doctrine.',
     icon: 'Scroll',
-    coordinator: 'Parish Catechetical Ministry Head',
-    schedule: 'Weekend Catechetical Sessions & Formations',
+    coordinator: '-',
+    schedule: '-',
     contact: '',
-    statusBadge: 'Open for Volunteers',
+    statusBadge: 'Active',
     isPublished: true,
     displayOrder: 4,
+    photos: [],
   },
   {
     id: 'min-gift-bearers',
@@ -196,12 +235,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Worship & Liturgy',
     desc: 'Representing the parish family in presenting the offertory gifts of bread, wine, and offerings of the faithful to the priest at the altar for the Eucharistic sacrifice.',
     icon: 'HandHeart',
-    coordinator: 'Gift Bearers Guild Coordinator',
-    schedule: 'Sunday Anticipated & Sunday Scheduled Masses',
+    coordinator: '-',
+    schedule: 'Every 1st Saturday of the Month',
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
     displayOrder: 5,
+    photos: [],
   },
   {
     id: 'min-music',
@@ -209,12 +249,13 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Liturgical Music',
     desc: 'Choirs, vocalists, cantors, and instrumentalists dedicated to leading congregational praise, psalms, and sacred liturgical music that elevates the soul in holy worship.',
     icon: 'Music',
-    coordinator: 'Parish Music Director & Choirmasters',
-    schedule: 'Weekly Choir Rehearsals & Assigned Masses',
+    coordinator: 'Boboi Quieta',
+    schedule: '-',
     contact: '',
     statusBadge: 'Open for Volunteers',
     isPublished: true,
     displayOrder: 6,
+    photos: [],
   },
   {
     id: 'min-emhc',
@@ -222,14 +263,270 @@ export const CANONICAL_INITIAL_MINISTRIES = [
     category: 'Sacramental Ministry',
     desc: 'Commissioned lay ministers mandated by the Archdiocese to assist priests in distributing the Most Holy Eucharist during mass and carrying the Blessed Sacrament to the homebound sick.',
     icon: 'Cross',
-    coordinator: 'EMHC President / Guild Coordinator',
-    schedule: 'Daily & Sunday Masses, Monthly Sick Calls',
+    coordinator: '-',
+    schedule: '-',
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
     displayOrder: 7,
+    photos: [],
   },
 ];
+
+/**
+ * Reusable Photo Section with direct file upload, URL addition,
+ * thumbnail preview, captions, reordering, and deletion.
+ */
+export function MinistryPhotoSection({ photos = [], onChange, label = "Ministry Photographs & Gallery" }) {
+  const [uploading, setUploading] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [captionInput, setCaptionInput] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploading(true);
+    setUploadError('');
+    try {
+      const added = [];
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('altText', file.name);
+        const res = await adminApi.uploadMedia(fd);
+        const mediaData = res?.data || res;
+        const url = mediaData?.fileUrl || (typeof mediaData === 'string' ? mediaData : '');
+        if (url) {
+          const autoCaption = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+          added.push({
+            id: `p-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            url,
+            caption: autoCaption,
+          });
+        }
+      }
+      if (added.length > 0) {
+        onChange([...photos, ...added]);
+      } else {
+        setUploadError('Uploaded file, but could not read the image URL from server.');
+      }
+    } catch (err) {
+      console.error('Photo upload failed', err);
+      setUploadError(err.message || 'Failed to upload photo to the server.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAddUrl = (e) => {
+    if (e) e.preventDefault();
+    if (!urlInput.trim()) return;
+    const newPhoto = {
+      id: `p-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      url: urlInput.trim(),
+      caption: captionInput.trim(),
+    };
+    onChange([...photos, newPhoto]);
+    setUrlInput('');
+    setCaptionInput('');
+  };
+
+  const handleRemove = (index) => {
+    const updated = photos.filter((_, i) => i !== index);
+    onChange(updated);
+  };
+
+  const handleMove = (index, direction) => {
+    const target = index + direction;
+    if (target < 0 || target >= photos.length) return;
+    const updated = [...photos];
+    const temp = updated[index];
+    updated[index] = updated[target];
+    updated[target] = temp;
+    onChange(updated);
+  };
+
+  const handleCaptionChange = (index, newCaption) => {
+    const updated = photos.map((p, i) => (i === index ? { ...p, caption: newCaption } : p));
+    onChange(updated);
+  };
+
+  return (
+    <div className="space-y-3 p-4 rounded-2xl bg-stone-50 border border-stone-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-stone-800">
+            {label}
+          </label>
+          <p className="text-[11px] text-stone-500">
+            Upload pictures of apostolate activities, altar serving, formations, or church events ({photos.length} photos)
+          </p>
+        </div>
+
+        {/* Upload Trigger Button */}
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleFileUpload}
+            disabled={uploading}
+          />
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-3.5 h-3.5" />
+                <span>Upload Photos</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {uploadError && (
+        <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+
+      {/* Or Add Photo via URL */}
+      <div className="pt-2 border-t border-stone-200/80">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1.5">
+          Or Add Photo via Image URL
+        </span>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <input
+            type="text"
+            placeholder="Image URL (https://... or /api/media/...)"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className="flex-1 px-3 py-1.5 rounded-xl border border-stone-300 text-xs bg-white focus:outline-hidden focus:ring-2 focus:ring-[#800020]/30"
+          />
+          <input
+            type="text"
+            placeholder="Caption (optional)"
+            value={captionInput}
+            onChange={(e) => setCaptionInput(e.target.value)}
+            className="sm:w-44 px-3 py-1.5 rounded-xl border border-stone-300 text-xs bg-white focus:outline-hidden focus:ring-2 focus:ring-[#800020]/30"
+          />
+          <button
+            type="button"
+            onClick={handleAddUrl}
+            disabled={!urlInput.trim()}
+            className="px-3.5 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold transition-colors disabled:opacity-40 cursor-pointer shrink-0"
+          >
+            + Add URL
+          </button>
+        </div>
+      </div>
+
+      {/* Photos List Grid */}
+      {photos.length === 0 ? (
+        <div className="py-6 border-2 border-dashed border-stone-200 rounded-xl text-center text-stone-400 bg-white/60">
+          <ImageIcon className="w-8 h-8 mx-auto mb-1 text-stone-300" />
+          <p className="text-xs font-medium text-stone-600">No photos added yet for this ministry</p>
+          <p className="text-[10px] text-stone-400 mt-0.5">Click &ldquo;Upload Photos&rdquo; above to select images from your computer.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 max-h-72 overflow-y-auto p-1">
+          {photos.map((photo, index) => {
+            const resolved = resolveMediaUrl(photo.url);
+            return (
+              <div
+                key={photo.id || index}
+                className="bg-white p-2.5 rounded-xl border border-stone-200 shadow-xs flex items-start gap-3 group relative"
+              >
+                {/* Thumbnail */}
+                <div className="w-16 h-16 rounded-lg overflow-hidden bg-stone-100 shrink-0 border border-stone-200 relative">
+                  <img
+                    src={resolved}
+                    alt={photo.caption || 'Ministry photo'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                  {index === 0 && (
+                    <span className="absolute bottom-0 inset-x-0 bg-amber-600/90 text-white text-[9px] font-bold text-center py-0.5">
+                      Cover
+                    </span>
+                  )}
+                </div>
+
+                {/* Details & Caption */}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-bold text-stone-400">
+                      Photo #{index + 1}
+                    </span>
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMove(index, -1)}
+                        disabled={index === 0}
+                        title="Move Earlier"
+                        className="p-1 rounded hover:bg-stone-100 text-stone-500 disabled:opacity-20 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMove(index, 1)}
+                        disabled={index === photos.length - 1}
+                        title="Move Later"
+                        className="p-1 rounded hover:bg-stone-100 text-stone-500 disabled:opacity-20 cursor-pointer"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(index)}
+                        title="Delete Photo"
+                        className="p-1 rounded hover:bg-rose-50 text-rose-500 hover:text-rose-700 cursor-pointer ml-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Add caption or description..."
+                    value={photo.caption || ''}
+                    onChange={(e) => handleCaptionChange(index, e.target.value)}
+                    className="w-full px-2.5 py-1 text-[11px] rounded-lg border border-stone-200 bg-stone-50/50 focus:bg-white focus:outline-hidden focus:ring-1 focus:ring-[#800020]"
+                  />
+                  <div className="text-[10px] text-stone-400 truncate" title={photo.url}>
+                    {photo.url}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MinistriesManager() {
   const { refreshSettings } = useTheme();
@@ -251,6 +548,10 @@ export default function MinistriesManager() {
   const [bannerModalOpen, setBannerModalOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
+  // Dedicated Photo Manager Modal State
+  const [photoModalMinistry, setPhotoModalMinistry] = useState(null);
+  const [photoList, setPhotoList] = useState([]);
+
   // Form State for Individual Ministry
   const [formData, setFormData] = useState({
     name: '',
@@ -262,6 +563,7 @@ export default function MinistriesManager() {
     contact: '',
     statusBadge: 'Active',
     isPublished: true,
+    photos: [],
   });
 
   // Settings for Page Layout & Notice Banner
@@ -309,7 +611,11 @@ export default function MinistriesManager() {
                 // Auto-upgrade database with the 8 official parish ministries
                 adminApi.saveSettings({ ministries_list: JSON.stringify(CANONICAL_INITIAL_MINISTRIES) }).catch(() => {});
               } else {
-                setMinistries(parsed);
+                const normalized = parsed.map((m) => ({
+                  ...m,
+                  photos: normalizeMinistryPhotos(m.photos),
+                }));
+                setMinistries(normalized);
               }
             } else {
               setMinistries(CANONICAL_INITIAL_MINISTRIES);
@@ -399,6 +705,7 @@ export default function MinistriesManager() {
       contact: '',
       statusBadge: 'Active',
       isPublished: true,
+      photos: [],
     });
     setMinistryModalOpen(true);
   };
@@ -416,8 +723,25 @@ export default function MinistriesManager() {
       contact: item.contact || '',
       statusBadge: item.statusBadge || 'Active',
       isPublished: item.isPublished !== false,
+      photos: normalizeMinistryPhotos(item.photos),
     });
     setMinistryModalOpen(true);
+  };
+
+  // Open Dedicated Quick Photo Manager Modal
+  const openPhotoModal = (item) => {
+    setPhotoModalMinistry(item);
+    setPhotoList(normalizeMinistryPhotos(item.photos));
+  };
+
+  // Save photos from Quick Photo Modal
+  const handleSavePhotosForMinistry = async (ministryId, updatedPhotos) => {
+    const updated = ministries.map((m) =>
+      m.id === ministryId ? { ...m, photos: updatedPhotos } : m
+    );
+    await saveMinistriesToDb(updated);
+    setPhotoModalMinistry(null);
+    showNotice(`Photos updated for ${photoModalMinistry?.name || 'ministry'}`);
   };
 
   // Duplicate an item
@@ -427,6 +751,7 @@ export default function MinistriesManager() {
       id: `min-${Date.now()}`,
       name: `${item.name} (Copy)`,
       displayOrder: ministries.length,
+      photos: normalizeMinistryPhotos(item.photos),
     };
     const updated = [...ministries, copy];
     saveMinistriesToDb(updated);
@@ -728,6 +1053,7 @@ export default function MinistriesManager() {
           {filteredMinistries.map((item) => {
             const actualIndex = ministries.findIndex((m) => m.id === item.id);
             const IconComponent = MINISTRY_ICON_MAP[item.icon] || Shield;
+            const itemPhotos = normalizeMinistryPhotos(item.photos);
 
             // Status chip color
             const statusConfig =
@@ -775,6 +1101,44 @@ export default function MinistriesManager() {
                   <p className="text-xs text-stone-600 leading-relaxed line-clamp-3">
                     {item.desc || 'No description provided.'}
                   </p>
+
+                  {/* Photos Preview & Quick Manage Trigger */}
+                  <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      {itemPhotos.length > 0 ? (
+                        <div className="flex -space-x-2 overflow-hidden py-0.5">
+                          {itemPhotos.slice(0, 3).map((p, pIdx) => (
+                            <img
+                              key={p.id || pIdx}
+                              src={resolveMediaUrl(p.url)}
+                              alt={p.caption || 'Thumbnail'}
+                              className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover bg-stone-100 shadow-xs"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
+                          <Camera className="w-3.5 h-3.5" />
+                        </div>
+                      )}
+                      <span className="text-[11px] font-semibold text-stone-600">
+                        {itemPhotos.length === 0 ? 'No photos yet' : `${itemPhotos.length} ${itemPhotos.length === 1 ? 'photo' : 'photos'}`}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openPhotoModal(item)}
+                      className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-bold border border-amber-200/60 transition-colors cursor-pointer flex items-center gap-1.5"
+                      title="Upload or manage photos for this ministry"
+                    >
+                      <Camera className="w-3 h-3 text-amber-700" />
+                      <span>Photos ({itemPhotos.length})</span>
+                    </button>
+                  </div>
 
                   {/* Coordinator & Schedule Details */}
                   {(item.coordinator || item.schedule) && (
@@ -830,6 +1194,16 @@ export default function MinistriesManager() {
                   {/* Operational Controls */}
                   <div className="flex items-center gap-1.5">
                     
+                    {/* Manage Photos Quick Button */}
+                    <button
+                      onClick={() => openPhotoModal(item)}
+                      className="p-1.5 rounded-lg text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer font-bold flex items-center gap-1"
+                      title="Upload and manage photos"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-amber-700" />
+                      <span className="text-[11px]">Photos</span>
+                    </button>
+
                     {/* Toggle Visibility */}
                     <button
                       onClick={() => handleTogglePublished(item.id)}
@@ -1078,6 +1452,12 @@ export default function MinistriesManager() {
                   />
                 </div>
               </div>
+
+              {/* Ministry Photos Gallery Section */}
+              <MinistryPhotoSection
+                photos={formData.photos || []}
+                onChange={(newPhotos) => setFormData({ ...formData, photos: newPhotos })}
+              />
 
               {/* Publication Switch */}
               <div className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 border border-stone-200">
@@ -1343,6 +1723,71 @@ export default function MinistriesManager() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Dedicated Ministry Photos Manager Modal */}
+      {photoModalMinistry && createPortal(
+        <div className="fixed inset-0 z-[105] w-screen h-screen bg-black/75 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+            
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-800 flex items-center justify-center">
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-serif-heading font-bold text-lg text-stone-900">
+                    Manage Photos &mdash; {photoModalMinistry.name}
+                  </h2>
+                  <p className="text-xs text-stone-500">
+                    Upload church pictures, add captions, and organize photos displayed in the public popup window
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPhotoModalMinistry(null)}
+                className="p-2 text-stone-400 hover:text-stone-700 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <MinistryPhotoSection
+                photos={photoList}
+                onChange={setPhotoList}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
+              <span className="text-xs text-stone-500 font-medium">
+                {photoList.length} {photoList.length === 1 ? 'photo' : 'photos'} ready to display
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPhotoModalMinistry(null)}
+                  className="px-4 py-2 rounded-xl border border-stone-300 text-xs font-bold text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => handleSavePhotosForMinistry(photoModalMinistry.id, photoList)}
+                  className="px-5 py-2 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  <span>Save Photos</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>,
         document.body

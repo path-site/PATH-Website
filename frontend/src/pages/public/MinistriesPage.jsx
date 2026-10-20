@@ -1,20 +1,66 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Users, Sparkles, Clock, Phone,
   MapPin, Heart, BookOpen, Music, Shield, ArrowRight,
   Church, Cross, HeartHandshake, Flame, Sun, Bell,
-  Compass, Star, Award, Scroll, Feather, HandHeart, Search, X
+  Compass, Star, Award, Scroll, Feather, HandHeart, Search, X,
+  Camera, ChevronLeft, ChevronRight, Maximize2, Image as ImageIcon
 } from 'lucide-react';
 import { FacebookIcon } from '../../components/common/SocialIcons';
 import PublicMaintenanceNotice from '../../components/common/PublicMaintenanceNotice';
-import { CANONICAL_INITIAL_MINISTRIES, MINISTRY_ICON_MAP, STATUS_PRESETS } from '../admin/MinistriesManager';
+import {
+  CANONICAL_INITIAL_MINISTRIES,
+  MINISTRY_ICON_MAP,
+  STATUS_PRESETS,
+  normalizeMinistryPhotos,
+} from '../admin/MinistriesManager';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 export default function MinistriesPage() {
   const { settings } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+
+  // Modal State for viewing ministry photos & details
+  const [selectedMinistry, setSelectedMinistry] = useState(null);
+  const [activePhotoIdx, setActivePhotoIdx] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  // Normalized photos for the currently opened modal ministry
+  const modalPhotos = useMemo(() => {
+    if (!selectedMinistry) return [];
+    return normalizeMinistryPhotos(selectedMinistry.photos);
+  }, [selectedMinistry]);
+
+  // Lock body scroll and enable keyboard shortcuts (Esc, Left/Right arrows)
+  useEffect(() => {
+    if (!selectedMinistry) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isLightboxOpen) {
+          setIsLightboxOpen(false);
+        } else {
+          setSelectedMinistry(null);
+        }
+      } else if (e.key === 'ArrowLeft' && modalPhotos.length > 1) {
+        setActivePhotoIdx((prev) => (prev === 0 ? modalPhotos.length - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight' && modalPhotos.length > 1) {
+        setActivePhotoIdx((prev) => (prev + 1) % modalPhotos.length);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedMinistry, isLightboxOpen, modalPhotos.length]);
 
   // Resolve ministries list from dynamic CMS settings or fallback to initial defaults
   const ministries = useMemo(() => {
@@ -193,6 +239,7 @@ export default function MinistriesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-stagger">
                   {filteredMinistries.map((item, idx) => {
                     const IconComponent = MINISTRY_ICON_MAP[item.icon] || Shield;
+                    const itemPhotos = normalizeMinistryPhotos(item.photos);
                     const statusConfig = STATUS_PRESETS.find((s) => s.value === item.statusBadge) || {
                       color: 'bg-stone-100 text-stone-600 border-stone-200',
                     };
@@ -200,7 +247,20 @@ export default function MinistriesPage() {
                     return (
                       <div 
                         key={item.id || idx}
-                        className="bg-white rounded-2xl p-6 border border-stone-200 shadow-xs card-lift scroll-reveal flex flex-col justify-between space-y-4 relative group"
+                        onClick={() => {
+                          setSelectedMinistry(item);
+                          setActivePhotoIdx(0);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setSelectedMinistry(item);
+                            setActivePhotoIdx(0);
+                          }
+                        }}
+                        className="bg-white rounded-2xl p-6 border border-stone-200 shadow-xs hover:shadow-xl hover:border-amber-400/80 hover:-translate-y-1.5 transition-all duration-300 card-lift scroll-reveal flex flex-col justify-between space-y-4 relative group cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-[#800020]/30"
                       >
                         <div className="space-y-3">
                           <div className="flex items-center justify-between gap-2">
@@ -216,33 +276,50 @@ export default function MinistriesPage() {
                             <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider block">
                               {item.category}
                             </span>
-                            <h4 className="font-serif-heading font-bold text-stone-900 text-base mt-0.5">
+                            <h4 className="font-serif-heading font-bold text-stone-900 text-base mt-0.5 group-hover:text-[#800020] transition-colors">
                               {item.name}
                             </h4>
                           </div>
-
-                          <p className="text-xs text-stone-600 leading-relaxed">
-                            {item.desc}
-                          </p>
                         </div>
 
                         {/* Coordinator and Schedule Metadata (if configured in CMS) */}
-                        {(item.coordinator || item.schedule) && (
-                          <div className="pt-3 border-t border-stone-100 space-y-1.5 text-[11px] text-stone-500">
-                            {item.coordinator && (
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-semibold text-stone-700">Lead:</span>
-                                <span className="truncate">{item.coordinator}</span>
+                        <div className="space-y-2.5">
+                          {(item.coordinator || item.schedule) && (
+                            <div className="pt-3 border-t border-stone-100 space-y-1.5 text-[11px] text-stone-500">
+                              {item.coordinator && (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-semibold text-stone-700">Lead:</span>
+                                  <span className="truncate">{item.coordinator}</span>
+                                </div>
+                              )}
+                              {item.schedule && (
+                                <div className="flex items-center gap-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                                  <span className="truncate">{item.schedule}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Photos & Click indicator */}
+                          <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between text-xs">
+                            {itemPhotos.length > 0 ? (
+                              <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                                <Camera className="w-3.5 h-3.5 text-amber-700" />
+                                <span>{itemPhotos.length} {itemPhotos.length === 1 ? 'Photo' : 'Photos'}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-[11px] text-stone-500">
+                                <Camera className="w-3.5 h-3.5 text-stone-400" />
+                                <span>View Details & Photos</span>
                               </div>
                             )}
-                            {item.schedule && (
-                              <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                                <span className="truncate">{item.schedule}</span>
-                              </div>
-                            )}
+                            <span className="text-[11px] font-bold text-[#800020] group-hover:text-amber-800 transition-colors flex items-center gap-1">
+                              <span>Open</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                            </span>
                           </div>
-                        )}
+                        </div>
                       </div>
                     );
                   })}
@@ -272,6 +349,293 @@ export default function MinistriesPage() {
         )}
 
       </div>
+
+      {/* Ministry Popup Modal Dialog */}
+      {selectedMinistry && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+          onClick={() => setSelectedMinistry(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-stone-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+          >
+            {/* Modal Top Bar */}
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/80">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 flex items-center justify-center shrink-0 shadow-xs">
+                  {React.createElement(MINISTRY_ICON_MAP[selectedMinistry.icon] || Shield, { className: 'w-5 h-5' })}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold tracking-widest text-amber-800 uppercase block truncate">
+                    {selectedMinistry.category}
+                  </span>
+                  <h2 className="font-serif-heading font-bold text-lg sm:text-xl text-stone-900 leading-tight truncate">
+                    {selectedMinistry.name}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border shrink-0 ${
+                  (STATUS_PRESETS.find((s) => s.value === selectedMinistry.statusBadge) || {}).color || 'bg-stone-100 text-stone-600 border-stone-200'
+                }`}>
+                  {selectedMinistry.statusBadge || 'Active'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMinistry(null)}
+                  className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-xl transition-colors cursor-pointer"
+                  title="Close popup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              
+              {/* Description Banner (Displayed inside popup window) */}
+              {selectedMinistry.desc && (
+                <div className="bg-amber-50/50 rounded-2xl p-4 sm:p-5 border border-amber-100/80 space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
+                    Ministry Mission & Apostolate
+                  </span>
+                  <p className="text-xs sm:text-sm text-stone-700 leading-relaxed">
+                    {selectedMinistry.desc}
+                  </p>
+                </div>
+              )}
+
+              {/* Lead and Schedule info */}
+              {(selectedMinistry.coordinator || selectedMinistry.schedule) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-stone-50 rounded-2xl border border-stone-100 text-xs text-stone-600">
+                  {selectedMinistry.coordinator && (
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>
+                        <strong className="text-stone-800">Lead:</strong> {selectedMinistry.coordinator}
+                      </span>
+                    </div>
+                  )}
+                  {selectedMinistry.schedule && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                      <span>
+                        <strong className="text-stone-800">Schedule:</strong> {selectedMinistry.schedule}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Photos Gallery Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-amber-700" />
+                    <h3 className="font-serif-heading font-bold text-stone-900 text-base">
+                      Ministry Photo Gallery
+                    </h3>
+                  </div>
+                  <span className="text-xs font-semibold text-stone-500">
+                    {modalPhotos.length} {modalPhotos.length === 1 ? 'Photograph' : 'Photographs'}
+                  </span>
+                </div>
+
+                {modalPhotos.length === 0 ? (
+                  <div className="bg-stone-50 rounded-2xl p-8 text-center border border-dashed border-stone-300 space-y-2">
+                    <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-serif-heading font-bold text-stone-800 text-sm">
+                      No Photos Uploaded Yet
+                    </h4>
+                    <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                      Photographs of this ministry&apos;s apostolates, liturgical rites, and community activities will appear here once updated.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Main Featured Photo Display */}
+                    <div className="relative aspect-video sm:aspect-[16/10] w-full bg-stone-900 rounded-2xl overflow-hidden shadow-md flex items-center justify-center group">
+                      <img
+                        src={resolveMediaUrl(modalPhotos[activePhotoIdx]?.url)}
+                        alt={modalPhotos[activePhotoIdx]?.caption || selectedMinistry.name}
+                        className="w-full h-full object-contain cursor-pointer"
+                        onClick={() => setIsLightboxOpen(true)}
+                      />
+
+                      {/* Counter Tag */}
+                      <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-xs text-white text-[11px] font-bold">
+                        {activePhotoIdx + 1} / {modalPhotos.length}
+                      </div>
+
+                      {/* Expand / Lightbox Button */}
+                      <button
+                        type="button"
+                        onClick={() => setIsLightboxOpen(true)}
+                        className="absolute top-3 left-3 p-2 rounded-xl bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer"
+                        title="Expand full screen"
+                      >
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
+
+                      {/* Nav Arrows (if > 1 photo) */}
+                      {modalPhotos.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePhotoIdx((prev) => (prev === 0 ? modalPhotos.length - 1 : prev - 1));
+                            }}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer"
+                            title="Previous photo"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePhotoIdx((prev) => (prev + 1) % modalPhotos.length);
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer"
+                            title="Next photo"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Caption Bar Overlay */}
+                      {modalPhotos[activePhotoIdx]?.caption && (
+                        <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 text-white text-xs sm:text-sm font-medium">
+                          {modalPhotos[activePhotoIdx].caption}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Thumbnails Strip */}
+                    {modalPhotos.length > 1 && (
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
+                        {modalPhotos.map((p, idx) => (
+                          <button
+                            key={p.id || idx}
+                            type="button"
+                            onClick={() => setActivePhotoIdx(idx)}
+                            className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                              activePhotoIdx === idx
+                                ? 'border-amber-500 ring-2 ring-amber-400/50 shadow-md scale-102'
+                                : 'border-transparent opacity-60 hover:opacity-100'
+                            }`}
+                          >
+                            <img
+                              src={resolveMediaUrl(p.url)}
+                              alt={p.caption || `Thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
+              <Link
+                to="/contact"
+                className="text-xs font-bold text-[#800020] hover:text-[#66001a] inline-flex items-center gap-1.5"
+                onClick={() => setSelectedMinistry(null)}
+              >
+                <span>Volunteer or Inquire at Office</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSelectedMinistry(null)}
+                className="px-5 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Fullscreen Lightbox Portal */}
+      {isLightboxOpen && modalPhotos.length > 0 && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] w-full flex flex-col items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            {/* Close button */}
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute -top-12 right-0 p-2 text-white/70 hover:text-white transition-colors cursor-pointer"
+              title="Close full screen"
+            >
+              <X className="w-7 h-7" />
+            </button>
+
+            {/* Lightbox Image */}
+            <div className="relative w-full flex items-center justify-center">
+              <img
+                src={resolveMediaUrl(modalPhotos[activePhotoIdx]?.url)}
+                alt={modalPhotos[activePhotoIdx]?.caption || 'Full screen photo'}
+                className="max-h-[80vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+              />
+
+              {modalPhotos.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePhotoIdx((prev) => (prev === 0 ? modalPhotos.length - 1 : prev - 1));
+                    }}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePhotoIdx((prev) => (prev + 1) % modalPhotos.length);
+                    }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors cursor-pointer"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Lightbox Caption & Counter */}
+            <div className="mt-3 text-center text-white space-y-1">
+              {modalPhotos[activePhotoIdx]?.caption && (
+                <p className="text-sm font-medium">{modalPhotos[activePhotoIdx].caption}</p>
+              )}
+              <span className="text-xs text-stone-400">
+                {activePhotoIdx + 1} of {modalPhotos.length}
+              </span>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }
