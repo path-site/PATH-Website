@@ -111,9 +111,11 @@ export default function PublicMaintenanceNotice({
           {title}
         </h2>
 
-        <p className="text-stone-200 text-sm sm:text-base leading-relaxed">
-          {desc}
-        </p>
+        {desc && desc.trim() !== '' && (
+          <p className="text-stone-200 text-sm sm:text-base leading-relaxed">
+            {desc}
+          </p>
+        )}
 
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-medium">
           {showPhone && (

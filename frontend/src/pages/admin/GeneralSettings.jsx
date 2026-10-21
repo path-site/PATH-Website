@@ -68,7 +68,7 @@ export default function GeneralSettings() {
         maintenance_overall: settingsMap.maintenance_overall || 'false',
         maintenance_overall_badge: settingsMap.maintenance_overall_badge || OVERALL_MAINTENANCE_DEFAULTS.defaultBadge,
         maintenance_overall_title: settingsMap.maintenance_overall_title || OVERALL_MAINTENANCE_DEFAULTS.defaultTitle,
-        maintenance_overall_desc: settingsMap.maintenance_overall_desc || OVERALL_MAINTENANCE_DEFAULTS.defaultDesc,
+        maintenance_overall_desc: settingsMap.maintenance_overall_desc !== undefined ? settingsMap.maintenance_overall_desc : '',
         maintenance_overall_advisory: settingsMap.maintenance_overall_advisory || OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory,
         maintenance_overall_show_phone: settingsMap.maintenance_overall_show_phone !== 'false' ? 'true' : 'false',
         maintenance_overall_show_fb: settingsMap.maintenance_overall_show_fb !== 'false' ? 'true' : 'false',
@@ -101,7 +101,7 @@ export default function GeneralSettings() {
       // Persist the current notice text and options even when turning off or on
       maintenance_overall_badge: settings.maintenance_overall_badge || OVERALL_MAINTENANCE_DEFAULTS.defaultBadge,
       maintenance_overall_title: settings.maintenance_overall_title || OVERALL_MAINTENANCE_DEFAULTS.defaultTitle,
-      maintenance_overall_desc: settings.maintenance_overall_desc || OVERALL_MAINTENANCE_DEFAULTS.defaultDesc,
+      maintenance_overall_desc: settings.maintenance_overall_desc !== undefined ? settings.maintenance_overall_desc : '',
       maintenance_overall_advisory: settings.maintenance_overall_advisory || OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory,
       maintenance_overall_show_phone: settings.maintenance_overall_show_phone !== 'false' ? 'true' : 'false',
       maintenance_overall_show_fb: settings.maintenance_overall_show_fb !== 'false' ? 'true' : 'false',
@@ -151,7 +151,9 @@ export default function GeneralSettings() {
       });
       if (!payload.maintenance_overall_badge) payload.maintenance_overall_badge = OVERALL_MAINTENANCE_DEFAULTS.defaultBadge;
       if (!payload.maintenance_overall_title) payload.maintenance_overall_title = OVERALL_MAINTENANCE_DEFAULTS.defaultTitle;
-      if (!payload.maintenance_overall_desc) payload.maintenance_overall_desc = OVERALL_MAINTENANCE_DEFAULTS.defaultDesc;
+      if (payload.maintenance_overall_desc === undefined || payload.maintenance_overall_desc === null) {
+        payload.maintenance_overall_desc = '';
+      }
       if (!payload.maintenance_overall_advisory) payload.maintenance_overall_advisory = OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory;
       if (!payload.tagline && payload.site_tagline) payload.tagline = payload.site_tagline;
 
@@ -368,9 +370,12 @@ export default function GeneralSettings() {
               rows={3}
               value={settings.maintenance_overall_desc || ''}
               onChange={(e) => handleChange('maintenance_overall_desc', e.target.value)}
-              placeholder={OVERALL_MAINTENANCE_DEFAULTS.defaultDesc}
+              placeholder="Leave blank to omit on public maintenance screen, or enter a custom pastoral explanation..."
               className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
             />
+            <p className="mt-1 text-[11px] text-stone-500">
+              When left blank, this detailed announcement paragraph will not be displayed on the public maintenance page.
+            </p>
           </div>
 
           <div>

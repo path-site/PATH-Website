@@ -15,7 +15,7 @@ export default function OverallMaintenanceScreen() {
 
   const badge = settings?.maintenance_overall_badge || OVERALL_MAINTENANCE_DEFAULTS.defaultBadge;
   const title = settings?.maintenance_overall_title || OVERALL_MAINTENANCE_DEFAULTS.defaultTitle;
-  const desc = settings?.maintenance_overall_desc || OVERALL_MAINTENANCE_DEFAULTS.defaultDesc;
+  const desc = settings?.maintenance_overall_desc ? settings.maintenance_overall_desc.trim() : '';
   const advisory = settings?.maintenance_overall_advisory || OVERALL_MAINTENANCE_DEFAULTS.defaultAdvisory;
 
   const showPhone = settings?.maintenance_overall_show_phone !== 'false';
@@ -108,10 +108,12 @@ export default function OverallMaintenanceScreen() {
             {title}
           </h2>
 
-          {/* Notice Description */}
-          <p className="text-stone-200 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
-            {desc}
-          </p>
+          {/* Notice Description (Omitted if blank) */}
+          {desc ? (
+            <p className="text-stone-200 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+              {desc}
+            </p>
+          ) : null}
 
           {/* Pastoral & Sacramental Reassurance Box */}
           {advisory && (

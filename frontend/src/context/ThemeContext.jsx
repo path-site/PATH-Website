@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
   facebook_url: 'https://www.facebook.com/PATHBanawa',
   youtube_url: '',
   footer_copyright: '© 2026 Parish of the Alliance of the Two Hearts. All Rights Reserved.',
+  maintenance_overall_desc: '',
 };
 
 // Synchronously retrieve initial settings from localStorage to eliminate any render flash/glimpse
