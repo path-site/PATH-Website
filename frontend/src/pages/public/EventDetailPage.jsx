@@ -80,8 +80,21 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-[#FCFBF9]">
-        <div className="w-10 h-10 border-4 border-[#6B1D2F] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FCFBF9] py-12 lg:py-16 animate-fadeIn select-none">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-4 w-36 bg-stone-200/80 rounded animate-pulse mb-8" />
+          <div className="space-y-4 mb-8">
+            <div className="h-4 w-28 bg-amber-200/60 rounded animate-pulse" />
+            <div className="h-10 w-4/5 bg-stone-200/90 rounded-xl animate-pulse" />
+            <div className="h-4 w-52 bg-stone-200/60 rounded animate-pulse" />
+          </div>
+          <div className="rounded-3xl bg-stone-200/70 aspect-16/9 w-full mb-10 animate-pulse" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="h-24 bg-white rounded-2xl border border-stone-200/80 p-4 animate-pulse" />
+            <div className="h-24 bg-white rounded-2xl border border-stone-200/80 p-4 animate-pulse" />
+            <div className="h-24 bg-white rounded-2xl border border-stone-200/80 p-4 animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }

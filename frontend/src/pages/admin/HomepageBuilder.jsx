@@ -5,6 +5,7 @@ import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
 import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
+import { notifyHomeCacheInvalidated } from '../../utils/homeCache';
 import { 
   ArrowUp, ArrowDown, Eye, EyeOff, Edit, Copy, Trash2, 
   Plus, Check, X, LayoutTemplate, ExternalLink, AlertCircle,
@@ -159,6 +160,7 @@ export default function HomepageBuilder() {
       const updated = { ...sec, isVisible: !sec.isVisible };
       await adminApi.updateSection(sec.id, updated);
       setSections(sections.map(s => s.id === sec.id ? updated : s));
+      notifyHomeCacheInvalidated();
       showNotification(`Section "${sec.title}" is now ${updated.isVisible ? 'Visible' : 'Hidden'}.`);
     } catch (err) {
       showNotification('Failed to update visibility', true);
@@ -184,6 +186,7 @@ export default function HomepageBuilder() {
 
     try {
       await adminApi.reorderSections(reordered.map(s => ({ id: s.id, displayOrder: s.displayOrder })));
+      notifyHomeCacheInvalidated();
       showNotification('Sections reordered successfully.');
     } catch (err) {
       showNotification('Failed to persist order', true);
@@ -194,6 +197,7 @@ export default function HomepageBuilder() {
   const handleDuplicate = async (secId) => {
     try {
       await adminApi.duplicateSection(secId);
+      notifyHomeCacheInvalidated();
       showNotification('Section duplicated successfully.');
       fetchSections();
     } catch (err) {
@@ -206,6 +210,7 @@ export default function HomepageBuilder() {
     try {
       await adminApi.deleteSection(sec.id);
       setSections(sections.filter(s => s.id !== sec.id));
+      notifyHomeCacheInvalidated();
       showNotification('Section removed.');
     } catch (err) {
       showNotification('Failed to delete section', true);
@@ -257,6 +262,7 @@ export default function HomepageBuilder() {
       };
 
       await adminApi.addSection(pageId, newSec);
+      notifyHomeCacheInvalidated();
       showNotification(`Section "${newSec.title}" added to homepage.`);
       setIsAddModalOpen(false);
       setNewTitle('');
@@ -406,6 +412,7 @@ export default function HomepageBuilder() {
 
       await adminApi.updateSection(editingSection.id, payload);
       setSections(sections.map(s => s.id === editingSection.id ? payload : s));
+      notifyHomeCacheInvalidated();
       showNotification('Section configuration saved successfully.');
       setEditingSection(null);
     } catch (err) {

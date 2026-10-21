@@ -41,9 +41,20 @@ export default function CustomPageView() {
 
   if (loading) {
     return (
-      <div className="py-24 text-center">
-        <div className="w-12 h-12 border-4 border-[#800020] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-stone-500 font-serif-heading">Loading page content...</p>
+      <div className="min-h-[60vh] bg-[#FCFBF9] py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto animate-fadeIn select-none">
+        <div className="flex flex-col items-center mb-10 text-center">
+          <div className="w-14 h-14 rounded-full bg-amber-400/10 flex items-center justify-center mb-3">
+            <ParishChurchOutlineIcon className="w-9 h-auto text-amber-500/80 animate-pulse" />
+          </div>
+          <div className="h-8 w-64 bg-stone-200/80 rounded-xl animate-pulse mb-3" />
+          <div className="h-4 w-96 max-w-full bg-stone-200/60 rounded-lg animate-pulse" />
+        </div>
+        <div className="space-y-4 max-w-3xl mx-auto bg-white p-8 rounded-3xl border border-stone-200/80 shadow-xs">
+          <div className="h-4 w-full bg-stone-200/70 rounded animate-pulse" />
+          <div className="h-4 w-5/6 bg-stone-200/70 rounded animate-pulse" />
+          <div className="h-4 w-4/6 bg-stone-200/70 rounded animate-pulse" />
+          <div className="h-32 w-full bg-stone-100 rounded-2xl animate-pulse mt-6" />
+        </div>
       </div>
     );
   }
