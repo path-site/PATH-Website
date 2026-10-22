@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
-import { MapPin, Phone, Mail, Clock, Calendar, ArrowRight } from 'lucide-react';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
+import { MapPin, Phone, Smartphone, Mail, Clock, Calendar, ArrowRight } from 'lucide-react';
 
 export default function ContactSection({ config = {} }) {
   const { settings } = useTheme();
+  const { telephone, mobile } = resolveContactNumbers(settings);
   const {
     heading = "Visit Our Parish",
     subheading = "Find our location, mass schedules, and parish office hours.",
@@ -76,13 +77,22 @@ export default function ContactSection({ config = {} }) {
               </div>
             </div>
             <div className="mt-5 pt-4 border-t border-stone-100 space-y-2.5">
-              {settings.phone && (
+              {telephone && (
                 <a 
-                  href={`tel:${settings.phone.split('|')[0].trim()}`}
+                  href={`tel:${telephone.replace(/\s+/g, '')}`}
                   className="flex items-center gap-2 text-xs text-stone-700 hover:text-[#800020] font-medium transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span className="truncate">{settings.phone}</span>
+                  <span className="truncate">Tel: {telephone}</span>
+                </a>
+              )}
+              {mobile && (
+                <a 
+                  href={`tel:${mobile.replace(/\s+/g, '')}`}
+                  className="flex items-center gap-2 text-xs text-stone-700 hover:text-[#800020] font-medium transition-colors"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="truncate">Mobile: {mobile}</span>
                 </a>
               )}
               <a 

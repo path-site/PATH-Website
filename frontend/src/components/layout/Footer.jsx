@@ -1,10 +1,11 @@
 import React from 'react';
-import { useTheme } from '../../context/ThemeContext';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
+import { MapPin, Phone, Smartphone, Mail, Clock } from 'lucide-react';
 import { FacebookIcon } from '../common/SocialIcons';
 
 export default function Footer() {
   const { settings } = useTheme();
+  const { telephone, mobile } = resolveContactNumbers(settings);
 
   return (
     <footer className="bg-[#071838] text-stone-200 border-t-4 border-[#D4AF37] pt-16 pb-12 transition-colors">
@@ -57,12 +58,22 @@ export default function Footer() {
               <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-1" />
               <span>{settings.address || 'J. Fortich St., Banawa, Cebu City, Philippines'}</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-stone-300">
-              <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-              <a href={`tel:${(settings.phone || '(032) 255 3241').split('|')[0].trim()}`} className="hover:text-amber-300 transition-colors">
-                {settings.phone || '(032) 255 3241 | 0942 361 3174'}
-              </a>
-            </div>
+            {telephone && (
+              <div className="flex items-center gap-3 text-sm text-stone-300">
+                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
+                <a href={`tel:${telephone.replace(/\s+/g, '')}`} className="hover:text-amber-300 transition-colors">
+                  <span>Tel: {telephone}</span>
+                </a>
+              </div>
+            )}
+            {mobile && (
+              <div className="flex items-center gap-3 text-sm text-stone-300">
+                <Smartphone className="w-4 h-4 text-amber-400 shrink-0" />
+                <a href={`tel:${mobile.replace(/\s+/g, '')}`} className="hover:text-amber-300 transition-colors">
+                  <span>Mobile: {mobile}</span>
+                </a>
+              </div>
+            )}
             <div className="flex items-center gap-3 text-sm text-stone-300">
               <Mail className="w-4 h-4 text-amber-400 shrink-0" />
               <a href={`mailto:${settings.email || 'pathsoccomit@gmail.com'}`} className="hover:text-amber-300 transition-colors">

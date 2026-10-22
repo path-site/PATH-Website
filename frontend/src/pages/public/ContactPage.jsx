@@ -3,9 +3,10 @@ import { useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { publicApi } from '../../services/api';
 import { 
-  MapPin, Phone, Mail, Clock, Calendar, Send, 
+  MapPin, Phone, Smartphone, Mail, Clock, Calendar, Send, 
   CheckCircle, AlertCircle 
 } from 'lucide-react';
+import { resolveContactNumbers } from '../../context/ThemeContext';
 import { FacebookIcon } from '../../components/common/SocialIcons';
 import MassScheduleView from '../../components/common/MassScheduleView';
 import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components/common/PublicMaintenanceNotice';
@@ -13,6 +14,7 @@ import PublicMaintenanceNotice, { useSectionMaintenance } from '../../components
 export default function ContactPage() {
   const isMaintenance = useSectionMaintenance('contactSettings');
   const { settings } = useTheme();
+  const { telephone, mobile } = resolveContactNumbers(settings);
   const location = useLocation();
   const [formData, setFormData] = useState({
     name: '',
@@ -106,15 +108,33 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-                  <Phone className="w-5 h-5" />
+              {telephone && (
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider block">Telephone (Landline)</span>
+                    <a href={`tel:${telephone.replace(/\s+/g, '')}`} className="text-sm font-medium text-stone-800 hover:text-amber-800 transition-colors leading-snug mt-0.5 block">
+                      {telephone}
+                    </a>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-stone-400 uppercase tracking-wider block">Telephone & Mobile</span>
-                  <p className="text-sm font-medium text-stone-800 leading-snug mt-0.5">{settings.phone}</p>
+              )}
+
+              {mobile && (
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-stone-400 uppercase tracking-wider block">Mobile Number</span>
+                    <a href={`tel:${mobile.replace(/\s+/g, '')}`} className="text-sm font-medium text-stone-800 hover:text-amber-800 transition-colors leading-snug mt-0.5 block">
+                      {mobile}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">

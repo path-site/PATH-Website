@@ -16,12 +16,39 @@ export const BRAND_THEME = {
 export const SETTINGS_CACHE_KEY = 'path_site_settings_cache';
 export const MAINTENANCE_OVERALL_KEY = 'path_maintenance_overall';
 
+export const resolveContactNumbers = (settings) => {
+  let telephone = settings?.telephone ? String(settings.telephone).trim() : '';
+  let mobile = (settings?.mobile_number || settings?.mobile_phone || settings?.mobile)
+    ? String(settings?.mobile_number || settings?.mobile_phone || settings?.mobile).trim()
+    : '';
+
+  // If telephone or mobile aren't individually set, parse legacy `phone` field if available
+  if (!telephone && !mobile && settings?.phone) {
+    const raw = String(settings.phone);
+    if (raw.includes('|')) {
+      const parts = raw.split('|').map(s => s.trim());
+      telephone = parts[0] || '';
+      mobile = parts[1] || '';
+    } else {
+      telephone = raw.trim();
+    }
+  }
+
+  // Canonical parish defaults
+  if (!telephone) telephone = '(032) 255 3241';
+  if (!mobile) mobile = '0942 361 3174';
+
+  return { telephone, mobile };
+};
+
 const DEFAULT_SETTINGS = {
   site_name: 'Parish of the Alliance of the Two Hearts',
   site_short_name: 'PATH',
   tagline: 'A community united in faith, prayer, and devotion to the Sacred Hearts of Jesus and Mary',
   ...BRAND_THEME,
   address: 'J. Fortich St., Banawa, Cebu City, Philippines',
+  telephone: '(032) 255 3241',
+  mobile_number: '0942 361 3174',
   phone: '(032) 255 3241 | 0942 361 3174',
   email: 'pathbanawa1988@gmail.com',
   office_hours: 'Monday – Sunday: 8:00 AM – 12:00 NN, 1:00 PM – 5:00 PM',

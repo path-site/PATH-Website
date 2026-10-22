@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { publicApi } from '../../services/api';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { isSectionUnderMaintenance } from '../../config/maintenanceConfig';
 
 // Inline rich formatting helper for AI messages
@@ -185,7 +185,8 @@ Sunday: 8:00 AM – 12:00 PM
 Monday: Office Closed`,
 
   location: `J. Fortich St., Banawa, Cebu City, Philippines
-Telephone: (032) 255 3241
+Telephone (Landline): (032) 255 3241
+Mobile Number: 0942 361 3174
 Email: office@pathparish.org`,
 
   confessions: `To receive the Sacrament of Reconciliation (Confession), you may approach the Parish Priest directly at the sacristy after any Holy Mass, or kindly inform any of the altar servers or parish staff.`,
@@ -210,7 +211,7 @@ Email: office@pathparish.org`,
 • Before Mass: Request an intention envelope at the sacristy or parish counter before each scheduled mass.`,
 
   anointing: `For the Sacrament of the Anointing of the Sick or emergency Viaticum:
-• Please call the parish office at (032) 255 3241 immediately, or visit the office to schedule a pastoral hospital or home visitation by one of our priests.`
+• Please call the parish office at (032) 255 3241 (Landline) or 0942 361 3174 (Mobile) immediately, or visit the office to schedule a pastoral hospital or home visitation by one of our priests.`
 };
 
 const SUGGESTED_QUERIES = [
@@ -418,7 +419,7 @@ ${r.responseText}`;
         .join('\n');
 
       const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
-      const phone = contextData.settings?.phone || '(032) 255 3241';
+      const { telephone, mobile } = resolveContactNumbers(contextData.settings);
       const email = contextData.settings?.email || 'office@pathparish.org';
       const officeHours = contextData.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
       const massSchedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
@@ -458,7 +459,8 @@ OFFICIAL PARISH DATA & LIVE DATABASE KNOWLEDGE BASE:
 - Name: Parish of the Alliance of the Two Hearts (PATH)
 - Patronage: Most Sacred Heart of Jesus and Immaculate Heart of Mary (Alliance of the Two Hearts)
 - Address: ${address}
-- Telephone: ${phone}
+- Telephone (Landline): ${telephone}
+- Mobile Number: ${mobile}
 - Email: ${email}
 - Office Hours:
 ${officeHours}
@@ -621,12 +623,12 @@ RULES:
     }
 
     // 7. Office Hours & Location
-    if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
-      const addr = contextData.settings.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
-      const phone = contextData.settings.phone || '(032) 255 3241';
-      const email = contextData.settings.email || 'office@pathparish.org';
-      const hours = contextData.settings.office_hours || CANONICAL_KNOWLEDGE.officeHours;
-      return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone:** ${phone}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${hours}`;
+    if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('mobile') || q.includes('cellphone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
+      const addr = contextData.settings?.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
+      const { telephone, mobile } = resolveContactNumbers(contextData.settings);
+      const email = contextData.settings?.email || 'office@pathparish.org';
+      const hours = contextData.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
+      return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone (Landline):** ${telephone}\n📱 **Mobile Number:** ${mobile}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${hours}`;
     }
 
     // 8. Mass Intentions
@@ -698,7 +700,7 @@ RULES:
       return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests and clergy history, or parish office schedules.`;
     }
 
-    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Priest History)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone)\n• **Church History** & Milestones\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** or visit us along J. Fortich St., Banawa, Cebu City.`;
+    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Priest History)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone, mobile)\n• **Church History** & Milestones\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** (Landline) or **0942 361 3174** (Mobile), or visit us along J. Fortich St., Banawa, Cebu City.`;
   };
 
   const handleSend = async (textToSend) => {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { getSectionById, isSectionUnderMaintenance, isBypassMaintenance, isAdminPreviewAllowed } from '../../config/maintenanceConfig';
-import { Phone, Wrench, AlertCircle, ExternalLink, ShieldAlert, Eye } from 'lucide-react';
+import { Phone, Smartphone, Wrench, AlertCircle, ExternalLink, ShieldAlert, Eye } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
 
 export function useSectionMaintenance(sectionKey) {
@@ -67,7 +67,7 @@ export default function PublicMaintenanceNotice({
           ? settings?.[`${legacyPrefix}_show_fb`] !== 'false'
           : true);
 
-  const phone = settings?.phone || '(032) 255 3241';
+  const { telephone, mobile } = resolveContactNumbers(settings);
   const fbUrl = settings?.facebook_url || 'https://www.facebook.com/PATHBanawa';
 
   if (variant === 'banner') {
@@ -82,13 +82,26 @@ export default function PublicMaintenanceNotice({
             </div>
           </div>
           {showPhone && (
-            <a
-              href={`tel:${phone}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-900 text-xs font-bold shrink-0 transition-colors"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              <span>Office: {phone}</span>
-            </a>
+            <div className="flex items-center gap-2 shrink-0">
+              {telephone && (
+                <a
+                  href={`tel:${telephone.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-900 text-xs font-bold transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Landline: {telephone}</span>
+                </a>
+              )}
+              {mobile && (
+                <a
+                  href={`tel:${mobile.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-stone-900 text-xs font-bold transition-colors"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Mobile: {mobile}</span>
+                </a>
+              )}
+            </div>
           )}
         </div>
       </aside>
@@ -118,13 +131,23 @@ export default function PublicMaintenanceNotice({
         )}
 
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-medium">
-          {showPhone && (
+          {showPhone && telephone && (
             <a
-              href={`tel:${phone}`}
+              href={`tel:${telephone.replace(/\s+/g, '')}`}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#071838] font-bold transition-all shadow-md cursor-pointer"
             >
               <Phone className="w-4 h-4" />
-              <span>Call Parish Office: {phone}</span>
+              <span>Call Landline: {telephone}</span>
+            </a>
+          )}
+
+          {showPhone && mobile && (
+            <a
+              href={`tel:${mobile.replace(/\s+/g, '')}`}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 font-bold transition-all shadow-md cursor-pointer"
+            >
+              <Smartphone className="w-4 h-4 text-amber-300" />
+              <span>Call Mobile: {mobile}</span>
             </a>
           )}
 

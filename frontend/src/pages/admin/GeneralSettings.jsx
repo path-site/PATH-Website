@@ -399,7 +399,7 @@ export default function GeneralSettings() {
                 onChange={(e) => handleChange('maintenance_overall_show_phone', e.target.checked ? 'true' : 'false')}
                 className="rounded text-[#A81B2B] focus:ring-[#A81B2B]"
               />
-              <span>Display Parish Office Telephone on Screen</span>
+              <span>Display Parish Office Contact Numbers on Screen (Landline & Mobile)</span>
             </label>
             <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-700">
               <input

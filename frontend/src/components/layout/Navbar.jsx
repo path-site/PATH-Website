@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { publicApi } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { isAdminPreviewMode, resolvePreviewPath } from '../../config/maintenanceConfig';
 import { 
   Menu, X, ChevronDown, Church, Heart, BookOpen, Clock, 
-  Users, Calendar, Image as ImageIcon, Mail, Phone, ArrowRight
+  Users, Calendar, Image as ImageIcon, Mail, Phone, Smartphone, ArrowRight
 } from 'lucide-react';
 
 const iconMap = {
@@ -21,6 +21,7 @@ const iconMap = {
 
 export default function Navbar() {
   const { settings } = useTheme();
+  const { telephone, mobile } = resolveContactNumbers(settings);
   const location = useLocation();
   const [navItems, setNavItems] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -320,13 +321,22 @@ export default function Navbar() {
           <div className="mt-4 pt-3 border-t border-stone-200/60 flex flex-col gap-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-stone-400">Parish Office & Inquiries</span>
             <div className="grid grid-cols-1 gap-2 text-xs">
-              {settings.phone && (
+              {telephone && (
                 <a
-                  href={`tel:${settings.phone.split('|')[0].trim()}`}
+                  href={`tel:${telephone.replace(/\s+/g, '')}`}
                   className="flex items-center gap-2 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-                  <span className="truncate">{settings.phone}</span>
+                  <span className="truncate">Tel: {telephone}</span>
+                </a>
+              )}
+              {mobile && (
+                <a
+                  href={`tel:${mobile.replace(/\s+/g, '')}`}
+                  className="flex items-center gap-2 p-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium transition-colors"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <span className="truncate">Mobile: {mobile}</span>
                 </a>
               )}
               <a

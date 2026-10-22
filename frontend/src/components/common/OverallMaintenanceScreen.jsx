@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { OVERALL_MAINTENANCE_DEFAULTS, isAdminPreviewAllowed } from '../../config/maintenanceConfig';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import {
-  Wrench, Phone, MapPin, Clock, Calendar,
+  Wrench, Phone, Smartphone, MapPin, Clock, Calendar,
   ShieldCheck, Lock, ExternalLink, Eye
 } from 'lucide-react';
 import { FacebookIcon } from './SocialIcons';
@@ -20,7 +20,7 @@ export default function OverallMaintenanceScreen() {
 
   const showPhone = settings?.maintenance_overall_show_phone !== 'false';
   const showFb = settings?.maintenance_overall_show_fb !== 'false';
-  const phone = settings?.phone || '(032) 255 3241 | 0942 361 3174';
+  const { telephone, mobile } = resolveContactNumbers(settings);
   const email = settings?.email || 'pathbanawa1988@gmail.com';
   const address = settings?.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
   const officeHours = settings?.office_hours || 'Monday – Sunday: 8:00 AM – 12:00 NN, 1:00 PM – 5:00 PM';
@@ -132,13 +132,23 @@ export default function OverallMaintenanceScreen() {
 
           {/* Direct Communication Channels */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-bold">
-            {showPhone && (
+            {showPhone && telephone && (
               <a
-                href={`tel:${phone}`}
+                href={`tel:${telephone.replace(/\s+/g, '')}`}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 transition-all shadow-lg hover:scale-[1.02] active:scale-95"
               >
                 <Phone className="w-4 h-4" />
-                <span>Call Parish Office: {phone}</span>
+                <span>Call Landline: {telephone}</span>
+              </a>
+            )}
+
+            {showPhone && mobile && (
+              <a
+                href={`tel:${mobile.replace(/\s+/g, '')}`}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 transition-all shadow-lg hover:scale-[1.02] active:scale-95"
+              >
+                <Smartphone className="w-4 h-4 text-amber-300" />
+                <span>Call Mobile: {mobile}</span>
               </a>
             )}
 
@@ -161,8 +171,11 @@ export default function OverallMaintenanceScreen() {
             <div className="flex items-start gap-2.5">
               <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <span className="font-bold text-white block">Parish Office:</span>
+                <span className="font-bold text-white block">Parish Office & Contacts:</span>
                 <p>{address}</p>
+                <p className="mt-1 text-stone-200">
+                  <span className="text-amber-400 font-semibold">Tel:</span> {telephone} • <span className="text-amber-400 font-semibold">Mobile:</span> {mobile}
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-2.5">

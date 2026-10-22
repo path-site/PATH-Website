@@ -3,9 +3,10 @@ import { adminApi } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import SectionMaintenanceBar from '../../components/admin/SectionMaintenanceBar';
 import { 
-  PhoneCall, Check, Save, RefreshCw, Mail, MessageSquare, 
+  Phone, Smartphone, PhoneCall, Check, Save, RefreshCw, Mail, MessageSquare, 
   Trash2, Send, Clock, User, AlertCircle, CheckCircle2, RotateCw
 } from 'lucide-react';
+import { resolveContactNumbers } from '../../context/ThemeContext';
 
 export default function ContactSettings() {
   const { settings, refreshSettings } = useTheme();
@@ -21,7 +22,14 @@ export default function ContactSettings() {
 
   useEffect(() => {
     if (settings) {
-      setFormData(settings);
+      const { telephone, mobile } = resolveContactNumbers(settings);
+      setFormData({
+        ...settings,
+        telephone: settings.telephone !== undefined ? settings.telephone : telephone,
+        mobile_number: (settings.mobile_number || settings.mobile_phone || settings.mobile) !== undefined
+          ? (settings.mobile_number || settings.mobile_phone || settings.mobile)
+          : mobile,
+      });
     }
   }, [settings]);
 
@@ -51,7 +59,13 @@ export default function ContactSettings() {
     e.preventDefault();
     setSaving(true);
     try {
-      await adminApi.saveSettings(formData);
+      const payload = {
+        ...formData,
+        telephone: formData.telephone !== undefined ? formData.telephone : '',
+        mobile_number: formData.mobile_number !== undefined ? formData.mobile_number : '',
+        phone: [formData.telephone, formData.mobile_number].filter(Boolean).join(' | '),
+      };
+      await adminApi.saveSettings(payload);
       await refreshSettings();
       setNotice('Contact details and schedules updated successfully!');
       setTimeout(() => setNotice(''), 4000);
@@ -201,17 +215,38 @@ export default function ContactSettings() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                Telephone & Mobile Numbers
-              </label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone || ''}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-[#800020] outline-none"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-stone-500" />
+                  <span>Telephone (Landline)</span>
+                </label>
+                <input
+                  type="text"
+                  name="telephone"
+                  value={formData.telephone || ''}
+                  onChange={handleChange}
+                  placeholder="(032) 255 3241"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-[#800020] outline-none"
+                />
+                <p className="text-[11px] text-stone-500 mt-1">Official parish office landline.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-stone-500" />
+                  <span>Mobile Number (Cellular)</span>
+                </label>
+                <input
+                  type="text"
+                  name="mobile_number"
+                  value={formData.mobile_number || ''}
+                  onChange={handleChange}
+                  placeholder="0942 361 3174"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:ring-2 focus:ring-[#800020] outline-none"
+                />
+                <p className="text-[11px] text-stone-500 mt-1">Official parish mobile / SMS line.</p>
+              </div>
             </div>
 
             <div>
