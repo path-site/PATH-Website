@@ -62,7 +62,7 @@ export default function PriestsPage() {
             Our Parish Priests
           </h1>
           <p className="mt-4 text-stone-600 text-base sm:text-lg leading-relaxed">
-            By diocesan assignment, our parish is served by a team of three (3) priests headed by the Team Moderator. The clergy directory is arranged chronologically, with the current set on top, and the Team Moderator placed first within each year range. Click on any priest's name to view their complete pastoral profile and details.
+            By diocesan assignment, our parish is served by a team of three (3) priests headed by the Team Moderator. The clergy directory is arranged chronologically, with the current set on top, and the Team Moderator placed first within each year range. Click on any priest to view their complete pastoral profile and details.
           </p>
         </div>
 
@@ -70,15 +70,20 @@ export default function PriestsPage() {
         {isMaintenance ? (
           <PublicMaintenanceNotice sectionKey="priests" forceShow />
         ) : loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[1, 2, 3].map(n => (
-              <div key={n} className="bg-white rounded-2xl sm:rounded-3xl h-24 animate-pulse border border-[#C59B3F]/20" />
+              <div key={n} className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/20 animate-pulse flex flex-col">
+                <div className="h-72 sm:h-80 w-full bg-stone-200" />
+                <div className="p-6">
+                  <div className="h-6 bg-stone-200 rounded-md w-3/4" />
+                </div>
+              </div>
             ))}
           </div>
         ) : (
           <>
             {/* Current Set of Priests (3 Priests) */}
-            <div className="mb-16">
+            <div className="mb-20">
               <div className="bg-[#FAF7F0] p-6 sm:p-8 rounded-3xl border border-[#C59B3F]/30 mb-8 shadow-xs scroll-reveal">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
@@ -105,22 +110,75 @@ export default function PriestsPage() {
               {currentPriests.length === 0 ? (
                 <p className="text-stone-500 italic">No current priests listed.</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-stagger">
-                  {currentPriests.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedPriest(p)}
-                      className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-7 border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer text-left flex items-center justify-between gap-4 w-full focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale"
-                    >
-                      <span className="font-serif-heading text-lg sm:text-xl font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors leading-snug">
-                        {p.fullName}
-                      </span>
-                      <span className="w-8 h-8 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/20 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-colors shadow-xs">
-                        <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-colors" />
-                      </span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
+                  {currentPriests.map((p) => {
+                    const isDeceased = isPriestDeceased(p);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPriest(p)}
+                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale"
+                      >
+                        {/* Priest Photo on Page */}
+                        <div className="h-72 sm:h-80 w-full bg-stone-100 overflow-hidden relative">
+                          {isDeceased && (
+                            <div className="absolute top-3 right-3 z-10">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 text-xs font-serif font-bold shadow-md backdrop-blur-xs">
+                                <span className="text-amber-400 font-serif font-bold text-sm leading-none select-none">†</span> In Memoriam
+                              </span>
+                            </div>
+                          )}
+
+                          {p.portraitImageUrl ? (
+                            <img
+                              src={resolveMediaUrl(p.portraitImageUrl)}
+                              alt={p.fullName}
+                              className={`w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 ${
+                                isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
+                              }`}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#1C1814] via-[#2A231C] to-[#14110E] flex flex-col items-center justify-center p-6 text-white text-center">
+                              <div className="w-20 h-20 rounded-full bg-[#C59B3F]/20 border-2 border-[#C59B3F]/40 flex items-center justify-center mb-3">
+                                {isDeceased ? (
+                                  <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
+                                ) : (
+                                  <ParishChurchOutlineIcon className="w-12 h-auto text-[#DFBE7B]" />
+                                )}
+                              </div>
+                              <span className="text-xs uppercase font-serif tracking-widest text-[#DFBE7B]">
+                                {isDeceased ? 'In Memoriam' : 'Clergy'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Role Badge on Photo */}
+                          <div className="absolute bottom-3 left-3">
+                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
+                              p.title?.toLowerCase().includes('moderator')
+                                ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
+                                : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
+                            }`}>
+                              {p.title || 'Parish Priest'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Priest Name and Click Affordance */}
+                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white flex-1">
+                          <h3 className="font-serif-heading text-lg sm:text-xl font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors leading-snug">
+                            {isDeceased && <span className="text-stone-500 font-serif font-bold mr-1.5" title="Deceased">†</span>}
+                            <span>{p.fullName}</span>
+                          </h3>
+                          <span className="w-8 h-8 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-colors shadow-xs">
+                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-colors" />
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -140,22 +198,75 @@ export default function PriestsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 scroll-stagger">
-                  {formerPriests.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedPriest(p)}
-                      className="bg-white rounded-2xl p-5 sm:p-6 border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer text-left flex items-center justify-between gap-4 w-full focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale"
-                    >
-                      <span className="font-serif-heading text-base sm:text-lg font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors leading-snug">
-                        {p.fullName}
-                      </span>
-                      <span className="w-7 h-7 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/20 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-colors shadow-xs">
-                        <ChevronRight className="w-3.5 h-3.5 text-[#8F6B1E] group-hover:text-white transition-colors" />
-                      </span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 scroll-stagger">
+                  {formerPriests.map((p) => {
+                    const isDeceased = isPriestDeceased(p);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedPriest(p)}
+                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale"
+                      >
+                        {/* Former Priest Photo on Page */}
+                        <div className="h-72 sm:h-80 w-full bg-stone-100 overflow-hidden relative">
+                          {isDeceased && (
+                            <div className="absolute top-3 right-3 z-10">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 text-xs font-serif font-bold shadow-md backdrop-blur-xs">
+                                <span className="text-amber-400 font-serif font-bold text-sm leading-none select-none">†</span> In Memoriam
+                              </span>
+                            </div>
+                          )}
+
+                          {p.portraitImageUrl ? (
+                            <img
+                              src={resolveMediaUrl(p.portraitImageUrl)}
+                              alt={p.fullName}
+                              className={`w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 ${
+                                isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
+                              }`}
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#1C1814] via-[#2A231C] to-[#14110E] flex flex-col items-center justify-center p-6 text-white text-center">
+                              <div className="w-20 h-20 rounded-full bg-[#C59B3F]/20 border-2 border-[#C59B3F]/40 flex items-center justify-center mb-3">
+                                {isDeceased ? (
+                                  <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
+                                ) : (
+                                  <ParishChurchOutlineIcon className="w-12 h-auto text-[#DFBE7B]" />
+                                )}
+                              </div>
+                              <span className="text-xs uppercase font-serif tracking-widest text-[#DFBE7B]">
+                                {isDeceased ? 'In Memoriam' : 'Former Clergy'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Role Badge on Photo */}
+                          <div className="absolute bottom-3 left-3">
+                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform group-hover:scale-105 ${
+                              p.title?.toLowerCase().includes('moderator')
+                                ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
+                                : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
+                            }`}>
+                              {p.title || 'Former Pastor'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Priest Name and Click Affordance */}
+                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white flex-1">
+                          <h3 className="font-serif-heading text-lg sm:text-xl font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors leading-snug">
+                            {isDeceased && <span className="text-stone-500 font-serif font-bold mr-1.5" title="Deceased">†</span>}
+                            <span>{p.fullName}</span>
+                          </h3>
+                          <span className="w-8 h-8 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-colors shadow-xs">
+                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-colors" />
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -182,7 +293,7 @@ export default function PriestsPage() {
             <button
               type="button"
               onClick={() => setSelectedPriest(null)}
-              className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition-colors shadow-md backdrop-blur-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-white"
+              className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors shadow-lg backdrop-blur-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-white"
               aria-label="Close details"
             >
               <X className="w-5 h-5" />
@@ -190,26 +301,30 @@ export default function PriestsPage() {
 
             {/* Scrollable Modal Content */}
             <div className="overflow-y-auto flex-1">
-              {/* Priest Image Banner / Placeholder */}
-              <div className="h-64 sm:h-72 w-full bg-stone-100 overflow-hidden relative">
-                {isPriestDeceased(selectedPriest) && (
-                  <div className="absolute top-4 left-4 z-20">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 text-xs font-serif font-bold shadow-md backdrop-blur-xs">
-                      <span className="text-amber-400 font-serif font-bold text-sm leading-none select-none">†</span> In Memoriam
-                    </span>
-                  </div>
-                )}
-
+              {/* Priest Image Banner (Uncropped & Well-Proportioned) */}
+              <div className="relative w-full bg-[#FAF7F0] border-b border-[#C59B3F]/20 flex items-center justify-center overflow-hidden min-h-[18rem] sm:min-h-[22rem]">
                 {selectedPriest.portraitImageUrl ? (
-                  <img
-                    src={resolveMediaUrl(selectedPriest.portraitImageUrl)}
-                    alt={selectedPriest.fullName}
-                    className={`w-full h-full object-cover object-top ${
-                      isPriestDeceased(selectedPriest) ? 'filter grayscale-[20%] contrast-[1.05]' : ''
-                    }`}
-                  />
+                  <>
+                    {/* Ambient Blurred Backdrop for Depth */}
+                    <img
+                      src={resolveMediaUrl(selectedPriest.portraitImageUrl)}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-25 scale-125 pointer-events-none"
+                    />
+                    {/* Sharp, Complete, Uncropped Portrait */}
+                    <div className="relative z-10 h-72 sm:h-88 w-full flex items-center justify-center p-3">
+                      <img
+                        src={resolveMediaUrl(selectedPriest.portraitImageUrl)}
+                        alt={selectedPriest.fullName}
+                        className={`h-full w-auto max-w-full object-contain mx-auto drop-shadow-md rounded-xl ${
+                          isPriestDeceased(selectedPriest) ? 'filter grayscale-[15%] contrast-[1.05]' : ''
+                        }`}
+                      />
+                    </div>
+                  </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#1C1814] via-[#2A231C] to-[#14110E] flex flex-col items-center justify-center p-6 text-white text-center">
+                  <div className="w-full h-64 sm:h-72 bg-gradient-to-br from-[#1C1814] via-[#2A231C] to-[#14110E] flex flex-col items-center justify-center p-6 text-white text-center">
                     <div className="w-20 h-20 rounded-full bg-[#C59B3F]/20 border-2 border-[#C59B3F]/40 flex items-center justify-center mb-3">
                       {isPriestDeceased(selectedPriest) ? (
                         <span className="text-3xl text-[#DFBE7B] font-serif font-bold select-none">†</span>
@@ -223,27 +338,35 @@ export default function PriestsPage() {
                   </div>
                 )}
 
-                {/* Role Badge in Banner */}
-                <div className="absolute bottom-3 left-4">
-                  <span
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold shadow-md backdrop-blur-xs ${
-                      selectedPriest.title?.toLowerCase().includes('moderator')
-                        ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
-                        : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
-                    }`}
-                  >
-                    {selectedPriest.title || (selectedPriest.priestStatus === 'CURRENT' ? 'Parish Priest' : 'Former Pastor')}
-                  </span>
-                </div>
+                {/* In Memoriam overlay badge if deceased */}
+                {isPriestDeceased(selectedPriest) && (
+                  <div className="absolute top-4 left-4 z-20">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900/95 text-amber-300 border border-amber-400/40 text-xs font-serif font-bold shadow-md backdrop-blur-xs">
+                      <span className="text-amber-400 font-serif font-bold text-sm leading-none select-none">†</span> In Memoriam
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Details Content */}
               <div className="p-6 sm:p-8 space-y-6">
-                {/* Name & Ministry Status */}
+                {/* Badges & Name */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
+                  <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                    {/* Role Badge */}
                     <span
-                      className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                      className={`px-3 py-1 rounded-full text-xs font-bold shadow-xs ${
+                        selectedPriest.title?.toLowerCase().includes('moderator')
+                          ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
+                          : 'bg-[#A81B2B]/10 text-[#A81B2B] border border-[#A81B2B]/20 font-semibold'
+                      }`}
+                    >
+                      {selectedPriest.title || (selectedPriest.priestStatus === 'CURRENT' ? 'Parish Priest' : 'Former Pastor')}
+                    </span>
+
+                    {/* Ministry Status Pill */}
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
                         selectedPriest.priestStatus === 'CURRENT'
                           ? 'bg-emerald-100 text-emerald-800'
                           : 'bg-stone-100 text-stone-700'
@@ -271,7 +394,7 @@ export default function PriestsPage() {
 
                 {/* Service Dates */}
                 {(selectedPriest.serviceStart || selectedPriest.serviceEnd) && (
-                  <div className="flex items-center gap-2 text-sm text-stone-600 bg-[#FAF7F0] border border-[#C59B3F]/20 rounded-xl px-4 py-2.5">
+                  <div className="flex items-center gap-2 text-sm text-stone-700 bg-[#FAF7F0] border border-[#C59B3F]/25 rounded-xl px-4 py-3">
                     <Calendar className="w-4 h-4 text-[#C59B3F] shrink-0" />
                     <span className="font-semibold text-stone-800">
                       {selectedPriest.priestStatus === 'CURRENT' ? 'Service Term:' : 'Years in Ministry:'}
