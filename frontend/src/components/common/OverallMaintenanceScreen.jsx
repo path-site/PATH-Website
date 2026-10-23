@@ -110,7 +110,7 @@ export default function OverallMaintenanceScreen() {
 
           {/* Notice Description (Omitted if blank) */}
           {desc ? (
-            <p className="text-stone-200 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto text-justify">
+            <p className="text-stone-200 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto text-justify text-justify-center-last">
               {desc}
             </p>
           ) : null}

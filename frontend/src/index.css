@@ -762,3 +762,9 @@
   animation: churchGlowPulse 3s ease-in-out infinite;
 }
 
+/* Justified text with centered final line */
+.text-justify-center-last {
+  text-align: justify;
+  text-align-last: center;
+}
+
