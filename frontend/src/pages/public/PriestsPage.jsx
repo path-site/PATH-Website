@@ -116,7 +116,8 @@ export default function PriestsPage() {
           <>
             {/* Current Set of Priests (3 Priests) */}
             <div className="mb-20">
-              <div className="bg-[#FAF7F0] p-6 sm:p-8 rounded-3xl border border-[#C59B3F]/30 mb-8 shadow-xs scroll-reveal">
+              {/* Current Priests Header Container with Smooth Hover Animation */}
+              <div className="bg-[#FAF7F0] hover:bg-[#F5EEDC]/50 p-6 sm:p-8 rounded-3xl border border-[#C59B3F]/30 hover:border-[#C59B3F]/60 mb-8 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] scroll-reveal">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
@@ -129,7 +130,7 @@ export default function PriestsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#C59B3F]/35 text-[#1C1814] text-xs font-semibold">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-[#C59B3F]/35 text-[#1C1814] text-xs font-semibold shadow-xs hover:border-[#C59B3F] transition-colors duration-300">
                     <Clock className="w-3.5 h-3.5 text-[#C59B3F]" />
                     <span>Active Pastoral Ministry</span>
                   </div>
@@ -150,7 +151,7 @@ export default function PriestsPage() {
                         key={p.id}
                         type="button"
                         onClick={() => openModal(p)}
-                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-2xl hover:-translate-y-2 transition-all duration-400 ease-out group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale active:scale-[0.98]"
+                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] hover:ring-4 hover:ring-[#C59B3F]/15 shadow-xs hover:shadow-[0_22px_45px_-12px_rgba(197,155,63,0.3)] hover:-translate-y-2.5 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale active:scale-[0.98]"
                       >
                         {/* Priest Photo on Page */}
                         <div className="h-72 sm:h-80 w-full bg-stone-100 overflow-hidden relative">
@@ -166,7 +167,7 @@ export default function PriestsPage() {
                             <img
                               src={resolveMediaUrl(p.portraitImageUrl)}
                               alt={p.fullName}
-                              className={`w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-108 ${
+                              className={`w-full h-full object-cover object-top transition-transform duration-700 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-108 ${
                                 isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
                               }`}
                               loading="lazy"
@@ -188,7 +189,7 @@ export default function PriestsPage() {
 
                           {/* Role Badge on Photo */}
                           <div className="absolute bottom-3 left-3">
-                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform duration-300 group-hover:scale-105 ${
+                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-all duration-300 group-hover:scale-105 group-hover:shadow-md ${
                               p.title?.toLowerCase().includes('moderator')
                                 ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
                                 : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
@@ -198,14 +199,14 @@ export default function PriestsPage() {
                           </div>
                         </div>
 
-                        {/* Priest Name and Click Affordance */}
-                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white flex-1">
+                        {/* Priest Name and Click Affordance with Smooth Hover */}
+                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white group-hover:bg-[#FAF7F0] transition-colors duration-500 flex-1">
                           <h3 className="font-serif-heading text-lg sm:text-xl font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors duration-300 leading-snug">
                             {isDeceased && <span className="text-stone-500 font-serif font-bold mr-1.5" title="Deceased">†</span>}
                             <span>{p.fullName}</span>
                           </h3>
-                          <span className="w-9 h-9 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-all duration-300 ease-out shadow-xs group-hover:shadow-md">
-                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-all duration-300 ease-out group-hover:translate-x-0.5" />
+                          <span className="w-9 h-9 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] shadow-xs group-hover:shadow-md group-hover:scale-110">
+                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-all duration-300 ease-out group-hover:translate-x-1" />
                           </span>
                         </div>
                       </button>
@@ -218,7 +219,8 @@ export default function PriestsPage() {
             {/* Past Sets & Former Clergy */}
             {formerPriests.length > 0 && (
               <div className="pt-8 border-t border-[#C59B3F]/25 scroll-reveal">
-                <div className="flex items-center gap-3 mb-8 pb-3 border-b border-[#C59B3F]/20">
+                {/* Former Priests Header Container with Smooth Hover Animation */}
+                <div className="bg-[#FAF7F0]/60 hover:bg-[#FAF7F0] p-6 sm:p-7 rounded-3xl border border-[#C59B3F]/25 hover:border-[#C59B3F]/60 mb-8 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] flex items-center gap-3">
                   <span className="w-3.5 h-3.5 rounded-full bg-[#C59B3F] ring-4 ring-[#C59B3F]/20" />
                   <div>
                     <h2 className="font-serif-heading text-2xl sm:text-3xl font-bold text-[#1C1814]">
@@ -238,7 +240,7 @@ export default function PriestsPage() {
                         key={p.id}
                         type="button"
                         onClick={() => openModal(p)}
-                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] shadow-xs hover:shadow-2xl hover:-translate-y-2 transition-all duration-400 ease-out group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale active:scale-[0.98]"
+                        className="bg-white rounded-3xl overflow-hidden border border-[#C59B3F]/25 hover:border-[#C59B3F] hover:ring-4 hover:ring-[#C59B3F]/15 shadow-xs hover:shadow-[0_22px_45px_-12px_rgba(197,155,63,0.3)] hover:-translate-y-2.5 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group cursor-pointer text-left flex flex-col focus:outline-none focus:ring-2 focus:ring-[#C59B3F]/50 scroll-reveal-scale active:scale-[0.98]"
                       >
                         {/* Former Priest Photo on Page */}
                         <div className="h-72 sm:h-80 w-full bg-stone-100 overflow-hidden relative">
@@ -254,7 +256,7 @@ export default function PriestsPage() {
                             <img
                               src={resolveMediaUrl(p.portraitImageUrl)}
                               alt={p.fullName}
-                              className={`w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-108 ${
+                              className={`w-full h-full object-cover object-top transition-transform duration-700 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-108 ${
                                 isDeceased ? 'filter grayscale-[25%] contrast-[1.05] group-hover:grayscale-0' : ''
                               }`}
                               loading="lazy"
@@ -276,7 +278,7 @@ export default function PriestsPage() {
 
                           {/* Role Badge on Photo */}
                           <div className="absolute bottom-3 left-3">
-                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-transform duration-300 group-hover:scale-105 ${
+                            <span className={`px-3 py-1 rounded-full backdrop-blur-xs text-xs font-bold shadow-xs transition-all duration-300 group-hover:scale-105 group-hover:shadow-md ${
                               p.title?.toLowerCase().includes('moderator')
                                 ? 'bg-[#C59B3F] text-[#1C1814] border border-amber-300 font-extrabold ring-2 ring-amber-400/40'
                                 : 'bg-white/95 text-[#A81B2B] border border-[#C59B3F]/20'
@@ -286,14 +288,14 @@ export default function PriestsPage() {
                           </div>
                         </div>
 
-                        {/* Priest Name and Click Affordance */}
-                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white flex-1">
+                        {/* Priest Name and Click Affordance with Smooth Hover */}
+                        <div className="p-5 sm:p-6 flex items-center justify-between gap-3 bg-white group-hover:bg-[#FAF7F0] transition-colors duration-500 flex-1">
                           <h3 className="font-serif-heading text-lg sm:text-xl font-bold text-[#1C1814] group-hover:text-[#A81B2B] transition-colors duration-300 leading-snug">
                             {isDeceased && <span className="text-stone-500 font-serif font-bold mr-1.5" title="Deceased">†</span>}
                             <span>{p.fullName}</span>
                           </h3>
-                          <span className="w-9 h-9 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-all duration-300 ease-out shadow-xs group-hover:shadow-md">
-                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-all duration-300 ease-out group-hover:translate-x-0.5" />
+                          <span className="w-9 h-9 rounded-full bg-[#FAF7F0] group-hover:bg-[#A81B2B] border border-[#C59B3F]/25 group-hover:border-[#A81B2B] flex items-center justify-center shrink-0 transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] shadow-xs group-hover:shadow-md group-hover:scale-110">
+                            <ChevronRight className="w-4 h-4 text-[#8F6B1E] group-hover:text-white transition-all duration-300 ease-out group-hover:translate-x-1" />
                           </span>
                         </div>
                       </button>
@@ -357,7 +359,7 @@ export default function PriestsPage() {
                       <img
                         src={resolveMediaUrl(selectedPriest.portraitImageUrl)}
                         alt={selectedPriest.fullName}
-                        className={`h-full w-auto max-w-full object-contain mx-auto drop-shadow-md rounded-xl transition-all duration-500 ease-out ${
+                        className={`h-full w-auto max-w-full object-contain mx-auto drop-shadow-md rounded-xl transition-all duration-500 ease-out hover:scale-[1.02] ${
                           modalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-80'
                         } ${
                           isPriestDeceased(selectedPriest) ? 'filter grayscale-[15%] contrast-[1.05]' : ''
@@ -436,7 +438,7 @@ export default function PriestsPage() {
 
                 {/* Service Dates */}
                 {(selectedPriest.serviceStart || selectedPriest.serviceEnd) && (
-                  <div className="flex items-center gap-2 text-sm text-stone-700 bg-[#FAF7F0] border border-[#C59B3F]/25 rounded-xl px-4 py-3 shadow-xs">
+                  <div className="flex items-center gap-2 text-sm text-stone-700 bg-[#FAF7F0] hover:bg-[#F5EEDC]/60 border border-[#C59B3F]/25 hover:border-[#C59B3F]/60 rounded-xl px-4 py-3 shadow-xs hover:shadow-sm transition-all duration-300">
                     <Calendar className="w-4 h-4 text-[#C59B3F] shrink-0" />
                     <span className="font-semibold text-stone-800">
                       {selectedPriest.priestStatus === 'CURRENT' ? 'Service Term:' : 'Years in Ministry:'}
@@ -450,7 +452,7 @@ export default function PriestsPage() {
 
                 {/* Deceased Memorial Information */}
                 {isPriestDeceased(selectedPriest) && (
-                  <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
+                  <div className="bg-stone-50 hover:bg-stone-100/70 border border-stone-200 hover:border-stone-300 rounded-2xl p-4 flex items-start gap-3 shadow-xs hover:shadow-sm transition-all duration-300">
                     <span className="text-stone-500 font-serif font-bold text-xl leading-none select-none mt-0.5">†</span>
                     <div className="text-xs sm:text-sm text-stone-600 leading-relaxed">
                       <p className="font-semibold text-stone-800">
