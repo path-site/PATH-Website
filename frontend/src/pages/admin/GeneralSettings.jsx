@@ -371,7 +371,7 @@ export default function GeneralSettings() {
               value={settings.maintenance_overall_desc || ''}
               onChange={(e) => handleChange('maintenance_overall_desc', e.target.value)}
               placeholder="Leave blank to omit on public maintenance screen, or enter a custom pastoral explanation..."
-              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white"
+              className="w-full px-3.5 py-2 text-xs sm:text-sm border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#800020]/20 bg-white text-justify"
             />
             <p className="mt-1 text-[11px] text-stone-500">
               When left blank, this detailed announcement paragraph will not be displayed on the public maintenance page.

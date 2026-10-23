@@ -125,7 +125,7 @@ export default function PublicMaintenanceNotice({
         </h2>
 
         {desc && desc.trim() !== '' && (
-          <p className="text-stone-200 text-sm sm:text-base leading-relaxed">
+          <p className="text-stone-200 text-sm sm:text-base leading-relaxed text-justify">
             {desc}
           </p>
         )}

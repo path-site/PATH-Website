@@ -167,16 +167,16 @@ export default function AnnouncementDetailPage() {
         )}
 
         {/* Content Body */}
-        <div className="prose prose-stone lg:prose-lg max-w-none text-stone-800 leading-relaxed font-normal">
+        <div className="prose prose-stone lg:prose-lg max-w-none text-stone-800 leading-relaxed font-normal text-justify">
           {announcement.content && /<[a-z][\s\S]*>/i.test(announcement.content) ? (
             <div 
-              className="space-y-4 whitespace-pre-line"
+              className="space-y-4 whitespace-pre-line text-justify"
               dangerouslySetInnerHTML={{ __html: announcement.content }}
             />
           ) : (
             <div className="space-y-5">
               {announcement.content?.split(/\r?\n\r?\n/).filter(Boolean).map((para, idx) => (
-                <p key={idx} className="whitespace-pre-line leading-relaxed">
+                <p key={idx} className="whitespace-pre-line leading-relaxed text-justify">
                   {para}
                 </p>
               ))}
