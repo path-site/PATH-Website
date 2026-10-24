@@ -41,6 +41,7 @@ public class AdminNavigationController {
             item.setLabel(details.getLabel());
             item.setDestinationType(details.getDestinationType());
             item.setTargetPath(details.getTargetPath());
+            item.setPageId(details.getPageId());
             item.setExternalUrl(details.getExternalUrl());
             item.setParentId(details.getParentId());
             if (details.getDisplayOrder() != null) item.setDisplayOrder(details.getDisplayOrder());

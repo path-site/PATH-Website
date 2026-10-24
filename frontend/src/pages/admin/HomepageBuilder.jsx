@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { adminApi, publicApi } from '../../services/api';
 import { ADMIN_ROUTES } from '../../config/adminConfig';
 import { resolveMediaUrl } from '../../utils/mediaUrl';
@@ -105,6 +105,11 @@ const SECTION_TYPES = [
 ];
 
 export default function HomepageBuilder() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedSlug = searchParams.get('page') || 'home';
+  const [availablePages, setAvailablePages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(null);
+
   const [sections, setSections] = useState([]);
   const [pageId, setPageId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -118,15 +123,34 @@ export default function HomepageBuilder() {
   const [selectedNewType, setSelectedNewType] = useState('WELCOME');
   const [newTitle, setNewTitle] = useState('');
 
-  const fetchSections = async () => {
+  const fetchSections = async (slugToLoad = selectedSlug) => {
+    setLoading(true);
     try {
-      const pageRes = await publicApi.getPage('home');
-      if (pageRes.data && pageRes.data.page) {
-        setPageId(pageRes.data.page.id);
-        const secRes = await adminApi.getPageSections(pageRes.data.page.id);
-        if (secRes.data) {
+      const [pagesRes, pageRes] = await Promise.all([
+        adminApi.getPages(),
+        publicApi.getPage(slugToLoad).catch(() => null)
+      ]);
+
+      if (pagesRes?.data) {
+        setAvailablePages(pagesRes.data);
+      }
+
+      let targetPage = pageRes?.data?.page || pageRes?.page;
+      if (!targetPage && pagesRes?.data) {
+        targetPage = pagesRes.data.find((p) => p.slug === slugToLoad);
+      }
+
+      if (targetPage) {
+        setCurrentPage(targetPage);
+        setPageId(targetPage.id);
+        const secRes = await adminApi.getPageSections(targetPage.id);
+        if (secRes?.data) {
           setSections(secRes.data);
+        } else {
+          setSections([]);
         }
+      } else {
+        setSections([]);
       }
     } catch (err) {
       console.error('Failed to load sections', err);
@@ -136,8 +160,8 @@ export default function HomepageBuilder() {
   };
 
   useEffect(() => {
-    fetchSections();
-  }, []);
+    fetchSections(selectedSlug);
+  }, [selectedSlug]);
 
   useEffect(() => {
     if (editingSection || isAddModalOpen) {
@@ -429,33 +453,71 @@ export default function HomepageBuilder() {
       <SectionMaintenanceBar sectionKey="homepage" />
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-stone-200 shadow-xs">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-amber-800 block mb-1.5">
-            Modular CMS
-          </span>
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span className="text-xs font-bold uppercase tracking-widest text-amber-800">
+              Modular Page Builder
+            </span>
+            <span className="text-stone-300">•</span>
+            {/* Page Switcher */}
+            <div className="inline-flex items-center gap-1.5 bg-stone-100 rounded-xl px-2.5 py-1">
+              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                Page:
+              </span>
+              <select
+                value={selectedSlug}
+                onChange={(e) => {
+                  const newSlug = e.target.value;
+                  if (newSlug === 'home') {
+                    searchParams.delete('page');
+                    setSearchParams(searchParams);
+                  } else {
+                    setSearchParams({ page: newSlug });
+                  }
+                }}
+                className="bg-transparent text-xs font-bold text-stone-900 border-none outline-none cursor-pointer"
+              >
+                {availablePages.map((p) => (
+                  <option key={p.id} value={p.slug}>
+                    📄 {p.title} ({p.slug === 'home' ? 'Homepage' : `/${p.slug}`})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <h1 className="font-serif-heading text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-            Homepage Section Builder
+            {selectedSlug === 'home'
+              ? 'Homepage Section Builder'
+              : `Page Sections: ${currentPage?.title || selectedSlug}`}
           </h1>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
-            Reorder, toggle, add, or customize homepage sections. Changes take effect on the live website immediately.
+            {selectedSlug === 'home'
+              ? 'Reorder, toggle, add, or customize homepage sections. Changes take effect on the live website immediately.'
+              : `Customize the content sections displayed on the "/pages/${selectedSlug}" page.`}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            to="/admin/pages"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-200 hover:border-[#800020] text-stone-700 hover:text-[#800020] text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs"
+          >
+            <span>All Pages</span>
+          </Link>
           <a
-            href="/preview"
+            href={selectedSlug === 'home' ? '/preview' : `/admin/preview/pages/${selectedSlug}`}
             target="_blank"
             rel="noopener noreferrer"
-            title="Preview the whole live homepage in a new window (bypasses maintenance mode)"
+            title="Preview this live page in a new window"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#071838] to-[#12316e] text-amber-300 hover:text-white border border-amber-400/50 text-xs font-bold transition-all shadow-xs hover:shadow-md cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-amber-400" />
-            <span>Preview Whole Homepage</span>
+            <span>Preview Page</span>
           </a>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#66001a] text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Section</span>

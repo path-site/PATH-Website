@@ -2,7 +2,8 @@ package com.path.parish.controller;
 
 import com.path.parish.dto.ApiResponse;
 import com.path.parish.model.Page;
-import com.path.parish.model.PageSection;
+import com.path.parish.model.NavigationItem;
+import com.path.parish.repository.NavigationItemRepository;
 import com.path.parish.repository.PageRepository;
 import com.path.parish.repository.PageSectionRepository;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,14 @@ public class AdminPageController {
 
     private final PageRepository pageRepository;
     private final PageSectionRepository pageSectionRepository;
+    private final NavigationItemRepository navigationItemRepository;
 
-    public AdminPageController(PageRepository pageRepository, PageSectionRepository pageSectionRepository) {
+    public AdminPageController(PageRepository pageRepository,
+                               PageSectionRepository pageSectionRepository,
+                               NavigationItemRepository navigationItemRepository) {
         this.pageRepository = pageRepository;
         this.pageSectionRepository = pageSectionRepository;
+        this.navigationItemRepository = navigationItemRepository;
     }
 
     @GetMapping("/pages")
@@ -84,6 +89,16 @@ public class AdminPageController {
     public ResponseEntity<ApiResponse<String>> deletePage(@PathVariable Long id) {
         return pageRepository.findById(id).map(page -> {
             pageSectionRepository.deleteByPageId(id);
+            List<NavigationItem> linkedNavItems = navigationItemRepository.findByPageId(id);
+            for (NavigationItem nav : linkedNavItems) {
+                // If this nav item had children, unlink them
+                List<NavigationItem> children = navigationItemRepository.findByParentIdOrderByDisplayOrderAsc(nav.getId());
+                for (NavigationItem child : children) {
+                    child.setParentId(nav.getParentId());
+                    navigationItemRepository.save(child);
+                }
+                navigationItemRepository.delete(nav);
+            }
             pageRepository.delete(page);
             return ResponseEntity.ok(ApiResponse.ok("Page deleted successfully", "DELETED"));
         }).orElse(ResponseEntity.status(404).body(ApiResponse.error("Page not found")));

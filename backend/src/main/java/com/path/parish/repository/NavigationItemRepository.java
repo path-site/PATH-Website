@@ -11,4 +11,5 @@ public interface NavigationItemRepository extends JpaRepository<NavigationItem, 
     List<NavigationItem> findByIsVisibleTrueOrderByDisplayOrderAsc();
     List<NavigationItem> findByParentIdIsNullOrderByDisplayOrderAsc();
     List<NavigationItem> findByParentIdOrderByDisplayOrderAsc(Long parentId);
+    List<NavigationItem> findByPageId(Long pageId);
 }

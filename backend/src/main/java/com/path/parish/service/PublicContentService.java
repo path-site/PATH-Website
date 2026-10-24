@@ -55,6 +55,7 @@ public class PublicContentService {
             map.put("label", item.getLabel());
             map.put("destinationType", item.getDestinationType());
             map.put("targetPath", item.getTargetPath());
+            map.put("pageId", item.getPageId());
             map.put("externalUrl", item.getExternalUrl());
             map.put("parentId", item.getParentId());
             map.put("displayOrder", item.getDisplayOrder());

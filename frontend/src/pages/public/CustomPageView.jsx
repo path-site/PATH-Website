@@ -23,16 +23,18 @@ export default function CustomPageView() {
     setError(false);
     try {
       const pageRes = await publicApi.getPage(slug);
-      if (pageRes.data?.success && pageRes.data.data) {
-        setPage(pageRes.data.data);
-        const sectionsRes = await publicApi.getPageSections(slug);
-        if (sectionsRes.data?.success) {
-          setSections(sectionsRes.data.data || []);
-        }
+      const payload = pageRes?.data || pageRes;
+      const pageData = payload?.page || (payload?.title ? payload : null);
+      const sectionsData = payload?.sections || [];
+
+      if (pageData && pageData.title) {
+        setPage(pageData);
+        setSections(Array.isArray(sectionsData) ? sectionsData : []);
       } else {
         setError(true);
       }
     } catch (err) {
+      console.error('Failed to load page:', err);
       setError(true);
     } finally {
       setLoading(false);
@@ -105,12 +107,26 @@ export default function CustomPageView() {
           <PublicMaintenanceNotice sectionKey="pages" forceShow />
         </div>
       ) : sections.length > 0 ? (
-        <SectionRenderer sections={sections} />
+        <div className="space-y-0">
+          {sections.map((section) => (
+            <SectionRenderer key={section.id || section.title || section.sectionType} section={section} />
+          ))}
+        </div>
       ) : (
-        <div className="max-w-4xl mx-auto px-4 py-16 prose prose-stone">
-          <p className="text-stone-500 italic text-center">
-            This page has no configured content sections yet. Administrators can add sections via the Page Management dashboard.
-          </p>
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <div className="bg-white p-8 sm:p-12 rounded-3xl border border-stone-200/80 shadow-xs max-w-2xl mx-auto">
+            <h2 className="font-serif-heading text-2xl font-bold text-stone-800 mb-3">{page.title}</h2>
+            <p className="text-stone-600 mb-6 leading-relaxed">
+              {page.seoDescription || "Welcome to this parish page. Content and sections can be configured through the Parish Admin Page Management."}
+            </p>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#800020] text-white font-medium hover:bg-[#68001a] transition-all text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Return to Homepage</span>
+            </Link>
+          </div>
         </div>
       )}
     </div>
