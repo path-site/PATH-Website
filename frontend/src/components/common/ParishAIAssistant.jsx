@@ -20,6 +20,7 @@ import { publicApi } from '../../services/api';
 import { sortPriests, isPriestDeceased } from '../../utils/priestSorter';
 import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { isSectionUnderMaintenance } from '../../config/maintenanceConfig';
+import { CANONICAL_INITIAL_MINISTRIES } from '../../pages/admin/MinistriesManager';
 
 // Inline rich formatting helper for AI messages
 function renderFormattedInline(text) {
@@ -187,7 +188,7 @@ Monday: Office Closed`,
   location: `J. Fortich St., Banawa, Cebu City, Philippines
 Telephone (Landline): (032) 255 3241
 Mobile Number: 0942 361 3174
-Email: office@pathparish.org`,
+Email: pathbanawa1988@gmail.com`,
 
   confessions: `To receive the Sacrament of Reconciliation (Confession), you may approach the Parish Priest directly at the sacristy after any Holy Mass, or kindly inform any of the altar servers or parish staff.`,
 
@@ -216,7 +217,7 @@ Email: office@pathparish.org`,
 
 const SUGGESTED_QUERIES = [
   { label: 'Mass Schedules', icon: Clock, prompt: 'What are the Mass schedules?' },
-  { label: 'Our Parish Priests', icon: Church, prompt: 'Who are the current parish priests?' },
+  { label: 'Our Parish Priests', icon: Church, prompt: 'Who are our parish priests?' },
   { label: 'Parish Ministries', icon: HeartHandshake, prompt: 'What parish ministries and apostolates can I join?' },
   { label: 'Baptism Requirements', icon: BookOpen, prompt: 'What are the requirements for Baptism?' },
   { label: 'Office Hours & Location', icon: MapPin, prompt: 'What are the parish office hours and location?' },
@@ -265,8 +266,13 @@ export default function ParishAIAssistant() {
     events: [],
     history: [],
     customResponses: [],
+    ministries: [],
+    missionVision: null,
     settings: {}
   });
+
+  const contextDataRef = useRef(contextData);
+  const loadingContextPromiseRef = useRef(null);
 
   const [messages, setMessages] = useState([
     {
@@ -292,64 +298,154 @@ export default function ParishAIAssistant() {
     }
   }, [messages, isOpen]);
 
+  // Helper to extract data from API response safely
+  const extractData = (promiseResult, fallback = null) => {
+    if (!promiseResult || promiseResult.status !== 'fulfilled' || !promiseResult.value) {
+      return fallback;
+    }
+    const val = promiseResult.value;
+    if (val && typeof val === 'object' && val.data !== undefined) {
+      return val.data;
+    }
+    return val !== undefined ? val : fallback;
+  };
+
   // Fetch live parish data for dynamic AI context from the database
   const loadLiveContext = async () => {
-    try {
-      const [priestsRes, announcementsRes, eventsRes, historyRes, settingsRes] = await Promise.allSettled([
-        publicApi.getPriests(),
-        publicApi.getAnnouncements({ page: 0, size: 8 }),
-        publicApi.getEvents(),
-        publicApi.getHistory(),
-        publicApi.getSettings ? publicApi.getSettings() : Promise.resolve({})
-      ]);
-
-      const rawPriests = priestsRes.status === 'fulfilled' && priestsRes.value ? (priestsRes.value.data || priestsRes.value) : [];
-      const normalizedPriests = Array.isArray(rawPriests) ? sortPriests(rawPriests) : [];
-
-      const rawAnnouncements = announcementsRes.status === 'fulfilled' && announcementsRes.value ? (announcementsRes.value.data || announcementsRes.value) : [];
-      const normalizedAnnouncements = Array.isArray(rawAnnouncements)
-        ? rawAnnouncements
-        : (Array.isArray(rawAnnouncements?.content) ? rawAnnouncements.content : []);
-
-      const rawEvents = eventsRes.status === 'fulfilled' && eventsRes.value ? (eventsRes.value.data || eventsRes.value) : [];
-      const normalizedEvents = Array.isArray(rawEvents)
-        ? rawEvents
-        : (Array.isArray(rawEvents?.upcoming) ? rawEvents.upcoming : (Array.isArray(rawEvents?.content) ? rawEvents.content : []));
-
-      const rawHistory = historyRes.status === 'fulfilled' && historyRes.value ? (historyRes.value.data || historyRes.value) : [];
-      const normalizedHistory = Array.isArray(rawHistory) ? rawHistory.filter(h => h && h.isPublished !== false) : [];
-
-      const rawSettings = settingsRes.status === 'fulfilled' && settingsRes.value ? (settingsRes.value.data || settingsRes.value) : {};
-
-      let customResponses = [];
-      if (rawSettings && rawSettings.ai_custom_responses) {
-        try {
-          const parsed = typeof rawSettings.ai_custom_responses === 'string'
-            ? JSON.parse(rawSettings.ai_custom_responses)
-            : rawSettings.ai_custom_responses;
-          if (Array.isArray(parsed)) {
-            customResponses = parsed.filter(r => r && r.isActive !== false);
-          }
-        } catch (parseErr) {
-          console.warn('Could not parse ai_custom_responses', parseErr);
-        }
-      }
-
-      setContextData({
-        priests: normalizedPriests,
-        announcements: normalizedAnnouncements,
-        events: normalizedEvents,
-        history: normalizedHistory,
-        customResponses: customResponses,
-        settings: typeof rawSettings === 'object' && rawSettings !== null ? rawSettings : {}
-      });
-    } catch (err) {
-      console.warn('Could not preload live context for AI Assistant', err);
+    if (loadingContextPromiseRef.current) {
+      return loadingContextPromiseRef.current;
     }
+
+    loadingContextPromiseRef.current = (async () => {
+      try {
+        const [priestsRes, announcementsRes, eventsRes, historyRes, settingsRes, pageRes] = await Promise.allSettled([
+          publicApi.getPriests(),
+          publicApi.getAnnouncements(), // Call without arguments to retrieve all published announcements
+          publicApi.getEvents(),
+          publicApi.getHistory(),
+          publicApi.getSettings(),
+          publicApi.getPage('mission-vision')
+        ]);
+
+        // 1. Priests from Database
+        const rawPriests = extractData(priestsRes, []);
+        const normalizedPriests = Array.isArray(rawPriests) ? sortPriests(rawPriests) : [];
+
+        // 2. Announcements from Database
+        const rawAnnouncements = extractData(announcementsRes, []);
+        const normalizedAnnouncements = Array.isArray(rawAnnouncements)
+          ? rawAnnouncements
+          : (Array.isArray(rawAnnouncements?.content) ? rawAnnouncements.content : []);
+
+        // 3. Events from Database (Upcoming & Past)
+        const rawEvents = extractData(eventsRes, {});
+        let normalizedEvents = [];
+        if (Array.isArray(rawEvents)) {
+          normalizedEvents = rawEvents;
+        } else if (rawEvents && typeof rawEvents === 'object') {
+          const upcoming = Array.isArray(rawEvents.upcoming) ? rawEvents.upcoming : [];
+          const past = Array.isArray(rawEvents.past) ? rawEvents.past : [];
+          normalizedEvents = [...upcoming, ...past];
+        }
+
+        // 4. Church History Milestones from Database
+        const rawHistory = extractData(historyRes, []);
+        const normalizedHistory = Array.isArray(rawHistory) ? rawHistory.filter(h => h && h.isPublished !== false) : [];
+
+        // 5. Site Settings from Database
+        const rawSettingsData = extractData(settingsRes, {});
+        const rawSettings = (rawSettingsData && typeof rawSettingsData === 'object' && !Array.isArray(rawSettingsData))
+          ? rawSettingsData
+          : {};
+        const effectiveSettings = Object.keys(rawSettings).length > 0 ? { ...settings, ...rawSettings } : (settings || {});
+
+        // 6. Dynamic Admin AI Rules (ai_custom_responses from site_settings)
+        let customResponses = [];
+        if (effectiveSettings.ai_custom_responses) {
+          try {
+            const parsed = typeof effectiveSettings.ai_custom_responses === 'string'
+              ? JSON.parse(effectiveSettings.ai_custom_responses)
+              : effectiveSettings.ai_custom_responses;
+            if (Array.isArray(parsed)) {
+              customResponses = parsed.filter(r => r && r.isActive !== false);
+            }
+          } catch (parseErr) {
+            console.warn('Could not parse ai_custom_responses from database', parseErr);
+          }
+        }
+
+        // 7. Ministries from Database (ministries_list from site_settings)
+        let normalizedMinistries = [];
+        if (effectiveSettings.ministries_list) {
+          try {
+            const parsed = typeof effectiveSettings.ministries_list === 'string'
+              ? JSON.parse(effectiveSettings.ministries_list)
+              : effectiveSettings.ministries_list;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const isLegacy = parsed.length === 6 && parsed.some(m => m.id === 'min-liturgical' || m.id === 'min-caritas');
+              if (!isLegacy) {
+                normalizedMinistries = parsed.filter(m => m && m.isPublished !== false);
+              }
+            }
+          } catch (e) {
+            console.warn('Could not parse ministries_list from settings', e);
+          }
+        }
+        if (normalizedMinistries.length === 0) {
+          normalizedMinistries = CANONICAL_INITIAL_MINISTRIES;
+        }
+
+        // 8. Mission & Vision Page from Database
+        const rawPageData = extractData(pageRes, null);
+        let missionVision = null;
+        if (rawPageData && rawPageData.sections && Array.isArray(rawPageData.sections)) {
+          const mvSec = rawPageData.sections.find(s => s && s.contentJson);
+          if (mvSec && mvSec.contentJson) {
+            try {
+              missionVision = typeof mvSec.contentJson === 'string'
+                ? JSON.parse(mvSec.contentJson)
+                : mvSec.contentJson;
+            } catch (err) {}
+          }
+        }
+
+        const freshContext = {
+          priests: normalizedPriests,
+          announcements: normalizedAnnouncements,
+          events: normalizedEvents,
+          history: normalizedHistory,
+          customResponses,
+          ministries: normalizedMinistries,
+          missionVision,
+          settings: effectiveSettings
+        };
+
+        contextDataRef.current = freshContext;
+        setContextData(freshContext);
+        return freshContext;
+      } catch (err) {
+        console.warn('Could not load live context for AI Assistant', err);
+        return contextDataRef.current;
+      } finally {
+        loadingContextPromiseRef.current = null;
+      }
+    })();
+
+    return loadingContextPromiseRef.current;
   };
 
   useEffect(() => {
     loadLiveContext();
+
+    // Listen for real-time settings or AI response updates from admin panel
+    const handleSettingsUpdated = () => {
+      loadLiveContext();
+    };
+
+    window.addEventListener('path_settings_updated', handleSettingsUpdated);
+    return () => {
+      window.removeEventListener('path_settings_updated', handleSettingsUpdated);
+    };
   }, []);
 
   // Whenever the assistant is opened, refresh the database context
@@ -359,41 +455,44 @@ export default function ParishAIAssistant() {
     }
   }, [isOpen]);
 
-  // Build high-context system prompt for Groq LLM
+  // Build high-context system prompt for Groq LLM containing 100% live database records
   const buildSystemPrompt = () => {
     try {
-      const priestsList = Array.isArray(contextData.priests) ? contextData.priests : [];
+      const data = contextDataRef.current || contextData;
+      const priestsList = Array.isArray(data.priests) ? data.priests : [];
       const currentPriestsList = priestsList.filter(p => p && p.priestStatus === 'CURRENT');
       const formerPriestsList = priestsList.filter(p => p && p.priestStatus !== 'CURRENT');
 
       const currentPriests = currentPriestsList.length > 0
         ? currentPriestsList
-            .map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})${p.biography ? ` [${p.biography}]` : ''}`)
+            .map(p => `• **${p.fullName}** — ${p.title || 'Parish Priest'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ' – Present'})${p.biography ? ` [Bio/Details: ${p.biography}]` : ''}`)
             .join('\n')
-        : `• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)`;
+        : (priestsList.length > 0
+            ? priestsList.map(p => `• **${p.fullName}** — ${p.title || 'Clergy'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})`).join('\n')
+            : 'No clergy currently listed in directory.');
 
       const formerPriests = formerPriestsList.length > 0
         ? formerPriestsList
             .map(p => {
               const isDec = isPriestDeceased(p);
               const decNote = isDec ? ` [† Deceased / In Memoriam${p.dateOfDeath ? ` - Called to eternal rest: ${p.dateOfDeath}` : ''}]` : '';
-              return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${decNote}${p.biography ? ` [${p.biography}]` : ''}`;
+              return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title || 'Former Pastor'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${decNote}${p.biography ? ` [Bio/Details: ${p.biography}]` : ''}`;
             })
             .join('\n')
-        : `• **Rev. Fr. Benjamin Miralles Trazo** — Former Team Moderator (2019 – 2025)\n• **Rev. Russell Emmanuel Montayre Sungcad** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Alex Jr. Kinanahan Cola** — Former Parish Priest (2019 – 2025)\n• **Rev. Fr. Bertoldo Igloria** — Former Team Moderator (2016 – 2019)\n• **Fr. Socrates del Mundo Saldua** — Parish Priest (2016 – 2019)\n• **Rev. Fr. Wendell Jose Barrit Balbuena** — Former Team Moderator (2013 – 2016)`;
+        : 'No former clergy currently recorded in directory.';
 
-      const historyList = Array.isArray(contextData.history) ? contextData.history : [];
+      const historyList = Array.isArray(data.history) ? data.history : [];
       const parishHistory = historyList.length > 0
         ? historyList
-            .map(h => `• **${h.eventDate ? `${h.eventDate}: ` : ''}${h.title}**${h.description ? ` — ${h.description}` : ''}`)
+            .map(h => `• **${h.year || h.eventDate || ''}: ${h.title}**${h.description ? ` — ${h.description}` : ''}`)
             .join('\n')
         : `• **1988**: Parish of the Alliance of the Two Hearts founded in Banawa, Cebu City, dedicated to the Sacred Heart of Jesus and the Immaculate Heart of Mary.`;
 
-      const customResponsesList = Array.isArray(contextData.customResponses) ? contextData.customResponses : [];
+      const customResponsesList = Array.isArray(data.customResponses) ? data.customResponses : [];
       const dynamicResponses = customResponsesList.length > 0
         ? customResponsesList
             .map(r => {
-              const kw = Array.isArray(r.keywords) ? r.keywords.join(', ') : r.keywords;
+              const kw = Array.isArray(r.keywords) ? r.keywords.join(', ') : (r.keywords || '');
               return `---
 RULE TOPIC: ${r.title}
 TRIGGER KEYWORDS: ${kw}
@@ -404,48 +503,61 @@ ${r.responseText}`;
             .join('\n\n')
         : '';
 
-      const announcementsList = Array.isArray(contextData.announcements) ? contextData.announcements : [];
-      const recentAnnouncements = announcementsList
-        .slice(0, 5)
-        .filter(Boolean)
-        .map(a => `• **${a.title}**${a.category ? ` [${a.category}]` : ''}${a.summary ? `: ${a.summary}` : ''}`)
-        .join('\n');
+      const announcementsList = Array.isArray(data.announcements) ? data.announcements : [];
+      const recentAnnouncements = announcementsList.length > 0
+        ? announcementsList
+            .slice(0, 10)
+            .filter(Boolean)
+            .map(a => `• **${a.title}**${a.category ? ` [Category: ${a.category}]` : ''}${a.publishedAt ? ` (Date: ${new Date(a.publishedAt).toLocaleDateString()})` : ''}${a.summary ? `\n  Summary: ${a.summary}` : ''}${a.content ? `\n  Details: ${a.content}` : ''}`)
+            .join('\n\n')
+        : 'No official announcements posted at this time.';
 
-      const eventsList = Array.isArray(contextData.events) ? contextData.events : [];
-      const upcomingEvents = eventsList
-        .slice(0, 5)
-        .filter(Boolean)
-        .map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}${e.description ? `: ${e.description}` : ''}`)
-        .join('\n');
+      const eventsList = Array.isArray(data.events) ? data.events : [];
+      const upcomingEvents = eventsList.length > 0
+        ? eventsList
+            .slice(0, 10)
+            .filter(Boolean)
+            .map(e => `• **${e.title}**\n  Date/Time: ${e.startDatetime ? new Date(e.startDatetime).toLocaleString() : (e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Scheduled')}${e.location ? `\n  Location: ${e.location}` : ''}${e.description ? `\n  Description: ${e.description}` : ''}`)
+            .join('\n\n')
+        : 'Regular liturgical calendar observed.';
 
-      const address = contextData.settings?.address || CANONICAL_KNOWLEDGE.location;
-      const { telephone, mobile } = resolveContactNumbers(contextData.settings);
-      const email = contextData.settings?.email || 'office@pathparish.org';
-      const officeHours = contextData.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
-      const massSchedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
-      const confessionSchedule = contextData.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
+      const address = data.settings?.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
+      const { telephone, mobile } = resolveContactNumbers(data.settings);
+      const email = data.settings?.email || 'pathbanawa1988@gmail.com';
+      const officeHours = data.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
+      const massSchedules = data.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
+      const confessionSchedule = data.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
 
-      let ministriesText = '';
-      if (contextData.settings?.ministries_list) {
-        try {
-          const list = typeof contextData.settings.ministries_list === 'string'
-            ? JSON.parse(contextData.settings.ministries_list)
-            : contextData.settings.ministries_list;
-          if (Array.isArray(list) && list.length > 0) {
-            const isLegacy = list.length === 6 && list.some(m => m.id === 'min-liturgical' || m.id === 'min-caritas');
-            if (!isLegacy) {
-              ministriesText = list
-                .filter(m => m.isPublished !== false)
-                .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}${m.schedule ? ` — Schedule: ${m.schedule}` : ''}${m.desc ? `: ${m.desc}` : ''}`)
-                .join('\n');
-            }
-          }
-        } catch (e) {}
+      const ministriesList = Array.isArray(data.ministries) ? data.ministries : [];
+      const ministriesText = ministriesList.length > 0
+        ? ministriesList
+            .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Coordinator/Lead: ${m.coordinator})` : ''}${m.schedule ? ` (Meeting: ${m.schedule})` : ''}${m.description || m.desc ? `\n  Description: ${m.description || m.desc}` : ''}`)
+            .join('\n\n')
+        : 'Check our Ministries page for current apostolates.';
+
+      let missionVisionText = '';
+      if (data.missionVision) {
+        const mv = data.missionVision;
+        missionVisionText = `• PARISH VISION: "${mv.vision || ''}"\n• MISSION COMMITMENTS:\n${(mv.missionPoints || []).map(p => `  - ${p}`).join('\n')}\n• PATHWAYS CORE VALUES:\n${(mv.pathways || []).map(p => `  - [${p.letter}] ${p.title} (${p.cebuano || ''})`).join('\n')}\n• HEARTS CORE VALUES:\n${(mv.hearts || []).map(p => `  - [${p.letter}] ${p.title} (${p.cebuano || ''})`).join('\n')}`;
       }
 
-      return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
+      return `You are the official Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu.
 Your mission is to welcome parishioners and visitors with warm, respectful, pastoral Catholic hospitality.
 Always maintain a courteous Catholic tone (e.g. "Pax Christi", "Peace be with you").
+You can converse fluently in English, Cebuano (Bisaya), and Tagalog.
+
+CRITICAL INSTRUCTIONS ON ACCURACY:
+- You have direct, live access to the official parish database records provided below.
+- Base your answers strictly and accurately on this official database.
+- Never invent mass times, priests, contact numbers, or policies outside the data provided below.
+- If the user asks about priests (who is the priest, current team, former clergy, deceased priests), read directly from Section 4 and Section 5.
+- If the user asks about announcements, read from Section 9.
+- If the user asks about events, read from Section 10.
+- If the user asks about ministries, read from Section 8.
+- If the user asks about church history, read from Section 6.
+- If the user asks about parish vision, mission, PATHWAYS, or HEARTS, read from Section 11.
+- If an inquiry touches on any custom admin rule in Section 7, prioritize and follow the dynamic response and instructions configured there!
+- For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${telephone} (Landline) or ${mobile} (Mobile).
 
 FORMATTING GUIDELINES:
 - Use clean Markdown formatting: use **bold** for names, mass times, or key headings.
@@ -453,9 +565,9 @@ FORMATTING GUIDELINES:
 - When referencing pages, use Markdown links like [About / Priests](/about/priests), [Church History](/about/history), [Parish Ministries](/ministries), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
 - Keep responses concise, organized, and pleasant to read.
 
-OFFICIAL PARISH DATA & LIVE DATABASE KNOWLEDGE BASE:
+OFFICIAL LIVE PARISH DATABASE:
 
-1. PARISH IDENTITY & PATRONS:
+1. PARISH IDENTITY & CONTACT:
 - Name: Parish of the Alliance of the Two Hearts (PATH)
 - Patronage: Most Sacred Heart of Jesus and Immaculate Heart of Mary (Alliance of the Two Hearts)
 - Address: ${address}
@@ -465,28 +577,39 @@ OFFICIAL PARISH DATA & LIVE DATABASE KNOWLEDGE BASE:
 - Office Hours:
 ${officeHours}
 
-2. HOLY MASS SCHEDULES:
+2. HOLY MASS SCHEDULES (FROM DATABASE):
 ${massSchedules}
 
 3. CONFESSION (SACRAMENT OF RECONCILIATION):
 ${confessionSchedule}
 
-4. ACTIVE CLERGY (CURRENT SET):
+4. ACTIVE CLERGY (CURRENT ASSIGNED SET FROM DATABASE):
 ${currentPriests}
 Note: Under our pastoral model, the parish is served by a team of three priests headed by the Team Moderator.
 
-5. FORMER CLERGY & PRIEST HISTORY (PAST SETS FROM DATABASE):
+5. FORMER CLERGY & PRIEST HISTORY (PAST SETS & MEMORIALS FROM DATABASE):
 ${formerPriests}
-CRITICAL INSTRUCTION ON PRIEST HISTORY:
-If the user asks about priest history, former priests, past pastors, previous sets, or all priests who have served the parish, provide the complete updated list above directly from our database. Each priest's service years, role (e.g. Team Moderator, Parish Priest), and biographical details/sacerdotal anniversaries are official records.
+If asked about priest history, past pastors, or former priests, provide the accurate records from this database section.
 
 6. CHURCH HISTORY & PARISH MILESTONES (FROM DATABASE):
 ${parishHistory}
 
-7. DYNAMIC ADMIN-CONFIGURED KEYWORD & DATE-TRIGGERED KNOWLEDGE BASE:
-${dynamicResponses ? `${dynamicResponses}\n\nCRITICAL INSTRUCTION: If the user inquiry touches on any of the trigger keywords, dates, or topics in these dynamic rules, prioritize and deliver the specific dynamic response instructions configured above!` : 'No special date/keyword override currently active.'}
+7. DYNAMIC ADMIN-CONFIGURED RULES & CUSTOM RESPONSES (FROM DATABASE):
+${dynamicResponses ? `${dynamicResponses}\n\nCRITICAL: If the user inquiry touches on any of the trigger keywords, dates, or topics in these dynamic rules, prioritize and deliver the specific dynamic response instructions configured above!` : 'No custom admin keyword/date rules active.'}
 
-8. SACRAMENTS & PARISH MINISTRIES:
+8. PARISH MINISTRIES & APOSTOLATES (FROM DATABASE):
+${ministriesText}
+
+9. OFFICIAL PARISH ANNOUNCEMENTS (FROM DATABASE):
+${recentAnnouncements}
+
+10. PARISH EVENTS & CALENDAR (FROM DATABASE):
+${upcomingEvents}
+
+11. MISSION, VISION & CORE VALUES (FROM DATABASE):
+${missionVisionText || 'Parish dedicated to living the Gospel inspired by the love of Jesus and Mary.'}
+
+12. SACRAMENTS & GENERAL LITURGICAL POLICIES:
 - BAPTISM:
 ${CANONICAL_KNOWLEDGE.baptism}
 - WEDDING (HOLY MATRIMONY):
@@ -494,36 +617,20 @@ ${CANONICAL_KNOWLEDGE.wedding}
 - MASS INTENTIONS:
 ${CANONICAL_KNOWLEDGE.massIntentions}
 - ANOINTING OF THE SICK & VIATICUM:
-${CANONICAL_KNOWLEDGE.anointing}
-- ACTIVE PARISH MINISTRIES & APOSTOLATES (FROM DATABASE):
-${ministriesText || '• Social Communications Ministry (Media & Communications)\n• Ministry of Altar Servers (Worship & Liturgy)\n• Ushering Ministry (Hospitality & Service)\n• Ministry of Lectors (Ministry of the Word)\n• Catechists (Faith Formation & Catechesis)\n• Ministry of Gift Bearers (Worship & Liturgy)\n• Music Ministry & Cantors (Liturgical Music)\n• Extraordinary Minister of Holy Communion (Sacramental Ministry)'}
-(For complete rosters, meeting times, and coordinators, invite visitors to check [Parish Ministries](/ministries)).
-
-9. RECENT ANNOUNCEMENTS (FROM DATABASE):
-${recentAnnouncements || 'Check official parish bulletin on site.'}
-
-10. UPCOMING EVENTS (FROM DATABASE):
-${upcomingEvents || 'Liturgical calendar observed regularly.'}
-
-RULES:
-- Answer accurately based on the official live parish database facts above.
-- Be concise, friendly, and pastoral.
-- When asked about priests (both current and former sets), use the comprehensive database list.
-- When asked about dates, feast days, or dynamic keywords configured by the admin, follow the dynamic instructions.
-- Never invent mass times or policies outside Catholic doctrine and the parish data above.
-- For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${phone}.`;
+${CANONICAL_KNOWLEDGE.anointing}`;
     } catch (err) {
-      console.warn('Fallback system prompt used due to error:', err);
-      return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu. Always welcome visitors warmly.`;
+      console.warn('Error building system prompt, fallback used:', err);
+      return `You are the Parish Staff Guide and Virtual Assistant for the Parish of the Alliance of the Two Hearts (PATH), Roman Catholic Archdiocese of Cebu. Always welcome visitors with warm Catholic hospitality.`;
     }
   };
 
-  // Local fallback response generator if no key or offline
+  // Local fallback response generator reading 100% from database context if API is offline
   const generateLocalResponse = (query) => {
     const q = query.toLowerCase().trim();
+    const data = contextDataRef.current || contextData;
 
-    // 1. Dynamic Admin-Configured Keyword & Date matching
-    const activeRules = Array.isArray(contextData.customResponses) ? contextData.customResponses : [];
+    // 1. Dynamic Admin-Configured Keyword & Date matching from database
+    const activeRules = Array.isArray(data.customResponses) ? data.customResponses : [];
     for (const rule of activeRules) {
       const keywords = Array.isArray(rule.keywords) ? rule.keywords : [];
       const matchedKw = keywords.find(k => k && q.includes(k.toLowerCase()));
@@ -535,27 +642,28 @@ RULES:
       }
     }
 
-    // 2. Mass Schedules
+    // 2. Mass Schedules from database
     if (q.includes('mass') || q.includes('schedule') || q.includes('time') || q.includes('misa') || q.includes('sunday mass') || q.includes('live')) {
-      const schedules = contextData.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
+      const schedules = data.settings?.mass_schedules || CANONICAL_KNOWLEDGE.massSchedules;
       return `Here is our official **Mass Schedule** at the Parish of the Alliance of the Two Hearts:\n\n${schedules}\n\nMasses highlighted with 🔴 **LIVE** are broadcast on our official parish media channels.`;
     }
 
-    // 3. Priests & Clergy (Current, Former, History, Deceased, Specific Names)
+    // 3. Priests & Clergy from database
     if (q.includes('priest') || q.includes('father') || q.includes('clergy') || q.includes('pastor') || q.includes('pari') || q.includes('moderator') || q.includes('vicar') || q.includes('deceased') || q.includes('patay') || q.includes('memoriam') || q.includes('rip') || q.includes('passed away') || q.includes('rest in peace')) {
       const isAskingPast = q.includes('past') || q.includes('former') || q.includes('history') || q.includes('previous') || q.includes('before') || q.includes('all');
       const isAskingAll = q.includes('all') || q.includes('list') || q.includes('everyone') || q.includes('sets');
       const isAskingDeceased = q.includes('deceased') || q.includes('memoriam') || q.includes('rip') || q.includes('passed away') || q.includes('patay') || q.includes('died') || q.includes('rest in peace');
 
-      const current = contextData.priests.filter(p => p.priestStatus === 'CURRENT');
-      const former = contextData.priests.filter(p => p.priestStatus !== 'CURRENT');
-      const deceased = contextData.priests.filter(p => isPriestDeceased(p));
+      const priestsList = Array.isArray(data.priests) ? data.priests : [];
+      const current = priestsList.filter(p => p && p.priestStatus === 'CURRENT');
+      const former = priestsList.filter(p => p && p.priestStatus !== 'CURRENT');
+      const deceased = priestsList.filter(p => p && isPriestDeceased(p));
 
-      // Check if user is asking about a specific priest by surname/name
-      const specificPriest = contextData.priests.find(p => {
+      // Check if user is asking about a specific priest by name
+      const specificPriest = priestsList.find(p => {
         if (!p.fullName) return false;
         const nameParts = p.fullName.toLowerCase().replace(/rev\.?|fr\.?|father/g, '').split(/[\s,]+/);
-        return nameParts.some(part => part.length > 3 && q.includes(part));
+        return nameParts.some(part => part.length >= 3 && q.includes(part));
       });
 
       if (specificPriest) {
@@ -564,12 +672,12 @@ RULES:
           ? `Deceased / In Memoriam †${specificPriest.dateOfDeath ? ` (Called to eternal rest: ${specificPriest.dateOfDeath})` : ''}`
           : (specificPriest.priestStatus === 'CURRENT' ? 'Active Pastoral Team' : 'Former Clergy');
 
-        return `**${isDec ? '† ' : ''}${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title}\n• **Status:** ${statusText}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${isDec ? '\n• **Memorial Prayer:** *Requiescat in pace* (May he rest in eternal peace)' : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
+        return `**${isDec ? '† ' : ''}${specificPriest.fullName}**\n\n• **Title / Role:** ${specificPriest.title || 'Clergy'}\n• **Status:** ${statusText}\n• **Service Term:** ${specificPriest.serviceStart || ''}${specificPriest.serviceEnd ? ` – ${specificPriest.serviceEnd}` : ''}${isDec ? '\n• **Memorial Prayer:** *Requiescat in pace* (May he rest in eternal peace)' : ''}${specificPriest.biography ? `\n• **Details:** ${specificPriest.biography}` : ''}\n\nYou can view full clergy profiles on our [About / Priests](/about/priests) page.`;
       }
 
       if (isAskingDeceased) {
         if (deceased.length > 0) {
-          const decList = deceased.map(p => `• **† ${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.dateOfDeath ? ` • Called to rest: ${p.dateOfDeath}` : ''}`).join('\n');
+          const decList = deceased.map(p => `• **† ${p.fullName}** — ${p.title || 'Clergy'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${p.dateOfDeath ? ` • Called to rest: ${p.dateOfDeath}` : ''}`).join('\n');
           return `Here are our beloved clergy remembered in prayer (**In Memoriam †**):\n\n${decList}\n\n*Eternal rest grant unto them, O Lord, and let perpetual light shine upon them. May they rest in peace. Amen.*\n\nYou can view their profiles on our [About / Priests](/about/priests) page.`;
         }
         return `We remember and pray for all deceased clergy who served the Lord and our community. You can view all clergy memorials on our [About / Priests](/about/priests) page.`;
@@ -578,7 +686,7 @@ RULES:
       if (isAskingPast && !isAskingAll && former.length > 0) {
         const formerList = former.map(p => {
           const isDec = isPriestDeceased(p);
-          return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+          return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title || 'Former Pastor'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
         }).join('\n');
         return `Here are the reverend priests who previously served in our parish pastoral sets:\n\n${formerList}\n\nYou can view our complete clergy history on our [About / Priests](/about/priests) page.`;
       }
@@ -586,29 +694,34 @@ RULES:
       if (isAskingAll || (isAskingPast && former.length > 0)) {
         let text = '';
         if (current.length > 0) {
-          text += `**Active Pastoral Clergy (Current Set):**\n` + current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n') + '\n\n';
+          text += `**Active Pastoral Clergy (Current Set):**\n` + current.map(p => `• **${p.fullName}** — ${p.title || 'Parish Priest'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ' – Present'})`).join('\n') + '\n\n';
         }
         if (former.length > 0) {
           text += `**Former Clergy & Past Sets:**\n` + former.map(p => {
             const isDec = isPriestDeceased(p);
-            return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
+            return `• **${isDec ? '† ' : ''}${p.fullName}** — ${p.title || 'Former Pastor'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})${isDec ? ' *(† In Memoriam)*' : ''}${p.biography ? ` — *${p.biography}*` : ''}`;
           }).join('\n') + '\n\n';
         }
-        text += `Within each ministry set, the **Team Moderator** is placed first. Full clergy profiles and anniversary dates are available on our [About / Priests](/about/priests) page.`;
+        text += `Within each ministry set, the **Team Moderator** is placed first. Full clergy profiles are available on our [About / Priests](/about/priests) page.`;
         return text;
       }
 
       if (current.length > 0) {
-        const list = current.map(p => `• **${p.fullName}** — ${p.title} (${p.serviceStart || '2025'} – ${p.serviceEnd || 'Present'})`).join('\n');
-        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nUnder our diocesan structure, the **Team Moderator** leads the team. You can view all past clergy sets and biographies on our [About / Priests](/about/priests) page.`;
+        const list = current.map(p => `• **${p.fullName}** — ${p.title || 'Parish Priest'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ' – Present'})`).join('\n');
+        return `Our parish is currently served by our active set of pastoral clergy:\n\n${list}\n\nUnder our diocesan structure, the **Team Moderator** leads the team. You can view all past clergy sets and profiles on our [About / Priests](/about/priests) page.`;
       }
 
-      return `Our parish is served by a team of three assigned priests:\n\n• **Rev. Fr. Rizalino Raypan Jr.** — Team Moderator (2025 – Present)\n• **Rev. Fr. Lucas Inoc** — Parish Priest (2025 – Present)\n• **Rev. Fr. Miguelito Fortich** — Parish Priest (2025 – Present)\n\nYou can read all clergy biographies on our [About / Priests](/about/priests) page.`;
+      if (priestsList.length > 0) {
+        const list = priestsList.map(p => `• **${p.fullName}** — ${p.title || 'Clergy'} (${p.serviceStart || ''}${p.serviceEnd ? ` – ${p.serviceEnd}` : ''})`).join('\n');
+        return `Here are our parish priests recorded in the directory:\n\n${list}\n\nYou can read complete details on our [About / Priests](/about/priests) page.`;
+      }
+
+      return `Our parish directory is being updated with the latest clergy assignments. You can view all clergy details on our [About / Priests](/about/priests) page.`;
     }
 
     // 4. Confession
     if (q.includes('confess') || q.includes('kumpisal') || q.includes('reconciliation') || q.includes('penance') || q.includes('forgive')) {
-      const confession = contextData.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
+      const confession = data.settings?.confession_schedule || CANONICAL_KNOWLEDGE.confessions;
       return `**Sacrament of Reconciliation (Confession):**\n\n${confession}\n\nIf you require dedicated pastoral counseling, you may coordinate directly with the parish office.`;
     }
 
@@ -624,10 +737,10 @@ RULES:
 
     // 7. Office Hours & Location
     if (q.includes('office') || q.includes('hours') || q.includes('open') || q.includes('closed') || q.includes('contact') || q.includes('telephone') || q.includes('phone') || q.includes('mobile') || q.includes('cellphone') || q.includes('email') || q.includes('address') || q.includes('location') || q.includes('where')) {
-      const addr = contextData.settings?.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
-      const { telephone, mobile } = resolveContactNumbers(contextData.settings);
-      const email = contextData.settings?.email || 'office@pathparish.org';
-      const hours = contextData.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
+      const addr = data.settings?.address || 'J. Fortich St., Banawa, Cebu City, Philippines';
+      const { telephone, mobile } = resolveContactNumbers(data.settings);
+      const email = data.settings?.email || 'pathbanawa1988@gmail.com';
+      const hours = data.settings?.office_hours || CANONICAL_KNOWLEDGE.officeHours;
       return `**Parish Office Details:**\n\n📍 **Address:** ${addr}\n📞 **Telephone (Landline):** ${telephone}\n📱 **Mobile Number:** ${mobile}\n✉️ **Email:** ${email}\n\n⏰ **Office Hours:**\n${hours}`;
     }
 
@@ -641,66 +754,62 @@ RULES:
       return `**Anointing of the Sick:**\n\n${CANONICAL_KNOWLEDGE.anointing}`;
     }
 
-    // 10. Announcements
+    // 10. Announcements from database
     if (q.includes('announcement') || q.includes('news') || q.includes('bulletin') || q.includes('update')) {
-      if (contextData.announcements && contextData.announcements.length > 0) {
-        const top = contextData.announcements.slice(0, 3);
-        const list = top.map(a => `• **${a.title}**${a.category ? ` [${a.category}]` : ''}`).join('\n');
-        return `Here are recent parish announcements:\n\n${list}\n\nYou can read the full notices on our [Announcements](/announcements) page.`;
+      const anns = Array.isArray(data.announcements) ? data.announcements : [];
+      if (anns.length > 0) {
+        const top = anns.slice(0, 4);
+        const list = top.map(a => `• **${a.title}**${a.category ? ` [${a.category}]` : ''}${a.summary ? `: ${a.summary}` : ''}`).join('\n');
+        return `Here are official parish announcements from our bulletin:\n\n${list}\n\nYou can read full circulars and notices on our [Announcements](/announcements) page.`;
       }
       return `You can view our latest parish bulletins and circulars on the [Announcements](/announcements) page.`;
     }
 
-    // 11. Events
+    // 11. Events from database
     if (q.includes('event') || q.includes('activit') || q.includes('fiesta') || q.includes('feast') || q.includes('calendar')) {
-      if (contextData.events && contextData.events.length > 0) {
-        const top = contextData.events.slice(0, 3);
-        const list = top.map(e => `• **${e.title}** — ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Upcoming'}`).join('\n');
-        return `Upcoming Parish Events:\n\n${list}\n\nCheck our [Events Calendar](/events) for full details and schedules.`;
+      const evts = Array.isArray(data.events) ? data.events : [];
+      if (evts.length > 0) {
+        const top = evts.slice(0, 4);
+        const list = top.map(e => `• **${e.title}** — ${e.startDatetime ? new Date(e.startDatetime).toLocaleDateString() : (e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'Scheduled')}${e.description ? `: ${e.description}` : ''}`).join('\n');
+        return `Upcoming Parish Events & Activities:\n\n${list}\n\nCheck our [Events Calendar](/events) for full details and schedules.`;
       }
-      return `Our parish hosts various spiritual formation activities and apostolates throughout the year. You can view all upcoming parish dates on our [Events](/events) page.`;
+      return `Our parish hosts various spiritual formation activities, recollection, and feast day celebrations. Check our [Events](/events) page.`;
     }
 
-    // 12. Church History & Milestones
+    // 12. Church History & Milestones from database
     if (q.includes('alliance') || q.includes('two hearts') || q.includes('patron') || q.includes('history') || q.includes('sacred heart') || q.includes('immaculate heart') || q.includes('founded') || q.includes('milestone')) {
-      if (contextData.history && contextData.history.length > 0) {
-        const milestones = contextData.history.map(h => `• **${h.eventDate ? `${h.eventDate}: ` : ''}${h.title}**${h.description ? ` — ${h.description}` : ''}`).join('\n');
-        return `**Parish History & Key Milestones:**\n\n${milestones}\n\nFounded in 1988, our parish community is dedicated to the **Alliance of the Two Hearts**. You can read our full historical narrative on the [Church History](/about/history) page.`;
+      const hist = Array.isArray(data.history) ? data.history : [];
+      if (hist.length > 0) {
+        const milestones = hist.map(h => `• **${h.year || h.eventDate || ''}: ${h.title}**${h.description ? ` — ${h.description}` : ''}`).join('\n');
+        return `**Parish History & Key Milestones:**\n\n${milestones}\n\nFounded in 1988, our parish community is dedicated to the **Alliance of the Two Hearts**. You can read our complete narrative on the [Church History](/about/history) page.`;
       }
-      return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more about our parish heritage and pastoral journey on the [Church History](/about/history) page.`;
+      return `**Parish of the Alliance of the Two Hearts:**\n\nFounded in 1988 in Banawa, Cebu City, our parish community is dedicated to the **Most Sacred Heart of Jesus** and the **Immaculate Heart of Mary** (The Two Hearts).\n\nLearn more on the [Church History](/about/history) page.`;
     }
 
-    // 13. Ministries & Apostolates
+    // 13. Ministries & Apostolates from database
     if (q.includes('ministr') || q.includes('choir') || q.includes('altar server') || q.includes('apostolate') || q.includes('volunteer') || q.includes('youth') || q.includes('caritas') || q.includes('lector') || q.includes('catech') || q.includes('usher') || q.includes('communion') || q.includes('gift bearer') || q.includes('soccom') || q.includes('serve')) {
-      let minList = '';
-      if (contextData.settings?.ministries_list) {
-        try {
-          const list = typeof contextData.settings.ministries_list === 'string'
-            ? JSON.parse(contextData.settings.ministries_list)
-            : contextData.settings.ministries_list;
-          if (Array.isArray(list) && list.length > 0) {
-            const isLegacy = list.length === 6 && list.some(m => m.id === 'min-liturgical' || m.id === 'min-caritas');
-            if (!isLegacy) {
-              minList = list
-                .filter(m => m.isPublished !== false)
-                .map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}`)
-                .join('\n');
-            }
-          }
-        } catch (e) {}
+      const mins = Array.isArray(data.ministries) ? data.ministries : [];
+      if (mins.length > 0) {
+        const list = mins.map(m => `• **${m.name}** [${m.category || 'Ministry'}]${m.coordinator ? ` (Lead: ${m.coordinator})` : ''}`).join('\n');
+        return `Here are active parish ministries and pastoral apostolates:\n\n${list}\n\nTo view meeting schedules and volunteer inquiries, please visit our [Parish Ministries](/ministries) page.`;
       }
-      if (!minList) {
-        minList = `• **Social Communications Ministry** [Media & Communications]\n• **Ministry of Altar Servers** [Worship & Liturgy]\n• **Ushering Ministry** [Hospitality & Service]\n• **Ministry of Lectors** [Ministry of the Word]\n• **Catechists** [Faith Formation & Catechesis]\n• **Ministry of Gift Bearers** [Worship & Liturgy]\n• **Music Ministry & Cantors** [Liturgical Music]\n• **Extraordinary Minister of Holy Communion** [Sacramental Ministry]`;
-      }
-      return `Our parish has 8 official ministries and pastoral apostolates:\n\n${minList}\n\nTo view complete schedules, coordinators, and volunteer inquiry information, please visit our [Parish Ministries](/ministries) page.`;
     }
 
-    // 14. Greetings
+    // 14. Mission & Vision from database
+    if (q.includes('vision') || q.includes('mission') || q.includes('pathway') || q.includes('heart') || q.includes('core value')) {
+      if (data.missionVision) {
+        const mv = data.missionVision;
+        return `**Parish Mission & Vision:**\n\n🎯 **Vision:**\n"${mv.vision || ''}"\n\n🙏 **Mission Points:**\n${(mv.missionPoints || []).map(p => `• ${p}`).join('\n')}\n\nYou can read all PATHWAYS and HEARTS core values on our [Mission & Vision](/about/mission-vision) page.`;
+      }
+    }
+
+    // 15. Greetings
     if (q.includes('hello') || q.includes('hi') || q.includes('good morning') || q.includes('good afternoon') || q.includes('good evening') || q.includes('kamusta') || q.includes('maayong')) {
       return `Peace be with you! How may I assist you with our parish services today? You can ask me about Mass times, sacramental certificates, our priests and clergy history, or parish office schedules.`;
     }
 
-    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Team & Priest History)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, telephone, mobile)\n• **Church History** & Milestones\n• **Mass Intentions** & Certificate requests\n\nFor personalized pastoral counseling or specific sacramental scheduling, feel free to contact our Parish Office at **(032) 255 3241** (Landline) or **0942 361 3174** (Mobile), or visit us along J. Fortich St., Banawa, Cebu City.`;
+    const { telephone, mobile } = resolveContactNumbers(data.settings);
+    return `Thank you for reaching out. To assist you best, you can ask me about:\n\n• **Mass Schedules** (Weekday, Saturday, Sunday)\n• **Our Priests** (Current Assigned Team & Clergy History)\n• **Sacraments** (Baptism, Weddings, Confession, Anointing)\n• **Parish Office** (Hours, location, landline, mobile)\n• **Announcements & Events** from our bulletin\n• **Parish Ministries & History**\n\nFor personalized pastoral counseling, feel free to contact our Parish Office at **${telephone}** (Landline) or **${mobile}** (Mobile), or visit us along J. Fortich St., Banawa, Cebu City.`;
   };
 
   const handleSend = async (textToSend) => {
@@ -722,7 +831,10 @@ RULES:
     const sendStartTime = Date.now();
 
     try {
-      // Format chat messages
+      // Ensure database context is loaded fresh
+      await loadLiveContext();
+
+      // Format chat messages for LLM
       const formattedHistory = newHistory.slice(-10).map(m => ({
         role: m.sender === 'user' ? 'user' : 'assistant',
         content: m.text
@@ -733,79 +845,78 @@ RULES:
           { role: 'system', content: buildSystemPrompt() },
           ...formattedHistory
         ],
-        temperature: 0.5,
+        temperature: 0.4,
         max_tokens: 800
       };
 
       let replyContent = null;
 
-      // Priority 1: Direct Groq API call using compile-time injected GROQ_API_KEY (instant, no serverless cold start/stall)
+      // Priority 1: Direct Groq API call using compile-time injected GROQ_API_KEY
       const fallbackKey = ['gsk', 'csg2VD4ui7yJwqvklVKkWGdyb3FYz2mKrBDuJb0TVlMiMMEpGfN0'].join('_');
       const directKey = (
         (typeof __GROQ_API_KEY__ !== 'undefined' && __GROQ_API_KEY__) ||
         (import.meta.env?.VITE_GROQ_API_KEY) ||
         fallbackKey
       ).trim();
-      const directModel = (
-        (typeof __GROQ_MODEL__ !== 'undefined' && __GROQ_MODEL__) ||
-        (import.meta.env?.VITE_GROQ_MODEL) ||
-        'openai/gpt-oss-120b'
-      ).trim();
+
+      const candidateModels = [
+        (typeof __GROQ_MODEL__ !== 'undefined' && __GROQ_MODEL__) || (import.meta.env?.VITE_GROQ_MODEL) || 'openai/gpt-oss-120b',
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b'
+      ].filter(Boolean);
 
       if (directKey) {
-        try {
-          const callGroq = async (targetModel) => {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second safety timeout
-            try {
-              return await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${directKey}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  model: targetModel,
-                  messages: chatPayload.messages,
-                  temperature: chatPayload.temperature,
-                  max_tokens: chatPayload.max_tokens
-                }),
-                signal: controller.signal
-              });
-            } finally {
-              clearTimeout(timeoutId);
-            }
-          };
-
-          let groqRes = await callGroq(directModel);
-
-          // Retry with default model if configured model is not available
-          if (!groqRes.ok && directModel !== 'openai/gpt-oss-120b') {
-            const errClone = await groqRes.clone().json().catch(() => ({}));
-            if (errClone.error?.message?.includes('does not exist') || errClone.error?.code === 'model_not_found') {
-              groqRes = await callGroq('openai/gpt-oss-120b');
-            }
+        const callGroq = async (targetModel) => {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second safety timeout
+          try {
+            return await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${directKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: targetModel,
+                messages: chatPayload.messages,
+                temperature: chatPayload.temperature,
+                max_tokens: chatPayload.max_tokens
+              }),
+              signal: controller.signal
+            });
+          } finally {
+            clearTimeout(timeoutId);
           }
+        };
 
-          if (groqRes.ok) {
-            const groqData = await groqRes.json();
-            if (groqData.choices?.[0]?.message?.content) {
-              replyContent = groqData.choices[0].message.content;
+        for (const modelToTry of candidateModels) {
+          try {
+            const groqRes = await callGroq(modelToTry);
+            if (groqRes.ok) {
+              const groqData = await groqRes.json();
+              if (groqData.choices?.[0]?.message?.content) {
+                replyContent = groqData.choices[0].message.content;
+                break;
+              }
+            } else {
+              const errData = await groqRes.json().catch(() => ({}));
+              console.warn(`Groq model ${modelToTry} failed (${groqRes.status}):`, errData);
+              // If model doesn't exist, loop to next candidate model
+              if (errData.error?.code === 'model_not_found') {
+                continue;
+              }
             }
-          } else {
-            const errData = await groqRes.json().catch(() => ({}));
-            console.warn('Groq direct API error status:', groqRes.status, errData);
+          } catch (modelErr) {
+            console.warn(`Error calling Groq with ${modelToTry}:`, modelErr);
           }
-        } catch (directErr) {
-          console.warn('Direct Groq call error or timeout:', directErr);
         }
       }
 
-      // Priority 2: If direct Groq was unavailable or failed, try serverless endpoint (/api/chat) with strict 8s timeout
+      // Priority 2: If direct Groq failed, try server endpoint (/api/chat)
       if (!replyContent) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout to prevent hanging
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
           const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -822,14 +933,14 @@ RULES:
             }
           }
         } catch (err) {
-          console.warn('Serverless /api/chat error or timeout:', err.message);
+          console.warn('Server /api/chat error or timeout:', err.message);
         }
       }
 
-      // Ensure the user visibly sees the natural "Parish Assistant is thinking..." indicator
+      // Ensure natural pacing
       const elapsed = Date.now() - sendStartTime;
-      if (elapsed < 600) {
-        await new Promise(r => setTimeout(r, 600 - elapsed));
+      if (elapsed < 500) {
+        await new Promise(r => setTimeout(r, 500 - elapsed));
       }
 
       // Priority 3: Render live response if received
@@ -847,7 +958,7 @@ RULES:
         return;
       }
 
-      // Priority 4: Offline canonical response fallback
+      // Priority 4: Database-driven local fallback response
       const aiReplyText = generateLocalResponse(messageText);
       const aiMsg = {
         id: (Date.now() + 1).toString(),
@@ -898,176 +1009,175 @@ RULES:
   return (
     <>
       {/* =========================================================================
-          1. FLOATING ACTION TRIGGER BUTTON (BOTTOM RIGHT - MINIMALIST WITH AMBIENT GLOW)
-         ========================================================================= */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+          1. FLOATING CHAT TRIGGER BUTTON (BOTTOM RIGHT)
+          ========================================================================= */}
+      <div className="fixed bottom-6 right-6 z-40 print:hidden">
         <button
           onClick={toggleAssistant}
-          aria-label={isOpen ? "Close AI Assistant" : "Open Parish AI Assistant"}
-          className={`relative w-12 h-12 sm:w-13 sm:h-13 rounded-full bg-gradient-to-tr from-[#071838] via-[#0D2556] to-[#071838] text-white border transition-all duration-300 ease-out flex items-center justify-center active:scale-95 group focus:outline-none ${
+          aria-label={isOpen ? 'Close Parish AI Assistant' : 'Open Parish AI Assistant'}
+          className={`relative group flex items-center gap-2.5 px-4 py-3 rounded-full text-white font-sans text-sm font-semibold shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#C59B3F]/40 ${
             isOpen
-              ? 'border-[#DFBE7B] shadow-[0_0_24px_rgba(197,155,63,0.45)]'
-              : 'border-[#DFBE7B]/50 hover:border-[#DFBE7B] shadow-[0_8px_25px_rgba(7,24,56,0.35)] hover:shadow-[0_10px_30px_rgba(197,155,63,0.35)] hover:scale-105'
+              ? 'bg-[#1C1814] text-white hover:bg-stone-800'
+              : 'bg-gradient-to-r from-[#800020] via-[#A81B2B] to-[#C59B3F] hover:shadow-[#A81B2B]/40'
           }`}
         >
-          {/* Subtle Ambient Halo on Hover */}
-          <span
-            className={`absolute -inset-1 rounded-full bg-gradient-to-r from-[#DFBE7B]/40 via-amber-400/25 to-[#800020]/25 blur-xs transition-opacity duration-300 pointer-events-none ${
-              isOpen ? 'opacity-40' : 'opacity-0 group-hover:opacity-100'
-            }`}
-          />
+          {/* Subtle luminous halo */}
+          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#C59B3F] to-[#A81B2B] opacity-35 blur-md group-hover:opacity-75 transition duration-500 animate-pulse pointer-events-none" />
 
-          {/* Shimmer Light Sweep on Hover */}
-          <span className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-            <span className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+          <div className="relative flex items-center justify-center">
+            {isOpen ? (
+              <X className="w-5 h-5 transition-transform duration-300 rotate-0 group-hover:rotate-90" />
+            ) : (
+              <Sparkles className="w-5 h-5 text-amber-200 transition-transform duration-300 group-hover:rotate-12 animate-pulse" />
+            )}
+          </div>
+
+          <span className="relative tracking-wide font-medium">
+            {isOpen ? 'Close Assistant' : 'Parish Assistant'}
           </span>
 
-          {/* Morphing Animated Icons (Sparkles to Close) */}
-          <div className="relative w-5 h-5 flex items-center justify-center pointer-events-none">
-            <Sparkles
-              className={`w-5 h-5 text-[#DFBE7B] absolute transition-all duration-300 ease-out transform ${
-                isOpen
-                  ? 'opacity-0 rotate-90 scale-50 pointer-events-none'
-                  : 'opacity-100 rotate-0 scale-100 group-hover:rotate-12 group-hover:scale-110'
-              }`}
-            />
-            <X
-              className={`w-5 h-5 text-stone-200 absolute transition-all duration-300 ease-out transform ${
-                isOpen
-                  ? 'opacity-100 rotate-0 scale-100 group-hover:rotate-90 text-white'
-                  : 'opacity-0 -rotate-90 scale-50 pointer-events-none'
-              }`}
-            />
-          </div>
+          {!isOpen && (
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+          )}
         </button>
       </div>
 
       {/* =========================================================================
-          2. POP-UP AI AGENT CHAT WINDOW
-         ========================================================================= */}
+          2. FLOATING CHAT WINDOW DIALOG (BOTTOM RIGHT)
+          ========================================================================= */}
       {isMounted && (
         <div
-          className={`fixed bottom-21 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[410px] md:w-[430px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-[0_24px_60px_-12px_rgba(7,24,56,0.35),0_0_0_1px_rgba(197,155,63,0.25)] border border-[#DFBE7B]/30 flex flex-col overflow-hidden origin-bottom-right transition-all duration-280 ease-out ${
+          role="dialog"
+          aria-label="Parish AI Virtual Assistant"
+          className={`fixed bottom-22 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[440px] h-[580px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border border-[#C59B3F]/35 flex flex-col overflow-hidden print:hidden transition-all duration-300 ease-out origin-bottom-right ${
             isOpen
-              ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
-              : 'opacity-0 scale-95 translate-y-6 pointer-events-none'
+              ? 'opacity-100 scale-100 translate-y-0'
+              : 'opacity-0 scale-95 translate-y-4 pointer-events-none'
           }`}
         >
-
-          {/* Minimalist Ecclesiastical Header */}
-          <div className="bg-gradient-to-r from-[#071838] via-[#0B2046] to-[#071838] px-4 py-3.5 sm:px-5 sm:py-4 text-white flex items-center justify-between border-b border-[#C59B3F]/30 relative overflow-hidden shrink-0">
-            {/* Subtle luminous ambient highlight */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[#DFBE7B]/15 via-transparent to-transparent pointer-events-none" />
-
-            {/* Left: Avatar & Title */}
-            <div className="flex items-center gap-3 relative z-10 min-w-0">
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[1.5px] bg-gradient-to-br from-[#DFBE7B] via-[#C59B3F] to-[#9E7722] shadow-sm shrink-0">
-                <div className="w-full h-full rounded-full bg-[#071838] flex items-center justify-center">
-                  <Church className="w-4.5 h-4.5 text-[#DFBE7B]" />
+          {/* Header */}
+          <div className="relative bg-gradient-to-r from-[#800020] via-[#5C0017] to-[#1C1814] text-white p-4 sm:p-5 flex items-center justify-between shadow-md shrink-0 border-b border-[#C59B3F]/30">
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-[#DFBE7B] via-[#C59B3F] to-[#9E7722] p-0.5 shadow-md flex items-center justify-center shrink-0">
+                <div className="w-full h-full rounded-[14px] bg-[#1C1814] flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-[#DFBE7B]" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#071838]" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#1C1814]" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-serif-heading text-[14px] sm:text-[15px] font-bold tracking-wide text-white leading-none truncate">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif-heading text-sm sm:text-base font-bold tracking-tight text-white leading-none">
                     Parish Assistant
                   </h3>
-                  <span className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 bg-[#DFBE7B]/20 text-[#DFBE7B] border border-[#DFBE7B]/35 leading-none shrink-0">
-                    <Sparkles className="w-2 h-2 text-[#DFBE7B]" /> AI
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#C59B3F]/30 text-amber-200 border border-[#C59B3F]/40 tracking-wider uppercase font-mono">
+                    AI Guide
                   </span>
                 </div>
-                <p className="text-[11px] text-stone-300 font-sans mt-1 flex items-center gap-1.5 leading-none">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                  <span className="truncate">Alliance of the Two Hearts</span>
+                <p className="text-[11px] text-amber-100/80 font-sans mt-1 flex items-center gap-1.5">
+                  <Church className="w-3 h-3 text-[#DFBE7B]" />
+                  <span>Alliance of the Two Hearts</span>
                 </p>
               </div>
             </div>
 
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-1 relative z-10 shrink-0">
+            <div className="flex items-center gap-1">
               <button
                 onClick={resetChat}
                 title="Restart conversation"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                aria-label="Restart chat"
+                aria-label="Restart conversation"
+                className="p-2 rounded-xl text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-4 h-4" />
               </button>
               <button
                 onClick={closeAssistant}
-                title="Close assistant"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-stone-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                aria-label="Close chat"
+                title="Close Assistant"
+                aria-label="Close Assistant"
+                className="p-2 rounded-xl text-stone-300 hover:text-white hover:bg-white/10 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Messages Container (Warm Ecclesiastical Parchment) */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-[#FAF8F5]">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {msg.sender === 'ai' && (
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#DFBE7B]/50 flex items-center justify-center shrink-0 text-[#9E7722] shadow-2xs mt-0.5">
-                    <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
-                  </div>
-                )}
+          {/* Quick Guidance Banner */}
+          <div className="bg-[#FAF7F0] border-b border-[#C59B3F]/20 px-4 py-2 text-[11px] text-[#8F6B1E] flex items-center justify-between shrink-0 font-medium">
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-[#C59B3F]" />
+              <span>Direct access to official parish database</span>
+            </span>
+            <span className="text-[10px] font-sans text-stone-500">
+              Live Clergy • Schedules • Bulletins
+            </span>
+          </div>
 
-                <div className={`max-w-[85%] rounded-2xl p-3.5 text-xs sm:text-[13px] leading-relaxed shadow-xs transition-colors ${
-                  msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-[#800020] to-[#6E001B] text-white rounded-tr-xs font-sans'
-                    : 'bg-white border border-stone-200/80 hover:border-[#DFBE7B]/50 text-stone-800 rounded-tl-xs shadow-[0_2px_8px_rgba(0,0,0,0.03)]'
-                }`}>
-                  {msg.sender === 'ai' ? (
-                    <FormattedMessage text={msg.text} />
-                  ) : (
-                    <div className="whitespace-pre-line font-normal space-y-1">
-                      {msg.text}
+          {/* Chat Messages Body */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FCFBF9]">
+            {messages.map((msg) => {
+              const isAi = msg.sender === 'ai';
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex items-start gap-2.5 ${isAi ? 'justify-start' : 'justify-end'}`}
+                >
+                  {isAi && (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#800020] to-[#5C0017] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5 border border-[#C59B3F]/40">
+                      <Sparkles className="w-3.5 h-3.5 text-[#DFBE7B]" />
                     </div>
                   )}
 
-                  <div className={`flex items-center justify-between gap-2 mt-2 pt-1.5 ${
-                    msg.sender === 'user' ? 'border-t border-white/15' : 'border-t border-stone-100'
-                  }`}>
-                    {msg.sender === 'ai' ? (
-                      <span className="text-[10px] text-[#9E7722] font-medium flex items-center gap-1">
-                        <Sparkles className="w-2.5 h-2.5 text-[#C59B3F]" /> Parish Assistant
-                      </span>
-                    ) : <span />}
-                    <span className={`block text-[10px] font-mono ${
-                      msg.sender === 'user' ? 'text-rose-200/80 text-right' : 'text-stone-400'
-                    }`}>
-                      {msg.timestamp}
-                    </span>
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-xs ${
+                      isAi
+                        ? 'bg-white text-stone-900 border border-[#C59B3F]/25 rounded-tl-xs'
+                        : 'bg-gradient-to-r from-[#800020] to-[#961C2C] text-white rounded-tr-xs shadow-[#800020]/20'
+                    }`}
+                  >
+                    {isAi ? (
+                      <FormattedMessage text={msg.text} />
+                    ) : (
+                      <p className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap font-sans text-white">
+                        {msg.text}
+                      </p>
+                    )}
+
+                    <div
+                      className={`text-[9px] mt-1.5 flex items-center gap-1.5 ${
+                        isAi ? 'text-stone-400 justify-start' : 'text-rose-100/80 justify-end'
+                      }`}
+                    >
+                      <span>{msg.timestamp}</span>
+                      {isAi && msg.source === 'groq' && (
+                        <span className="text-[8px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1 rounded border border-emerald-200">
+                          AI Live
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  {!isAi && (
+                    <div className="w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center shrink-0 mt-0.5 border border-stone-300">
+                      <User className="w-3.5 h-3.5" />
+                    </div>
+                  )}
                 </div>
+              );
+            })}
 
-                {msg.sender === 'user' && (
-                  <div className="w-7 h-7 rounded-full bg-[#800020]/10 border border-[#800020]/25 flex items-center justify-center shrink-0 text-[#800020] shadow-2xs mt-0.5">
-                    <User className="w-3.5 h-3.5" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Simulated / Streaming Typing Indicator */}
             {isTyping && (
-              <div className="flex gap-2.5 justify-start items-center">
-                <div className="w-7 h-7 rounded-full bg-white border border-[#DFBE7B]/50 flex items-center justify-center shrink-0 text-[#9E7722] shadow-2xs">
-                  <Church className="w-3.5 h-3.5 text-[#C59B3F]" />
+              <div className="flex items-center gap-2.5 text-stone-500 text-xs py-1">
+                <div className="w-7 h-7 rounded-full bg-[#800020] text-white flex items-center justify-center shrink-0 border border-[#C59B3F]/40">
+                  <Sparkles className="w-3.5 h-3.5 text-[#DFBE7B] animate-spin" />
                 </div>
-                <div className="bg-white border border-stone-200/80 px-4 py-2.5 rounded-2xl rounded-tl-xs shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#C59B3F] animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#071838] animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className="text-[11px] text-stone-500 font-sans italic">
-                    Parish Assistant is thinking...
+                <div className="bg-white border border-[#C59B3F]/20 rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-xs flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#800020] animate-bounce" />
+                  <span className="text-[11px] text-stone-500 ml-1.5 font-medium">
+                    Consulting parish records...
                   </span>
                 </div>
               </div>
@@ -1076,64 +1186,51 @@ RULES:
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Preset Action Chips (Scrollbar-free pill buttons) */}
-          <div className="px-3.5 py-2.5 bg-[#FAF8F5] border-t border-stone-200/60 flex items-center gap-1.5 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
+          {/* Suggested Prompts Pills */}
+          <div className="bg-white border-t border-[#C59B3F]/15 px-3 py-2 overflow-x-auto shrink-0 flex items-center gap-1.5 no-scrollbar">
             {SUGGESTED_QUERIES.map((item, idx) => {
-              const Icon = item.icon;
+              const IconComponent = item.icon;
               return (
                 <button
                   key={idx}
                   onClick={() => handleSend(item.prompt)}
                   disabled={isTyping}
-                  className="whitespace-nowrap px-3 py-1.5 rounded-full bg-white hover:bg-[#F5EEDC]/60 active:scale-95 border border-stone-200/90 hover:border-[#DFBE7B] text-[11px] font-medium text-stone-700 hover:text-[#800020] transition-all flex items-center gap-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] shrink-0 disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F0] hover:bg-[#800020] hover:text-white text-stone-700 text-[11px] font-medium border border-[#C59B3F]/25 hover:border-[#800020] whitespace-nowrap transition-all duration-200 cursor-pointer disabled:opacity-50 shrink-0 shadow-2xs group"
                 >
-                  <Icon className="w-3 h-3 text-[#C59B3F]" />
+                  <IconComponent className="w-3 h-3 text-[#C59B3F] group-hover:text-amber-200" />
                   <span>{item.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Input Form Bar (Unified Capsule with subtle gold focus halo) */}
-          <div className="p-3 sm:p-3.5 bg-white border-t border-stone-200/60 shrink-0">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-              }}
-              className="flex items-center gap-2 bg-[#F7F5F0] hover:bg-[#F3EFE6] focus-within:bg-white rounded-2xl border border-stone-200/90 focus-within:border-[#C59B3F] focus-within:ring-2 focus-within:ring-[#C59B3F]/25 p-1 pl-3.5 transition-all duration-200 shadow-2xs"
-            >
+          {/* Input Footer */}
+          <div className="p-3 sm:p-4 bg-white border-t border-stone-200 shrink-0">
+            <div className="flex items-center gap-2">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about mass, sacraments, clergy..."
+                placeholder="Ask about Mass, priests, sacraments, bulletins..."
                 disabled={isTyping}
-                className="flex-1 bg-transparent text-xs sm:text-[13px] text-stone-800 placeholder-stone-400 focus:outline-none border-none py-1.5 pr-2 disabled:opacity-60"
+                className="flex-1 bg-stone-50 border border-stone-300 focus:border-[#800020] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#800020]/20 transition-all font-sans disabled:opacity-50"
               />
               <button
-                type="submit"
+                onClick={() => handleSend()}
                 disabled={!inputMessage.trim() || isTyping}
-                aria-label="Send query"
-                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 shrink-0 ${
-                  inputMessage.trim() && !isTyping
-                    ? 'bg-[#800020] hover:bg-[#68001A] text-[#DFBE7B] hover:text-white shadow-xs active:scale-95 cursor-pointer'
-                    : 'bg-stone-200/80 text-stone-400 cursor-not-allowed'
-                }`}
+                aria-label="Send message"
+                className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#800020] to-[#A81B2B] hover:from-[#5C0017] hover:to-[#800020] text-white flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:scale-105 active:scale-95 cursor-pointer shrink-0"
               >
-                <Send className="w-4 h-4 ml-0.5" />
+                <Send className="w-4 h-4" />
               </button>
-            </form>
+            </div>
             <div className="flex items-center justify-between text-[10px] text-stone-400 mt-2 px-1">
-              <span className="font-sans">Parish of the Alliance of the Two Hearts</span>
-              <span className="flex items-center gap-1 text-[#9E7722] font-medium">
-                <Sparkles className="w-2.5 h-2.5 text-[#C59B3F]" /> AI Assistant
-              </span>
+              <span>English • Cebuano (Bisaya) • Tagalog</span>
+              <span>Parish of the Alliance of the Two Hearts</span>
             </div>
           </div>
-
         </div>
       )}
     </>

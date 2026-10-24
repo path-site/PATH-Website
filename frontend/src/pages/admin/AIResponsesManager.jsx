@@ -112,6 +112,7 @@ export default function AIResponsesManager() {
       };
       await adminApi.saveSettings(payload);
       setResponses(updatedList);
+      window.dispatchEvent(new CustomEvent('path_settings_updated', { detail: payload }));
       return true;
     } catch (err) {
       console.error('Failed to save AI responses', err);
