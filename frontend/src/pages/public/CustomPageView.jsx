@@ -61,23 +61,64 @@ export default function CustomPageView() {
     );
   }
 
+  const formattedSlugTitle = (slug || 'Parish Section')
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
   if (error || !page) {
     return (
-      <div className="py-28 px-4 text-center max-w-xl mx-auto">
-        <div className="w-16 h-16 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center mx-auto mb-4">
-          <ParishChurchOutlineIcon className="w-10 h-auto text-stone-400" />
+      <div>
+        {/* Dynamic Branded Header Banner */}
+        <div className="bg-[#191516] text-white py-14 sm:py-16 px-4 text-center relative overflow-hidden border-b-2 border-amber-600/30">
+          <div className="max-w-4xl mx-auto relative z-10">
+            <span className="text-[11px] sm:text-xs uppercase tracking-widest text-amber-400/90 font-bold block mb-2">
+              Parish of the Alliance of the Two Hearts • Banawa, Cebu City
+            </span>
+            <h1 className="text-3xl md:text-5xl font-serif-heading font-bold text-amber-50">
+              {formattedSlugTitle}
+            </h1>
+            <p className="text-stone-300 max-w-xl mx-auto mt-3 text-sm md:text-base">
+              Spiritual life, liturgical celebrations, and pastoral resources of our parish family.
+            </p>
+          </div>
         </div>
-        <h1 className="text-3xl font-serif-heading font-bold text-stone-800 mb-2">Page Not Found</h1>
-        <p className="text-stone-600 mb-6">
-          The requested parish page could not be found or has not been published yet.
-        </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#800020] text-white font-medium hover:bg-[#68001a] transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Return to Homepage</span>
-        </Link>
+
+        {/* Courteous Preparation Notice Card */}
+        <div className="max-w-3xl mx-auto px-4 py-16 text-center">
+          <div className="bg-white p-8 sm:p-12 rounded-3xl border border-stone-200/90 shadow-sm max-w-2xl mx-auto">
+            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto mb-5 shadow-xs">
+              <ParishChurchOutlineIcon className="w-10 h-auto text-[#800020]" />
+            </div>
+            <h2 className="font-serif-heading text-2xl font-bold text-stone-800 mb-3">
+              {formattedSlugTitle} Section
+            </h2>
+            <p className="text-stone-600 text-sm sm:text-base mb-8 leading-relaxed max-w-md mx-auto">
+              This page is currently being curated by the parish pastoral office. You may manage or publish custom content for this section through the Parish Admin Page Management.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#800020] text-white text-xs sm:text-sm font-semibold hover:bg-[#68001a] transition-all shadow-xs"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Return to Homepage</span>
+              </Link>
+              <Link
+                to="/contact#mass-schedule"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm font-semibold hover:bg-amber-100 transition-all shadow-xs"
+              >
+                <span>Mass & Confession Schedules</span>
+              </Link>
+              <Link
+                to="/announcements"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-stone-100 text-stone-700 text-xs sm:text-sm font-semibold hover:bg-stone-200 transition-all"
+              >
+                <span>Announcements</span>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

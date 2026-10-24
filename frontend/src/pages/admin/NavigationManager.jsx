@@ -132,8 +132,14 @@ export default function NavigationManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let cleanTargetPath = (formData.targetPath || '/').trim();
+      if (!cleanTargetPath.startsWith('/') && !cleanTargetPath.startsWith('#')) {
+        cleanTargetPath = `/${cleanTargetPath}`;
+      }
+
       const payload = {
         ...formData,
+        targetPath: formData.destinationType === 'INTERNAL' ? cleanTargetPath : formData.targetPath,
         parentId: formData.parentId ? parseInt(formData.parentId, 10) : null,
         pageId: formData.pageId ? parseInt(formData.pageId, 10) : null
       };

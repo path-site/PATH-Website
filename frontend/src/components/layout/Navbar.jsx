@@ -5,18 +5,22 @@ import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { isAdminPreviewMode, resolvePreviewPath } from '../../config/maintenanceConfig';
 import { 
   Menu, X, ChevronDown, Church, Heart, BookOpen, Clock, 
-  Users, Calendar, Image as ImageIcon, Mail, Phone, Smartphone, ArrowRight
+  Users, Calendar, Image as ImageIcon, Mail, Phone, Smartphone, ArrowRight,
+  Sparkles
 } from 'lucide-react';
 
-const iconMap = {
-  'Mission & Vision': Heart,
-  'History of the Church': Clock,
-  'Priests': Users,
-  'Ministries': Users,
-  'Announcements': BookOpen,
-  'Events': Calendar,
-  'Gallery': ImageIcon,
-  'Contact': Mail,
+const getDynamicIcon = (label = '') => {
+  const l = (label || '').toLowerCase();
+  if (l.includes('prayer') || l.includes('devotion') || l.includes('rosary') || l.includes('novena')) return Sparkles;
+  if (l.includes('mission') || l.includes('vision') || l.includes('heart') || l.includes('charity') || l.includes('love')) return Heart;
+  if (l.includes('history') || l.includes('schedule') || l.includes('time') || l.includes('clock')) return Clock;
+  if (l.includes('priest') || l.includes('clergy') || l.includes('pastor') || l.includes('shepherd')) return Users;
+  if (l.includes('ministr') || l.includes('apostolate') || l.includes('servant') || l.includes('server') || l.includes('youth')) return Users;
+  if (l.includes('announcement') || l.includes('news') || l.includes('bulletin') || l.includes('reading') || l.includes('scripture')) return BookOpen;
+  if (l.includes('event') || l.includes('calendar') || l.includes('feast') || l.includes('fiesta')) return Calendar;
+  if (l.includes('gallery') || l.includes('photo') || l.includes('image') || l.includes('album')) return ImageIcon;
+  if (l.includes('contact') || l.includes('inquir') || l.includes('reach') || l.includes('office')) return Mail;
+  return Church;
 };
 
 export default function Navbar() {
@@ -73,30 +77,34 @@ export default function Navbar() {
 
   const getNavUrl = (targetPath) => {
     if (!targetPath) return isPreview ? '/admin/preview' : '/';
+    const trimmed = String(targetPath).trim();
     if (
-      targetPath.startsWith('http://') ||
-      targetPath.startsWith('https://') ||
-      targetPath.startsWith('mailto:') ||
-      targetPath.startsWith('tel:') ||
-      targetPath.startsWith('#')
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('mailto:') ||
+      trimmed.startsWith('tel:') ||
+      trimmed.startsWith('#')
     ) {
-      return targetPath;
+      return trimmed;
     }
-    if (!isPreview) return targetPath;
-    return resolvePreviewPath(targetPath);
+    const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    if (!isPreview) return cleanPath;
+    return resolvePreviewPath(cleanPath);
   };
 
   const isCurrentActive = (path) => {
     if (!path) return false;
-    const resolved = isPreview ? resolvePreviewPath(path) : path;
-    if (path === '/' || resolved === '/admin/preview') {
+    const trimmed = String(path).trim();
+    const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    const resolved = isPreview ? resolvePreviewPath(cleanPath) : cleanPath;
+    if (cleanPath === '/' || resolved === '/admin/preview') {
       return isPreview ? location.pathname === '/admin/preview' : location.pathname === '/';
     }
     return (
       location.pathname === resolved ||
-      location.pathname.startsWith(resolved) ||
-      location.pathname === path ||
-      location.pathname.startsWith(path)
+      location.pathname.startsWith(resolved + '/') ||
+      location.pathname === cleanPath ||
+      location.pathname.startsWith(cleanPath + '/')
     );
   };
 
@@ -104,12 +112,12 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full shadow-xs transition-all">
       {/* Main Navbar */}
       <div className="bg-[#FDFCF9]/95 backdrop-blur-md border-b-2 border-[#C59B3F]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-18 sm:h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between min-h-[4.5rem] sm:min-h-[5rem] py-1.5 sm:py-2">
             
             {/* Left: Parish Official Logo and Name */}
-            <Link to={isPreview ? "/admin/preview" : "/"} className="flex items-center gap-2.5 sm:gap-3.5 group text-left min-w-0 pr-2">
-              <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#C59B3F] group-hover:ring-[#A81B2B] transition-all flex items-center justify-center overflow-hidden shrink-0">
+            <Link to={isPreview ? "/admin/preview" : "/"} className="flex items-center gap-2 sm:gap-3 group text-left min-w-0 shrink mr-1 sm:mr-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white p-0.5 shadow-md ring-2 ring-[#C59B3F] group-hover:ring-[#A81B2B] transition-all flex items-center justify-center overflow-hidden shrink-0">
                 <img 
                   src="/logo.png" 
                   alt="PATH Parish Official Seal" 
@@ -117,27 +125,29 @@ export default function Navbar() {
                 />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-serif-heading text-xs sm:text-lg lg:text-xl font-bold tracking-tight text-[#1C1814] leading-tight group-hover:text-[#A81B2B] transition-colors truncate sm:whitespace-normal">
+                <span className="font-serif-heading text-xs sm:text-sm lg:text-xs xl:text-base 2xl:text-lg font-bold tracking-tight text-[#1C1814] leading-tight group-hover:text-[#A81B2B] transition-colors truncate">
                   PARISH OF THE ALLIANCE OF THE TWO HEARTS
                 </span>
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-800/90 mt-0.5 flex items-center gap-1.5 truncate">
+                <span className="text-[9px] sm:text-[10px] xl:text-xs font-bold uppercase tracking-wider text-amber-800/90 mt-0.5 flex items-center gap-1.5 truncate">
                   <span>J. FORTICH ST., BANAWA, CEBU CITY</span>
                 </span>
               </div>
             </Link>
 
             {/* Right: Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-2" aria-label="Main Navigation">
+            <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 2xl:gap-2 shrink-0 flex-nowrap" aria-label="Main Navigation">
               {navItems.map((item) => {
-                const hasChildren = item.children && item.children.length > 0;
+                const children = Array.isArray(item.children) ? item.children : [];
+                const hasChildren = children.length > 0;
+                const isDropdown = hasChildren || item.destinationType === 'DROPDOWN_PARENT';
                 const isDropdownOpen = activeDropdown === item.id;
                 const isActive = isCurrentActive(item.targetPath || '');
 
-                if (hasChildren || item.destinationType === 'DROPDOWN_PARENT') {
+                if (isDropdown) {
                   return (
                     <div
                       key={item.id}
-                      className="relative"
+                      className="relative shrink-0"
                       onMouseEnter={() => handleMouseEnter(item.id)}
                       onMouseLeave={handleMouseLeave}
                     >
@@ -145,7 +155,7 @@ export default function Navbar() {
                         type="button"
                         aria-haspopup="true"
                         aria-expanded={isDropdownOpen}
-                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C59B3F] ${
+                        className={`inline-flex items-center gap-1 xl:gap-1.5 px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#C59B3F] whitespace-nowrap cursor-pointer ${
                           isActive || isDropdownOpen
                             ? 'text-[#A81B2B] bg-[#C59B3F]/15 font-bold'
                             : 'text-[#1C1814] hover:text-[#A81B2B] hover:bg-[#FAF7F0]'
@@ -153,7 +163,7 @@ export default function Navbar() {
                       >
                         <span>{item.label}</span>
                         <ChevronDown
-                          className={`w-4 h-4 transition-transform duration-200 ${
+                          className={`w-3.5 h-3.5 xl:w-4 xl:h-4 transition-transform duration-200 ${
                             isDropdownOpen ? 'rotate-180 text-[#C59B3F]' : 'text-stone-400'
                           }`}
                         />
@@ -162,37 +172,43 @@ export default function Navbar() {
                       {/* Desktop Dropdown Menu with animation */}
                       {isDropdownOpen && (
                         <div
-                          className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#FDFCF9] p-2.5 shadow-2xl ring-1 ring-black/5 border-t-4 border-t-[#C59B3F] border border-[#C59B3F]/30 animate-in fade-in slide-in-from-top-2 duration-150 z-50 origin-top-right"
+                          className="absolute right-0 mt-2 min-w-64 max-w-xs rounded-2xl bg-[#FDFCF9] p-2.5 shadow-2xl ring-1 ring-black/5 border-t-4 border-t-[#C59B3F] border border-[#C59B3F]/30 animate-in fade-in slide-in-from-top-2 duration-150 z-50 origin-top-right"
                           onMouseEnter={() => handleMouseEnter(item.id)}
                           onMouseLeave={handleMouseLeave}
                         >
-                          <div className="space-y-1.5">
-                            {item.children.map((subItem) => {
-                              const SubIcon = iconMap[subItem.label] || Church;
-                              const subTarget = getNavUrl(subItem.targetPath);
-                              const isSubActive = location.pathname === subTarget || location.pathname === subItem.targetPath;
-                              return (
-                                <Link
-                                  key={subItem.id}
-                                  to={subTarget}
-                                  target={subItem.openInNewTab ? '_blank' : '_self'}
-                                  rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
-                                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
-                                    isSubActive
-                                      ? 'bg-[#800020] text-white shadow-xs font-semibold'
-                                      : 'text-[#1C1814] hover:bg-[#F5EEDC] hover:text-[#800020]'
-                                  }`}
-                                >
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                    isSubActive ? 'bg-white/20 text-white' : 'bg-gradient-to-br from-[#DFBE7B] to-[#C59B3F] text-stone-900 shadow-xs'
-                                  }`}>
-                                    <SubIcon className="w-4 h-4" />
-                                  </div>
-                                  <span className="font-semibold whitespace-nowrap">{subItem.label}</span>
-                                </Link>
-                              );
-                            })}
-                          </div>
+                          {hasChildren ? (
+                            <div className="space-y-1.5">
+                              {children.map((subItem) => {
+                                const SubIcon = getDynamicIcon(subItem.label);
+                                const subTarget = getNavUrl(subItem.targetPath);
+                                const isSubActive = isCurrentActive(subItem.targetPath);
+                                return (
+                                  <Link
+                                    key={subItem.id}
+                                    to={subTarget}
+                                    target={subItem.openInNewTab ? '_blank' : '_self'}
+                                    rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
+                                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-150 ${
+                                      isSubActive
+                                        ? 'bg-[#800020] text-white shadow-xs font-semibold'
+                                        : 'text-[#1C1814] hover:bg-[#F5EEDC] hover:text-[#800020]'
+                                    }`}
+                                  >
+                                    <div className={`w-7 h-7 xl:w-8 xl:h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                      isSubActive ? 'bg-white/20 text-white' : 'bg-gradient-to-br from-[#DFBE7B] to-[#C59B3F] text-stone-900 shadow-xs'
+                                    }`}>
+                                      <SubIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                                    </div>
+                                    <span className="font-semibold truncate">{subItem.label}</span>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="px-4 py-3 text-center">
+                              <p className="text-xs text-stone-500 italic">Sub-links coming soon</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -206,9 +222,9 @@ export default function Navbar() {
                     to={item.destinationType === 'EXTERNAL' ? item.externalUrl : getNavUrl(item.targetPath || '/')}
                     target={item.openInNewTab ? '_blank' : '_self'}
                     rel={item.openInNewTab ? 'noopener noreferrer' : ''}
-                    className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all duration-200 whitespace-nowrap shrink-0 ${
                       isActive
-                        ? 'text-[#A81B2B] bg-[#C59B3F]/15 border-b-2 border-[#C59B3F]'
+                        ? 'text-[#A81B2B] bg-[#C59B3F]/15 border-b-2 border-[#C59B3F] font-bold'
                         : 'text-[#1C1814] hover:text-[#A81B2B] hover:bg-[#FAF7F0]'
                     }`}
                   >
@@ -216,7 +232,7 @@ export default function Navbar() {
                   </Link>
                 );
               })}
-          </nav>
+            </nav>
 
           {/* Mobile Hamburger Button */}
           <div className="flex items-center gap-2 lg:hidden">
@@ -238,17 +254,19 @@ export default function Navbar() {
         <div className="lg:hidden border-t border-[#C59B3F]/30 bg-[#FDFCF9]/98 backdrop-blur-xl px-4 pt-4 pb-7 shadow-2xl animate-in slide-in-from-top-3 duration-200 max-h-[85vh] overflow-y-auto">
           <div className="space-y-1.5">
             {navItems.map((item) => {
-              const hasChildren = item.children && item.children.length > 0;
+              const children = Array.isArray(item.children) ? item.children : [];
+              const hasChildren = children.length > 0;
+              const isDropdown = hasChildren || item.destinationType === 'DROPDOWN_PARENT';
               const isExpanded = mobileExpanded[item.id];
               const isActive = isCurrentActive(item.targetPath || '');
 
-              if (hasChildren || item.destinationType === 'DROPDOWN_PARENT') {
+              if (isDropdown) {
                 return (
                   <div key={item.id} className="rounded-xl overflow-hidden border border-stone-200/60 bg-white/70 shadow-xs mb-1.5">
                     <button
                       type="button"
                       onClick={() => toggleMobileSubmenu(item.id)}
-                      className="w-full flex items-center justify-between py-3 px-3.5 text-sm font-bold text-stone-800 hover:bg-stone-50 transition-colors"
+                      className="w-full flex items-center justify-between py-3 px-3.5 text-sm font-bold text-stone-800 hover:bg-stone-50 transition-colors cursor-pointer"
                     >
                       <span className="font-serif-heading">{item.label}</span>
                       <ChevronDown
@@ -260,27 +278,31 @@ export default function Navbar() {
 
                     {isExpanded && (
                       <div className="p-2 space-y-1 bg-[#FAF7F0] border-t border-stone-100">
-                        {item.children.map((subItem) => {
-                          const SubIcon = iconMap[subItem.label] || Church;
-                          const subTarget = getNavUrl(subItem.targetPath);
-                          const isSubActive = location.pathname === subTarget || location.pathname === subItem.targetPath;
-                          return (
-                            <Link
-                              key={subItem.id}
-                              to={subTarget}
-                              target={subItem.openInNewTab ? '_blank' : '_self'}
-                              rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
-                              className={`flex items-center gap-2.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-                                isSubActive
-                                  ? 'bg-[#800020] text-white shadow-xs'
-                                  : 'text-stone-700 hover:text-[#800020] hover:bg-white'
-                              }`}
-                            >
-                              <SubIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                              <span>{subItem.label}</span>
-                            </Link>
-                          );
-                        })}
+                        {hasChildren ? (
+                          children.map((subItem) => {
+                            const SubIcon = getDynamicIcon(subItem.label);
+                            const subTarget = getNavUrl(subItem.targetPath);
+                            const isSubActive = isCurrentActive(subItem.targetPath);
+                            return (
+                              <Link
+                                key={subItem.id}
+                                to={subTarget}
+                                target={subItem.openInNewTab ? '_blank' : '_self'}
+                                rel={subItem.openInNewTab ? 'noopener noreferrer' : ''}
+                                className={`flex items-center gap-2.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                                  isSubActive
+                                    ? 'bg-[#800020] text-white shadow-xs'
+                                    : 'text-stone-700 hover:text-[#800020] hover:bg-white'
+                                }`}
+                              >
+                                <SubIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                <span>{subItem.label}</span>
+                              </Link>
+                            );
+                          })
+                        ) : (
+                          <p className="px-3 py-2 text-xs text-stone-400 italic">No sub-items added yet</p>
+                        )}
                       </div>
                     )}
                   </div>

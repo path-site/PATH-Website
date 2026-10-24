@@ -126,8 +126,9 @@ export default function App() {
               <Route path="mass-schedules" element={<Navigate to="/contact#mass-schedule" replace />} />
               <Route path="schedules" element={<Navigate to="/contact#mass-schedule" replace />} />
               
-              {/* Dynamic Pages created via PageManager */}
+              {/* Dynamic Pages created via PageManager or Dynamic Custom Routes */}
               <Route path="pages/:slug" element={<CustomPageView />} />
+              <Route path=":slug" element={<CustomPageView />} />
             </Route>
 
             {/* Secret Gateway Entry Point: Unlocks portal and immediately replaces URL with /admin/login */}
@@ -165,6 +166,7 @@ export default function App() {
               <Route path="mass-schedules" element={<Navigate to="/admin/preview/contact#mass-schedule" replace />} />
               <Route path="schedules" element={<Navigate to="/admin/preview/contact#mass-schedule" replace />} />
               <Route path="pages/:slug" element={<CustomPageView />} />
+              <Route path=":slug" element={<CustomPageView />} />
             </Route>
 
             {/* Protected Admin Management Suite */}
