@@ -22,6 +22,95 @@ import { useTheme, resolveContactNumbers } from '../../context/ThemeContext';
 import { isSectionUnderMaintenance } from '../../config/maintenanceConfig';
 import { CANONICAL_INITIAL_MINISTRIES } from '../../pages/admin/MinistriesManager';
 
+// Clean and reformat raw AI responses: strips tables, divider lines, and vertical pipes (|)
+// Transforms any tabular data into clean, elegant card-like bullet points
+export function cleanChatFormatting(rawText) {
+  if (!rawText) return '';
+  let text = rawText;
+
+  // 1. Transform Markdown tables into structured cards with bold titles and bullets
+  const tableRegex = /((?:^[ \t]*\|?[^\n|]+\|[^\n]+\|?[ \t]*\r?\n)(?:^[ \t]*\|?[ \t]*:?[-]+:?[ \t]*(?:\|[ \t]*:?[-]+:?[ \t]*)+\|?[ \t]*\r?\n)(?:^[ \t]*\|?[^\n|]+\|[^\n]+\|?[ \t]*(?:\r?\n|$))+)/gm;
+
+  text = text.replace(tableRegex, (match) => {
+    const lines = match.trim().split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (lines.length < 3) return match;
+
+    const parseCells = (line) => {
+      const clean = line.replace(/^\|/, '').replace(/\|$/, '');
+      return clean.split('|').map((c) => c.trim());
+    };
+
+    const headers = parseCells(lines[0]);
+    const dataRows = lines.slice(2);
+
+    const formattedCards = dataRows
+      .map((rowLine) => {
+        const cells = parseCells(rowLine);
+        if (cells.length === 0 || cells.every((c) => !c || c === '-')) return '';
+
+        const title = cells[0] || '';
+        const linesOut = [];
+        const cleanTitle = title.replace(/^\*\*|\*\*$/g, '').trim();
+        if (cleanTitle) {
+          linesOut.push(`**${cleanTitle}**`);
+        }
+
+        for (let i = 1; i < cells.length; i++) {
+          const val = cells[i];
+          if (!val || val === '-' || val === '—' || val.toLowerCase() === 'n/a' || val.toLowerCase() === 'none') {
+            continue;
+          }
+          const headerName = headers[i] || '';
+          if (/description|brief description|details|notes|about/i.test(headerName)) {
+            linesOut.push(`• *${val}*`);
+          } else if (headerName) {
+            linesOut.push(`• **${headerName}:** ${val}`);
+          } else {
+            linesOut.push(`• ${val}`);
+          }
+        }
+        return linesOut.join('\n');
+      })
+      .filter(Boolean);
+
+    return '\n\n' + formattedCards.join('\n\n') + '\n\n';
+  });
+
+  // 2. Remove any remaining markdown table divider lines (e.g. |---|---| or ---|---)
+  text = text.replace(/^[ \t]*\|?[-: ]+\|[-: |]+$/gm, '');
+
+  // 3. Clean any remaining single piped rows
+  text = text.replace(/^[ \t]*\|(.*)\|[ \t]*$/gm, (m, c) => {
+    const parts = c.split('|').map((s) => s.trim()).filter(Boolean);
+    if (parts.length === 1) return parts[0];
+    return '• ' + parts.join(' • ');
+  });
+
+  // 4. Remove inner isolated pipes (e.g. "Item A | Item B" -> "Item A • Item B")
+  text = text.replace(/(\S)\s*\|\s*(\S)/g, '$1 • $2');
+
+  // 5. Convert unlinked route paths like /ministries or (/ministries) into markdown links
+  text = text.replace(/(^|[^(\[])\/((?:about\/(?:priests|history|mission-vision)|ministries|announcements|events|gallery|contact|pages\/[a-zA-Z0-9_-]+))(?=[^\w\/-]|$)/g, (match, prefix, path) => {
+    const titleMap = {
+      ministries: 'Parish Ministries',
+      announcements: 'Announcements',
+      events: 'Events Calendar',
+      gallery: 'Photo Gallery',
+      contact: 'Contact & Schedules',
+      'about/priests': 'Our Clergy',
+      'about/history': 'Church History',
+      'about/mission-vision': 'Mission & Vision'
+    };
+    const title = titleMap[path] || path;
+    return `${prefix}[${title}](/${path})`;
+  });
+
+  // 6. Clean spacing
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+  return text;
+}
+
 // Inline rich formatting helper for AI messages
 function renderFormattedInline(text) {
   if (!text) return '';
@@ -48,7 +137,7 @@ function renderFormattedInline(text) {
           <Link
             key={keyIdx++}
             to={url}
-            className="text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] transition-colors"
+            className="inline-flex items-center gap-1 text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] bg-amber-50/80 hover:bg-amber-100/90 px-1.5 py-0.5 rounded-md transition-colors text-[11px] sm:text-xs shadow-2xs"
           >
             {label}
           </Link>
@@ -60,7 +149,7 @@ function renderFormattedInline(text) {
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] transition-colors"
+            className="inline-flex items-center gap-1 text-[#800020] hover:text-[#5C0017] font-semibold underline decoration-[#C59B3F]/70 hover:decoration-[#800020] bg-amber-50/80 hover:bg-amber-100/90 px-1.5 py-0.5 rounded-md transition-colors text-[11px] sm:text-xs shadow-2xs"
           >
             {label}
           </a>
@@ -106,7 +195,8 @@ function renderFormattedInline(text) {
 function FormattedMessage({ text }) {
   if (!text) return null;
 
-  const blocks = text.split(/\n\n+/);
+  const cleaned = cleanChatFormatting(text);
+  const blocks = cleaned.split(/\n\n+/);
 
   return (
     <div className="space-y-2.5 text-xs sm:text-[13px] leading-relaxed text-stone-800 font-sans">
@@ -114,16 +204,63 @@ function FormattedMessage({ text }) {
         const trimmed = block.trim();
         if (!trimmed) return null;
 
-        const lines = trimmed.split('\n');
+        const lines = trimmed.split('\n').map((l) => l.trim()).filter(Boolean);
+        if (lines.length === 0) return null;
 
+        // Structured Card Block: starts with **Bold Title** and has multiple bullet lines
+        const isCardBlock =
+          lines.length > 1 &&
+          lines[0].startsWith('**') &&
+          lines[0].endsWith('**') &&
+          lines.slice(1).some((l) => l.startsWith('•') || l.startsWith('*'));
+
+        if (isCardBlock) {
+          const title = lines[0].replace(/^\*\*|\*\*$/g, '');
+          const details = lines.slice(1);
+
+          return (
+            <div
+              key={bIdx}
+              className="bg-gradient-to-br from-[#FAF8F5] via-[#FCFBF9] to-[#F5EEDC]/40 border border-[#C59B3F]/35 rounded-2xl p-3 my-2 shadow-[0_2px_8px_rgba(0,0,0,0.02)] space-y-1.5 transition-all"
+            >
+              <div className="flex items-center gap-2 pb-1.5 border-b border-[#C59B3F]/20">
+                <div className="w-5 h-5 rounded-full bg-[#800020] text-amber-200 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Church className="w-3 h-3 text-amber-100" />
+                </div>
+                <span className="font-bold text-[#800020] text-xs sm:text-[13px] tracking-tight">
+                  {renderFormattedInline(title)}
+                </span>
+              </div>
+              <div className="space-y-1 pt-0.5">
+                {details.map((line, lIdx) => {
+                  const bulletMatch = line.match(/^([•\-\*])\s+(.*)$/);
+                  if (bulletMatch) {
+                    return (
+                      <div key={lIdx} className="flex items-start gap-2 pl-0.5 py-0.5">
+                        <span className="text-[#C59B3F] font-bold mt-0.5 shrink-0 text-sm leading-none select-none">•</span>
+                        <span className="flex-1 leading-snug text-stone-800 text-xs sm:text-[12.5px]">
+                          {renderFormattedInline(bulletMatch[2])}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={lIdx} className="leading-snug text-stone-700 text-xs sm:text-[12.5px]">
+                      {renderFormattedInline(line)}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+
+        // Standard Paragraph or List Block
         return (
           <div key={bIdx} className="space-y-1">
             {lines.map((line, lIdx) => {
-              const trimmedLine = line.trim();
-              if (!trimmedLine) return null;
-
               // Bullet item: •, -, or *
-              const bulletMatch = trimmedLine.match(/^([•\-\*])\s+(.*)$/);
+              const bulletMatch = line.match(/^([•\-\*])\s+(.*)$/);
               if (bulletMatch) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-0.5 py-0.5">
@@ -134,7 +271,7 @@ function FormattedMessage({ text }) {
               }
 
               // Numbered list item: 1. 2. etc
-              const numberedMatch = trimmedLine.match(/^(\d+[\.\)])\s+(.*)$/);
+              const numberedMatch = line.match(/^(\d+[\.\)])\s+(.*)$/);
               if (numberedMatch) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-0.5 py-0.5">
@@ -147,7 +284,7 @@ function FormattedMessage({ text }) {
               // Standard paragraph line
               return (
                 <p key={lIdx} className="leading-relaxed">
-                  {renderFormattedInline(trimmedLine)}
+                  {renderFormattedInline(line)}
                 </p>
               );
             })}
@@ -559,11 +696,25 @@ CRITICAL INSTRUCTIONS ON ACCURACY:
 - If an inquiry touches on any custom admin rule in Section 7, prioritize and follow the dynamic response and instructions configured there!
 - For complex inquiries or special pastoral scheduling, encourage contacting the Parish Office at ${telephone} (Landline) or ${mobile} (Mobile).
 
-FORMATTING GUIDELINES:
-- Use clean Markdown formatting: use **bold** for names, mass times, or key headings.
-- Use bullet points (• ) for lists of schedules, requirements, or clergy.
-- When referencing pages, use Markdown links like [About / Priests](/about/priests), [Church History](/about/history), [Parish Ministries](/ministries), [Announcements](/announcements), [Events](/events), [Contact & Mass Schedules](/contact).
-- Keep responses concise, organized, and pleasant to read.
+CRITICAL CHAT FORMATTING RULES (STRICT CONSTRAINTS):
+- ABSOLUTELY NEVER USE MARKDOWN TABLES OR VERTICAL PIPES (|).
+- DO NOT use '|' under any circumstance! NEVER output table grids (| Col 1 | Col 2 |) or dashed lines (|---|---|). This is a mobile chat window where vertical pipes break layout and look unreadable.
+- Format lists of ministries, priests, schedules, sacraments, or announcements as clean, elegant card-like bullet points with bold titles and indented details.
+
+Example format for ministries or organizations:
+**Ministry of Altar Servers**
+• **Area of Service:** Worship & Liturgy
+• **Coordinator / Lead:** Cyril Nathanael Orbeta
+• *Young servants who assist the sacred ministers at the altar with reverent devotion during the Holy Sacrifice of the Mass and other liturgical rites.*
+
+Example format for schedules:
+**Sunday Masses**
+• **5:30 AM** — Cebuano
+• **7:00 AM** — English
+• **9:00 AM** — English (Live Streamed)
+
+- Use Markdown links: [Parish Ministries](/ministries), [About / Priests](/about/priests), [Announcements](/announcements), [Events](/events), [Contact & Schedules](/contact).
+- Keep responses concise, pastoral, well-spaced, and pleasant to read.
 
 OFFICIAL LIVE PARISH DATABASE:
 
@@ -950,7 +1101,7 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
           {
             id: (Date.now() + 1).toString(),
             sender: 'ai',
-            text: replyContent,
+            text: cleanChatFormatting(replyContent.trim()),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             source: 'groq'
           }
@@ -963,7 +1114,7 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
       const aiMsg = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: aiReplyText,
+        text: cleanChatFormatting(aiReplyText),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         source: 'local'
       };
@@ -976,7 +1127,7 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
         {
           id: (Date.now() + 1).toString(),
           sender: 'ai',
-          text: aiReplyText,
+          text: cleanChatFormatting(aiReplyText),
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           source: 'local'
         }
