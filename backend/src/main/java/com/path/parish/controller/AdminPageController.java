@@ -2,6 +2,7 @@ package com.path.parish.controller;
 
 import com.path.parish.dto.ApiResponse;
 import com.path.parish.model.Page;
+import com.path.parish.model.PageSection;
 import com.path.parish.model.NavigationItem;
 import com.path.parish.repository.NavigationItemRepository;
 import com.path.parish.repository.PageRepository;
