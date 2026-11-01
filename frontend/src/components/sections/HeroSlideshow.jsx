@@ -74,8 +74,7 @@ export default function HeroSlideshow({ config = {} }) {
         key={currentIndex} 
         className="relative z-20 max-w-5xl mx-auto h-full flex flex-col justify-center items-center text-center px-4 sm:px-6 lg:px-8"
       >
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-amber-300/40 text-amber-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 sm:mb-5 shadow-sm animate-fade-in-up">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+        <div className="inline-flex items-center justify-center px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-amber-300/40 text-amber-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 sm:mb-5 shadow-sm animate-fade-in-up">
           <span>Archdiocese of Cebu • Banawa, Cebu City</span>
         </div>
         <h1 className="font-serif-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-4xl drop-shadow-md animate-fade-in-up stagger-1">

@@ -28,8 +28,7 @@ export default function HomePageSkeleton() {
           </div>
 
           {/* Archdiocesan Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 backdrop-blur-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+          <div className="inline-flex items-center justify-center px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-amber-400/10 border border-amber-400/25 text-amber-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 backdrop-blur-xs">
             <span>Archdiocese of Cebu • Banawa, Cebu City</span>
           </div>
 
