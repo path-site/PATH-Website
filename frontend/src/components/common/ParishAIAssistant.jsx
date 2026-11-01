@@ -1165,8 +1165,9 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
       <div className="fixed bottom-6 right-6 z-40 print:hidden">
         <button
           onClick={toggleAssistant}
-          aria-label={isOpen ? 'Close Parish AI Assistant' : 'Open Parish AI Assistant'}
-          className={`relative group flex items-center gap-2.5 px-4 py-3 rounded-full text-white font-sans text-sm font-semibold shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#C59B3F]/40 ${
+          title={isOpen ? 'Close Parish Assistant' : 'Parish Assistant'}
+          aria-label={isOpen ? 'Close Parish Assistant' : 'Open Parish Assistant'}
+          className={`relative group flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full text-white shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#C59B3F]/40 cursor-pointer ${
             isOpen
               ? 'bg-[#1C1814] text-white hover:bg-stone-800'
               : 'bg-gradient-to-r from-[#800020] via-[#A81B2B] to-[#C59B3F] hover:shadow-[#A81B2B]/40'
@@ -1177,22 +1178,11 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
 
           <div className="relative flex items-center justify-center">
             {isOpen ? (
-              <X className="w-5 h-5 transition-transform duration-300 rotate-0 group-hover:rotate-90" />
+              <X className="w-6 h-6 transition-transform duration-300 rotate-0 group-hover:rotate-90" />
             ) : (
-              <Sparkles className="w-5 h-5 text-amber-200 transition-transform duration-300 group-hover:rotate-12 animate-pulse" />
+              <Sparkles className="w-6 h-6 text-amber-200 transition-transform duration-300 group-hover:rotate-12 animate-pulse" />
             )}
           </div>
-
-          <span className="relative tracking-wide font-medium">
-            {isOpen ? 'Close Assistant' : 'Parish Assistant'}
-          </span>
-
-          {!isOpen && (
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-            </span>
-          )}
         </button>
       </div>
 
@@ -1223,9 +1213,6 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
                   <h3 className="font-serif-heading text-sm sm:text-base font-bold tracking-tight text-white leading-none">
                     Parish Assistant
                   </h3>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#C59B3F]/30 text-amber-200 border border-[#C59B3F]/40 tracking-wider uppercase font-mono">
-                    AI Guide
-                  </span>
                 </div>
                 <p className="text-[11px] text-amber-100/80 font-sans mt-1 flex items-center gap-1.5">
                   <Church className="w-3 h-3 text-[#DFBE7B]" />
@@ -1254,16 +1241,6 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
             </div>
           </div>
 
-          {/* Quick Guidance Banner */}
-          <div className="bg-[#FAF7F0] border-b border-[#C59B3F]/20 px-4 py-2 text-[11px] text-[#8F6B1E] flex items-center justify-between shrink-0 font-medium">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3 text-[#C59B3F]" />
-              <span>Direct access to official parish database</span>
-            </span>
-            <span className="text-[10px] font-sans text-stone-500">
-              Live Clergy • Schedules • Bulletins
-            </span>
-          </div>
 
           {/* Chat Messages Body */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#FCFBF9]">
@@ -1301,11 +1278,6 @@ ${CANONICAL_KNOWLEDGE.anointing}`;
                       }`}
                     >
                       <span>{msg.timestamp}</span>
-                      {isAi && msg.source === 'groq' && (
-                        <span className="text-[8px] uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1 rounded border border-emerald-200">
-                          AI Live
-                        </span>
-                      )}
                     </div>
                   </div>
 
